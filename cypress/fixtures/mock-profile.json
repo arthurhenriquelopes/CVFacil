@@ -1,0 +1,15 @@
+{
+    "name": "Jane Doe",
+    "email": "jane@example.com",
+    "phone": "11999999999",
+    "location": "São Paulo, SP",
+    "summary": "Desenvolvedora Frontend com 5 anos de experiência.",
+    "experiences": [
+        {
+            "title": "Front-end Developer",
+            "company": "Tech Corp",
+            "period": "2020 - 2023",
+            "description": "Desenvolvimento com React."
+        }
+    ]
+}

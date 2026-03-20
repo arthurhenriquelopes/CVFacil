@@ -1,0 +1,47 @@
+{
+    "ats": {
+        "score": 45,
+        "classification": "Reprovado automaticamente",
+        "risk": "ALTO",
+        "summary": "Muitas palavras-chave faltando.",
+        "breakdown": {
+            "hardSkills": {
+                "score": 15,
+                "max": 40
+            },
+            "experience": {
+                "score": 10,
+                "max": 30
+            },
+            "keywords": {
+                "score": 10,
+                "max": 20
+            },
+            "education": {
+                "score": 10,
+                "max": 10
+            }
+        },
+        "criticalGaps": [
+            "React",
+            "Typescript"
+        ],
+        "missingKeywords": [
+            "React",
+            "Typescript",
+            "Node.js"
+        ],
+        "matchedKeywords": [
+            "JS"
+        ],
+        "strengths": [
+            "HTML vago"
+        ],
+        "tips": [
+            {
+                "text": "Melhore isso",
+                "impact": "alto"
+            }
+        ]
+    }
+}

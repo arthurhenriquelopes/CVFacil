@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analisando | CvPorVaga</title>
+    <link rel="stylesheet" href="/src/style.css">
+    <script type="module" src="/src/main.js"></script>
+    <style>
+        .spinner {
+            width: 3rem;
+            height: 3rem;
+            border: 3px solid var(--color-gray-100);
+            border-top-color: var(--color-primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .step-icon-active {
+            border-color: var(--color-primary) !important;
+            border-left-color: transparent !important;
+            animation: spin 1s linear infinite;
+        }
+
+        .step-text-active {
+            color: var(--color-primary) !important;
+        }
+
+        .step-row-active {
+            background: rgba(37, 99, 235, 0.05);
+            border: 1px solid rgba(37, 99, 235, 0.2) !important;
+        }
+    </style>
+</head>
+
+<body
+    style="background:var(--color-gray-50); padding-bottom: 6rem; display:flex; flex-direction:column; min-height:100vh;">
+    <!-- Basic minimal header -->
+    <header
+        style="background:white; border-bottom:1px solid var(--color-gray-100); padding:1rem 1.5rem; display:flex; align-items:center; gap:1rem;">
+        <h1 style="font-size:0.875rem; font-weight:800; color:var(--color-gray-900); margin:0;">ATS Scanner Pro</h1>
+    </header>
+
+    <main class="page-content"
+        style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:2rem 1rem;">
+
+        <div
+            style="background:white; width:5rem; height:5rem; border-radius:50%; box-shadow:var(--shadow-md); display:flex; align-items:center; justify-content:center; margin-bottom:2rem;">
+            <div class="spinner"></div>
+        </div>
+
+        <h2 style="font-size:1.5rem; font-weight:900; color:var(--color-gray-900); margin-bottom:3rem;">Analisando seu
+            Currículo</h2>
+
+        <div style="width:100%; max-width:28rem; display:flex; flex-direction:column; gap:1rem;">
+
+            <div id="step-0"
+                style="display:flex; align-items:center; justify-content:space-between; padding:1rem 1.5rem; border:1px solid transparent; border-radius:0.75rem; transition:all 0.3s;">
+                <div style="display:flex; align-items:center; gap:1rem;">
+                    <div class="step-icon"
+                        style="width:1.25rem; height:1.25rem; border-radius:50%; border:2px solid var(--color-gray-200); display:flex; align-items:center; justify-content:center;">
+                    </div>
+                    <span class="step-text"
+                        style="font-size:0.875rem; font-weight:700; color:var(--color-gray-400);">Escaneando estrutura
+                        do PDF...</span>
+                </div>
+            </div>
+
+            <div id="step-1"
+                style="display:flex; align-items:center; justify-content:space-between; padding:1rem 1.5rem; border:1px solid transparent; border-radius:0.75rem; transition:all 0.3s;">
+                <div style="display:flex; align-items:center; gap:1rem;">
+                    <div class="step-icon"
+                        style="width:1.25rem; height:1.25rem; border-radius:50%; border:2px solid var(--color-gray-200); display:flex; align-items:center; justify-content:center;">
+                    </div>
+                    <span class="step-text"
+                        style="font-size:0.875rem; font-weight:700; color:var(--color-gray-400);">Extraindo
+                        palavras-chave...</span>
+                </div>
+            </div>
+
+            <div id="step-2"
+                style="display:flex; align-items:center; justify-content:space-between; padding:1rem 1.5rem; border:1px solid transparent; border-radius:0.75rem; transition:all 0.3s;">
+                <div style="display:flex; align-items:center; gap:1rem;">
+                    <div class="step-icon"
+                        style="width:1.25rem; height:1.25rem; border-radius:50%; border:2px solid var(--color-gray-200); display:flex; align-items:center; justify-content:center;">
+                    </div>
+                    <span class="step-text"
+                        style="font-size:0.875rem; font-weight:700; color:var(--color-gray-400);">Cruzando dados com a
+                        vaga...</span>
+                </div>
+                <div class="step-extra" style="display:none; color:var(--color-primary);">
+                    <i class="pi pi-ellipsis-h"></i>
+                </div>
+            </div>
+
+            <div id="step-3"
+                style="display:flex; align-items:center; justify-content:space-between; padding:1rem 1.5rem; border:1px solid transparent; border-radius:0.75rem; transition:all 0.3s;">
+                <div style="display:flex; align-items:center; gap:1rem;">
+                    <div class="step-icon"
+                        style="width:1.25rem; height:1.25rem; border-radius:50%; border:2px solid var(--color-gray-200); display:flex; align-items:center; justify-content:center;">
+                    </div>
+                    <span class="step-text"
+                        style="font-size:0.875rem; font-weight:700; color:var(--color-gray-400);">Calculando score de
+                        aderência...</span>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script type="module">
+        let currentIdx = 0;
+
+        function updateUI() {
+            if (currentIdx > 3) return;
+
+            // Previous steps complete
+            for (let i = 0; i < currentIdx; i++) {
+                const el = document.getElementById(`step-${i}`);
+                el.classList.remove('step-row-active');
+                el.querySelector('.step-icon').classList.remove('step-icon-active');
+                el.querySelector('.step-icon').style.border = 'none';
+                el.querySelector('.step-icon').innerHTML = '<i class="pi pi-check-circle" style="color:#22c55e; font-size:1.25rem;"></i>';
+                el.querySelector('.step-text').style.color = '#22c55e';
+                const ex = el.querySelector('.step-extra');
+                if (ex) ex.style.display = 'none';
+            }
+
+            // Current step active
+            const el = document.getElementById(`step-${currentIdx}`);
+            el.classList.add('step-row-active');
+            el.querySelector('.step-text').classList.add('step-text-active');
+            el.querySelector('.step-icon').classList.add('step-icon-active');
+            el.querySelector('.step-icon').innerHTML = '';
+
+            const ex = el.querySelector('.step-extra');
+            if (ex) ex.style.display = 'block';
+        }
+
+        function animateStep() {
+            updateUI();
+            if (currentIdx >= 4) return;
+
+            const delay = 1000 + Math.random() * 1500;
+            setTimeout(() => {
+                currentIdx++;
+                animateStep();
+            }, delay);
+        }
+
+        // Start animation visually independent of real analysis time
+        setTimeout(animateStep, 400);
+
+        // Actual logic call
+        import { getState, setState, resetFlow } from '/src/lib/store.js';
+        import { analyzeJob } from '/src/prompts/analyze-job.js';
+
+        async function run() {
+            try {
+                const state = getState();
+                if (!state.profile || !state.jobDescription) {
+                    throw new Error('Faltam dados do perfil ou vaga');
+                }
+                const result = await analyzeJob(state.profile, state.jobDescription);
+                setState({ analysisResult: result });
+
+                // Jump to 100% complete
+                currentIdx = 4;
+                updateUI();
+
+                setTimeout(() => {
+                    if (state.flow === 'ats') {
+                        resetFlow();
+                        window.location.href = '/pages/step-ats-result.html';
+                    } else {
+                        window.location.href = '/pages/step-analysis.html';
+                    }
+                }, 800);
+
+            } catch (err) {
+                console.error(err);
+                alert('Ocorreu um erro ao analisar. Tente novamente.');
+                window.location.href = '/pages/step-job.html';
+            }
+        }
+
+        run();
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Análise da Vaga | CvPorVaga</title>
+    <link rel="stylesheet" href="/src/style.css">
+    <script type="module" src="/src/main.js"></script>
+</head>
+
+<body>
+    <script type="module">
+        import { injectStepHeader, injectStepFooter } from '/src/lib/layout.js';
+        import { getState, setState } from '/src/lib/store.js';
+        import { analyzeJob } from '/src/prompts/analyze-job.js';
+
+        injectStepHeader({ step: 6, backHref: '/pages/step-job.html' });
+
+        const state = getState();
+        const loadingEl = document.getElementById('analysis-loading');
+        const contentEl = document.getElementById('analysis-content');
+        const selectionEl = document.getElementById('selection-section');
+        const errorEl = document.getElementById('error-section');
+
+        async function runAnalysis() {
+            try {
+                const result = await analyzeJob(state.profile, state.jobDescription);
+                setState({ analysisResult: result });
+
+                // Populate results
+                document.getElementById('keyword-count').textContent = `Encontramos ${result.keywords?.length || 0} palavras-chave na vaga`;
+                document.getElementById('match-pct').textContent = `Seu perfil tem ${result.matchPercentage || 0}% de compatibilidade`;
+                document.getElementById('exp-count').textContent = `${result.highlightableExperiences?.length || 0} experiências podem ser destacadas`;
+
+                loadingEl.style.display = 'none';
+                contentEl.style.display = 'block';
+                contentEl.classList.add('fade-in');
+
+                setTimeout(() => {
+                    selectionEl.style.display = 'block';
+                    selectionEl.classList.add('fade-in');
+                    const footer = document.getElementById('footer-wrap');
+                    if (footer) footer.style.display = 'block';
+                }, 800);
+            } catch (err) {
+                console.error(err);
+                loadingEl.style.display = 'none';
+                errorEl.style.display = 'block';
+                document.getElementById('error-msg').textContent = err.message;
+            }
+        }
+
+        runAnalysis();
+
+        // Focus selection
+        document.addEventListener('click', e => {
+            const card = e.target.closest('[data-focus]');
+            if (!card) return;
+            document.querySelectorAll('[data-focus]').forEach(c => c.classList.remove('selected'));
+            card.classList.add('selected');
+            setState({ focus: card.dataset.focus });
+
+            // Footer is already shown
+        });
+    </script>
+
+    <main class="page-content step-content" style="max-width:var(--max-width);margin:0 auto;">
+        <!-- Loading -->
+        <div id="analysis-loading"
+            style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:4rem 0;gap:1rem;">
+            <div class="spinner"></div>
+            <p style="color:var(--color-primary);font-weight:700;animation:fadeIn 1s ease infinite alternate;">
+                Analisando sua compatibilidade...</p>
+        </div>
+
+        <!-- Error -->
+        <div id="error-section" style="display:none;text-align:center;padding:4rem 1rem;">
+            <div style="font-size:3rem;margin-bottom:1rem;color:var(--color-warning);"><i
+                    class="pi pi-exclamation-triangle"></i></div>
+            <h2 style="font-weight:800;font-size:1.5rem;margin-bottom:0.5rem;">Erro na análise</h2>
+            <p id="error-msg" style="color:var(--color-gray-500);margin-bottom:2rem;"></p>
+            <a href="/pages/step-job.html" class="btn-continue"
+                style="width:auto;padding:0 2rem;display:inline-flex;">Voltar e tentar novamente</a>
+        </div>
+
+        <!-- Analysis Results -->
+        <div id="analysis-content" style="display:none;">
+            <div class="card" style="background:rgba(37,99,235,0.04);border-color:rgba(37,99,235,0.1);padding:2rem;">
+                <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.5rem;">
+                    <div
+                        style="width:3rem;height:3rem;background:var(--color-primary-light);border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;color:var(--color-primary);">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path
+                                d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z">
+                            </path>
+                        </svg>
+                    </div>
+                    <h2 style="font-size:1.25rem;font-weight:900;">Análise da Vaga</h2>
+                </div>
+                <ul style="list-style:none;padding:0;margin:0;" class="space-y-4">
+                    <li style="display:flex;align-items:center;gap:0.75rem;font-weight:600;">
+                        <div
+                            style="width:1.5rem;height:1.5rem;background:var(--color-success-light);color:var(--color-success);border-radius:50%;display:flex;align-items:center;justify-content:center;">
+                            ✓</div>
+                        <span id="keyword-count">Encontramos 0 palavras-chave na vaga</span>
+                    </li>
+                    <li style="display:flex;align-items:center;gap:0.75rem;font-weight:600;">
+                        <div
+                            style="width:1.5rem;height:1.5rem;background:var(--color-success-light);color:var(--color-success);border-radius:50%;display:flex;align-items:center;justify-content:center;">
+                            ✓</div>
+                        <span id="match-pct">Seu perfil tem 0% de compatibilidade</span>
+                    </li>
+                    <li style="display:flex;align-items:center;gap:0.75rem;font-weight:600;">
+                        <div
+                            style="width:1.5rem;height:1.5rem;background:var(--color-success-light);color:var(--color-success);border-radius:50%;display:flex;align-items:center;justify-content:center;">
+                            ✓</div>
+                        <span id="exp-count">0 experiências podem ser destacadas</span>
+                    </li>
+                </ul>
+                <div
+                    style="padding-top:1rem;margin-top:1rem;border-top:1px solid rgba(37,99,235,0.1);display:flex;align-items:center;gap:0.75rem;color:var(--color-primary);font-weight:700;">
+                    <i class="pi pi-bookmark" style="font-size:1rem;"></i> Ótimo! A IA identificou oportunidades de
+                    melhoria.
+                </div>
+            </div>
+        </div>
+
+        <!-- Focus Selection -->
+        <div id="selection-section" style="display:none;padding:2rem 0;" class="space-y-6">
+            <div style="text-align:center;" class="mb-6">
+                <h2 style="font-size:1.75rem;font-weight:900;">O que você quer destacar?</h2>
+                <p style="color:var(--color-gray-500);font-weight:500;">Escolha o foco principal do seu currículo</p>
+            </div>
+
+            <div class="card selected" data-focus="experiences"
+                style="cursor:pointer;display:flex;align-items:center;gap:1.25rem;padding:1.5rem;">
+                <div
+                    style="width:3rem;height:3rem;background:var(--color-primary);border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;color:white;flex-shrink:0;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect width="20" height="14" x="2" y="7" rx="2" ry="2"></rect>
+                        <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+                    </svg>
+                </div>
+                <div style="flex:1;">
+                    <h3 style="font-weight:800;color:var(--color-primary);font-size:1.125rem;">Experiências relevantes
+                    </h3>
+                    <p style="font-size:0.8125rem;color:var(--color-gray-500);font-weight:500;">Destaque as posições que
+                        mais combinam com a vaga</p>
+                </div>
+            </div>
+
+            <div class="card" data-focus="skills"
+                style="cursor:pointer;display:flex;align-items:center;gap:1.25rem;padding:1.5rem;">
+                <div
+                    style="width:3rem;height:3rem;background:var(--color-gray-100);border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;color:var(--color-gray-400);flex-shrink:0;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path
+                            d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z">
+                        </path>
+                    </svg>
+                </div>
+                <div style="flex:1;">
+                    <h3 style="font-weight:800;font-size:1.125rem;">Habilidades técnicas</h3>
+                    <p style="font-size:0.8125rem;color:var(--color-gray-500);font-weight:500;">Foco em tecnologias,
+                        ferramentas e competências</p>
+                </div>
+            </div>
+
+            <div class="card" data-focus="results"
+                style="cursor:pointer;display:flex;align-items:center;gap:1.25rem;padding:1.5rem;">
+                <div
+                    style="width:3rem;height:3rem;background:var(--color-gray-100);border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;color:var(--color-gray-400);flex-shrink:0;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+                    </svg>
+                </div>
+                <div style="flex:1;">
+                    <h3 style="font-weight:800;font-size:1.125rem;">Resultados e conquistas</h3>
+                    <p style="font-size:0.8125rem;color:var(--color-gray-500);font-weight:500;">Números, metas batidas e
+                        impacto gerado</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Floating Footer -->
+    <div id="footer-wrap"
+        style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:50;padding:2rem 1rem 1.5rem;background:linear-gradient(to top, white 70%, rgba(255,255,255,0)); pointer-events:none;">
+        <div style="max-width:var(--max-width);margin:0 auto; pointer-events:auto;">
+            <a href="/pages/step-template.html" class="btn-continue"
+                style="display:flex;align-items:center;justify-content:center;text-decoration:none;">CONTINUAR</a>
+        </div>
+    </div>
+</body>
+
+</html>

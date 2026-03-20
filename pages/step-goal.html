@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Qual seu objetivo? | CvPorVaga</title>
+    <link rel="stylesheet" href="/src/style.css">
+    <script type="module" src="/src/main.js"></script>
+</head>
+
+<body>
+    <script type="module">
+        import { injectStepHeader, injectStepFooter } from '/src/lib/layout.js';
+        import { setState } from '/src/lib/store.js';
+        injectStepHeader({ step: 1, backHref: '/pages/dashboard.html' });
+        injectStepFooter({ id: 'btn-next', disabled: true });
+
+        document.addEventListener('click', e => {
+            const targetBtn = e.target.closest('#btn-next');
+            if (targetBtn && targetBtn.style.pointerEvents !== 'none') {
+                window.location.href = '/pages/step-frequency.html';
+                return;
+            }
+
+            const card = e.target.closest('[data-goal]');
+            if (!card) return;
+            document.querySelectorAll('[data-goal]').forEach(c => c.classList.remove('selected'));
+            card.classList.add('selected');
+            setState({ goal: card.dataset.goal });
+            const btn = document.getElementById('btn-next');
+            btn.style.pointerEvents = 'auto';
+            btn.style.opacity = '1';
+        });
+    </script>
+
+    <main class="page-content step-content">
+        <div style="text-align:center;max-width:48rem;margin:0 auto;">
+            <div
+                style="width:4rem;height:4rem;background:var(--color-primary-light);color:var(--color-primary);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 2rem;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                </svg>
+            </div>
+            <h2
+                style="font-size:clamp(1.75rem,4vw,2.5rem);font-weight:900;margin-bottom:0.75rem;letter-spacing:-0.025em;">
+                Qual é o seu objetivo?</h2>
+            <p
+                style="color:var(--color-gray-500);font-weight:500;margin-bottom:3rem;max-width:28rem;margin-left:auto;margin-right:auto;">
+                Isso nos ajuda a personalizar seu currículo da melhor forma.</p>
+
+            <div class="grid grid-2" style="gap:1.5rem;max-width:40rem;margin:0 auto;">
+                <div class="card" data-goal="emprego"
+                    style="cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:2rem;">
+                    <h3 style="font-weight:800;font-size:1.125rem;margin-bottom:0.25rem;">Conseguir emprego</h3>
+                    <p style="font-size:0.875rem;color:var(--color-gray-500);">Quero ser contratado</p>
+                </div>
+                <div class="card" data-goal="transicao"
+                    style="cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:2rem;">
+                    <h3 style="font-weight:800;font-size:1.125rem;margin-bottom:0.25rem;">Transição de carreira</h3>
+                    <p style="font-size:0.875rem;color:var(--color-gray-500);">Mudar de área</p>
+                </div>
+                <div class="card" data-goal="promocao"
+                    style="cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:2rem;">
+                    <h3 style="font-weight:800;font-size:1.125rem;margin-bottom:0.25rem;">Promoção interna</h3>
+                    <p style="font-size:0.875rem;color:var(--color-gray-500);">Crescer na empresa</p>
+                </div>
+                <div class="card" data-goal="freelancer"
+                    style="cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:2rem;">
+                    <h3 style="font-weight:800;font-size:1.125rem;margin-bottom:0.25rem;">Freelancer / PJ</h3>
+                    <p style="font-size:0.875rem;color:var(--color-gray-500);">Portfolio profissional</p>
+                </div>
+            </div>
+        </div>
+    </main>
+</body>
+
+</html>

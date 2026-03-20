@@ -1,0 +1,42 @@
+{
+    "ats": {
+        "score": 92,
+        "classification": "Aprovado",
+        "risk": "BAIXO",
+        "summary": "Excelente aderência.",
+        "breakdown": {
+            "hardSkills": {
+                "score": 38,
+                "max": 40
+            },
+            "experience": {
+                "score": 28,
+                "max": 30
+            },
+            "keywords": {
+                "score": 18,
+                "max": 20
+            },
+            "education": {
+                "score": 8,
+                "max": 10
+            }
+        },
+        "criticalGaps": [],
+        "missingKeywords": [],
+        "matchedKeywords": [
+            "React",
+            "Typescript",
+            "Node.js"
+        ],
+        "strengths": [
+            "Sólida experiência"
+        ],
+        "tips": [
+            {
+                "text": "Mantenha o bom trabalho",
+                "impact": "baixa"
+            }
+        ]
+    }
+}

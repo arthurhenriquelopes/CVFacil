@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerando CV... | CvPorVaga</title>
+    <link rel="stylesheet" href="/src/style.css">
+    <script type="module" src="/src/main.js"></script>
+</head>
+
+<body style="background:white;">
+    <script type="module">
+        import { injectStepHeader } from '/src/lib/layout.js';
+        import { getState, setState } from '/src/lib/store.js';
+        import { generateCV } from '/src/prompts/generate-cv.js';
+
+        injectStepHeader({ step: 8, backHref: '/pages/step-template.html' });
+
+        const steps = [
+            { id: 'step-0', text: 'Analisando seu perfil...' },
+            { id: 'step-1', text: 'Identificando palavras-chave...' },
+            { id: 'step-2', text: 'Estruturando seções do currículo...' },
+            { id: 'step-3', text: 'Otimizando para ATS...' },
+            { id: 'step-4', text: 'Finalizando formatação...' },
+        ];
+
+        const state = getState();
+        let currentIdx = 0;
+        let cvGenerated = false;
+
+        // Start the API call immediately
+        const cvPromise = generateCV({
+            profile: state.profile,
+            jobDescription: state.jobDescription,
+            goal: state.goal,
+            frequency: state.frequency,
+            focus: state.focus || 'experiences',
+            template: state.template || 'modern',
+            analysis: state.analysisResult,
+        }).then(cv => {
+            setState({ generatedCV: cv });
+            cvGenerated = true;
+            return cv;
+        }).catch(err => {
+            console.error(err);
+            document.getElementById('status-text').textContent = 'Erro: ' + err.message;
+            document.getElementById('status-text').style.color = 'var(--color-error)';
+        });
+
+        function animateStep() {
+            if (currentIdx >= steps.length) {
+                // Wait for API if not done yet
+                if (!cvGenerated) {
+                    document.getElementById('status-text').textContent = 'Quase lá...';
+                    cvPromise.then(() => {
+                        window.location.href = '/pages/result.html';
+                    });
+                } else {
+                    const bar = document.querySelector('.progress-bar-fill');
+                    if (bar) bar.style.width = '100%';
+                    setTimeout(() => { window.location.href = '/pages/result.html'; }, 500);
+                }
+                return;
+            }
+
+            const el = document.getElementById(steps[currentIdx].id);
+            // Activate
+            el.style.color = 'var(--color-primary)';
+            el.querySelector('.step-icon').innerHTML = '<div class="spinner" style="width:1.25rem;height:1.25rem;border-width:2px;"></div>';
+
+            const delay = 1200 + Math.random() * 1000;
+            setTimeout(() => {
+                // Complete
+                el.style.color = 'var(--color-success)';
+                el.querySelector('.step-icon').innerHTML = '<i class="pi pi-check" style="font-size:1rem;"></i>';
+                el.querySelector('.step-text').style.color = 'var(--color-gray-800)';
+                currentIdx++;
+                animateStep();
+            }, delay);
+        }
+
+        // Start after a brief delay
+        setTimeout(animateStep, 400);
+    </script>
+
+    <main class="page-content step-content"
+        style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:70vh;gap:3rem;">
+        <div class="spinner"></div>
+
+        <div style="width:100%;max-width:24rem;padding-left:1rem;" class="space-y-6">
+            <div id="step-0"
+                style="display:flex;align-items:center;gap:1rem;font-weight:700;color:var(--color-gray-300);transition:color 0.3s;">
+                <span class="step-icon"
+                    style="width:1.5rem;height:1.5rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                    <div style="width:0.5rem;height:0.5rem;border-radius:50%;border:2px solid var(--color-gray-200);">
+                    </div>
+                </span>
+                <span class="step-text">Analisando seu perfil...</span>
+            </div>
+            <div id="step-1"
+                style="display:flex;align-items:center;gap:1rem;font-weight:700;color:var(--color-gray-300);transition:color 0.3s;">
+                <span class="step-icon"
+                    style="width:1.5rem;height:1.5rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                    <div style="width:0.5rem;height:0.5rem;border-radius:50%;border:2px solid var(--color-gray-200);">
+                    </div>
+                </span>
+                <span class="step-text">Identificando palavras-chave...</span>
+            </div>
+            <div id="step-2"
+                style="display:flex;align-items:center;gap:1rem;font-weight:700;color:var(--color-gray-300);transition:color 0.3s;">
+                <span class="step-icon"
+                    style="width:1.5rem;height:1.5rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                    <div style="width:0.5rem;height:0.5rem;border-radius:50%;border:2px solid var(--color-gray-200);">
+                    </div>
+                </span>
+                <span class="step-text">Estruturando seções do currículo...</span>
+            </div>
+            <div id="step-3"
+                style="display:flex;align-items:center;gap:1rem;font-weight:700;color:var(--color-gray-300);transition:color 0.3s;">
+                <span class="step-icon"
+                    style="width:1.5rem;height:1.5rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                    <div style="width:0.5rem;height:0.5rem;border-radius:50%;border:2px solid var(--color-gray-200);">
+                    </div>
+                </span>
+                <span class="step-text">Otimizando para ATS...</span>
+            </div>
+            <div id="step-4"
+                style="display:flex;align-items:center;gap:1rem;font-weight:700;color:var(--color-gray-300);transition:color 0.3s;">
+                <span class="step-icon"
+                    style="width:1.5rem;height:1.5rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                    <div style="width:0.5rem;height:0.5rem;border-radius:50%;border:2px solid var(--color-gray-200);">
+                    </div>
+                </span>
+                <span class="step-text">Finalizando formatação...</span>
+            </div>
+        </div>
+
+        <p id="status-text"
+            style="color:var(--color-gray-500);font-weight:500;font-size:1.125rem;animation:fadeIn 1s ease infinite alternate;">
+            Aguarde enquanto nossa IA trabalha...</p>
+    </main>
+</body>
+
+</html>

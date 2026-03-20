@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resultado | CvPorVaga</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Merriweather:wght@400;700;900&family=Inter:wght@400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <link rel="stylesheet" href="/src/style.css">
+    <script type="module" src="/src/main.js"></script>
+    <style>
+        /* ========================================
+           MODERN TEMPLATE — Compact 2-column, blue accents
+           ======================================== */
+        .cv-modern {
+            font-family: 'Inter', system-ui, sans-serif;
+            color: #1a1a1a;
+            line-height: 1.45;
+            font-size: 9pt;
+        }
+
+        .cv-modern * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        .cv-modern .cv-header {
+            margin-bottom: 0.6rem;
+        }
+
+        .cv-modern .cv-header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .cv-modern .cv-name {
+            font-size: 20pt;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: -0.02em;
+            line-height: 1.1;
+        }
+
+        .cv-modern .cv-title {
+            font-size: 10pt;
+            color: #2563eb;
+            font-weight: 700;
+            margin-top: 2px;
+        }
+
+        .cv-modern .cv-contact {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            font-size: 7.5pt;
+            color: #666;
+            margin-top: 6px;
+            font-weight: 500;
+        }
+
+        .cv-modern .cv-contact span {
+            display: flex;
+            align-items: center;
+            gap: 3px;
+        }
+
+        .cv-modern .cv-initials {
+            width: 3.2rem;
+            height: 3.2rem;
+            background: #2563eb;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 14pt;
+            font-weight: 800;
+            flex-shrink: 0;
+        }
+
+        .cv-modern .cv-body {
+            display: grid;
+            grid-template-columns: 1.7fr 1fr;
+            gap: 1.2rem;
+        }
+
+        .cv-modern .cv-section-title {
+            font-size: 9pt;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #1a1a1a;
+            border-bottom: 3px solid #1a1a1a;
+            padding-bottom: 3px;
+            margin-bottom: 8px;
+        }
+
+        .cv-modern .cv-exp-item {
+            margin-bottom: 10px;
+        }
+
+        .cv-modern .cv-exp-title {
+            font-size: 9.5pt;
+            font-weight: 800;
+        }
+
+        .cv-modern .cv-exp-company {
+            font-size: 8.5pt;
+            color: #2563eb;
+            font-weight: 700;
+        }
+
+        .cv-modern .cv-exp-meta {
+            font-size: 7pt;
+            color: #888;
+        }
+
+        .cv-modern .cv-exp-bullets {
+            padding-left: 14px;
+            list-style: disc;
+        }
+
+        .cv-modern .cv-exp-bullets li {
+            font-size: 8pt;
+            color: #444;
+            margin-bottom: 2px;
+            line-height: 1.4;
+        }
+
+        .cv-modern .cv-edu-item {
+            margin-bottom: 6px;
+        }
+
+        .cv-modern .cv-edu-degree {
+            font-size: 9pt;
+            font-weight: 800;
+            color: #2563eb;
+        }
+
+        .cv-modern .cv-edu-inst {
+            font-size: 8.5pt;
+            font-weight: 700;
+        }
+
+        .cv-modern .cv-edu-meta {
+            font-size: 7pt;
+            color: #888;
+        }
+
+        .cv-modern .cv-summary-text {
+            font-size: 8pt;
+            color: #444;
+            line-height: 1.5;
+            text-align: justify;
+        }
+
+        .cv-modern .cv-skill-group {
+            margin-bottom: 6px;
+        }
+
+        .cv-modern .cv-skill-group-title {
+            font-size: 8pt;
+            font-weight: 800;
+            color: #1a1a1a;
+            margin-bottom: 2px;
+        }
+
+        .cv-modern .cv-skill-items {
+            font-size: 7.5pt;
+            color: #555;
+            line-height: 1.5;
+        }
+
+        .cv-modern .cv-lang-item {
+            font-size: 8pt;
+            color: #444;
+            margin-bottom: 2px;
+        }
+
+        .cv-modern .cv-lang-item b {
+            color: #2563eb;
+        }
+
+        .cv-modern .cv-cert-item {
+            font-size: 8pt;
+            color: #444;
+            margin-bottom: 2px;
+        }
+
+        .cv-modern .cv-proj-item {
+            margin-bottom: 5px;
+        }
+
+        .cv-modern .cv-proj-title {
+            font-size: 8.5pt;
+            font-weight: 800;
+        }
+
+        .cv-modern .cv-proj-desc {
+            font-size: 7.5pt;
+            color: #555;
+            line-height: 1.4;
+        }
+
+        /* ========================================
+           CLASSIC TEMPLATE — Elegant, minimal, Grok-inspired
+           ======================================== */
+        .cv-classic {
+            font-family: 'Space Grotesk', 'Inter', system-ui, sans-serif;
+            color: #1c1c1c;
+            line-height: 1.5;
+            font-size: 9pt;
+        }
+
+        .cv-classic * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        .cv-classic .cv-header {
+            border-bottom: 1px solid #d0d0d0;
+            padding-bottom: 10px;
+            margin-bottom: 12px;
+        }
+
+        .cv-classic .cv-name {
+            font-size: 20pt;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            line-height: 1.1;
+            color: #1c1c1c;
+        }
+
+        .cv-classic .cv-title {
+            font-size: 9.5pt;
+            color: #555;
+            font-weight: 400;
+            margin-top: 3px;
+            font-style: italic;
+            letter-spacing: 0.02em;
+        }
+
+        .cv-classic .cv-contact {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            font-size: 7.5pt;
+            color: #777;
+            margin-top: 6px;
+            font-weight: 400;
+            letter-spacing: 0.01em;
+        }
+
+        .cv-classic .cv-contact span {
+            display: flex;
+            align-items: center;
+            gap: 3px;
+        }
+
+        .cv-classic .cv-body {
+            display: grid;
+            grid-template-columns: 1.7fr 1fr;
+            gap: 1.4rem;
+        }
+
+        .cv-classic .cv-section-title {
+            font-size: 7.5pt;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.18em;
+            color: #1c1c1c;
+            border-bottom: 1.5px solid #1c1c1c;
+            padding-bottom: 4px;
+            margin-bottom: 10px;
+        }
+
+        .cv-classic .cv-exp-item {
+            margin-bottom: 12px;
+        }
+
+        .cv-classic .cv-exp-title {
+            font-size: 9.5pt;
+            font-weight: 600;
+            color: #1c1c1c;
+        }
+
+        .cv-classic .cv-exp-company {
+            font-size: 8.5pt;
+            color: #444;
+            font-weight: 500;
+            font-style: italic;
+        }
+
+        .cv-classic .cv-exp-meta {
+            font-size: 7pt;
+            color: #999;
+            letter-spacing: 0.02em;
+        }
+
+        .cv-classic .cv-exp-bullets {
+            padding-left: 14px;
+            list-style: none;
+        }
+
+        .cv-classic .cv-exp-bullets li {
+            font-size: 8pt;
+            color: #444;
+            margin-bottom: 2px;
+            line-height: 1.45;
+            position: relative;
+            padding-left: 2px;
+        }
+
+        .cv-classic .cv-exp-bullets li::before {
+            content: "—";
+            position: absolute;
+            left: -14px;
+            color: #bbb;
+        }
+
+        .cv-classic .cv-edu-item {
+            margin-bottom: 6px;
+        }
+
+        .cv-classic .cv-edu-degree {
+            font-size: 9pt;
+            font-weight: 600;
+            color: #1c1c1c;
+        }
+
+        .cv-classic .cv-edu-inst {
+            font-size: 8.5pt;
+            font-weight: 400;
+            font-style: italic;
+            color: #555;
+        }
+
+        .cv-classic .cv-edu-meta {
+            font-size: 7pt;
+            color: #999;
+        }
+
+        .cv-classic .cv-summary-text {
+            font-size: 8pt;
+            color: #444;
+            line-height: 1.6;
+            text-align: justify;
+        }
+
+        .cv-classic .cv-skill-group {
+            margin-bottom: 6px;
+        }
+
+        .cv-classic .cv-skill-group-title {
+            font-size: 7pt;
+            font-weight: 700;
+            color: #1c1c1c;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 3px;
+        }
+
+        .cv-classic .cv-skill-items {
+            font-size: 7.5pt;
+            color: #555;
+            line-height: 1.6;
+        }
+
+        .cv-classic .cv-lang-item {
+            font-size: 8pt;
+            color: #444;
+            margin-bottom: 2px;
+        }
+
+        .cv-classic .cv-lang-item b {
+            color: #1c1c1c;
+            font-weight: 600;
+        }
+
+        .cv-classic .cv-cert-item {
+            font-size: 8pt;
+            color: #444;
+            margin-bottom: 2px;
+        }
+
+        .cv-classic .cv-proj-item {
+            margin-bottom: 5px;
+        }
+
+        .cv-classic .cv-proj-title {
+            font-size: 8.5pt;
+            font-weight: 600;
+            color: #1c1c1c;
+        }
+
+        .cv-classic .cv-proj-desc {
+            font-size: 7.5pt;
+            color: #555;
+            line-height: 1.4;
+        }
+    </style>
+</head>
+
+<body style="background:white;">
+    <script type="module">
+        import { injectNavbar } from '/src/lib/layout.js';
+        import { getState } from '/src/lib/store.js';
+        injectNavbar();
+
+        const state = getState();
+        const cv = state.generatedCV;
+
+        if (!cv) {
+            document.getElementById('cv-preview').innerHTML = '<p style="text-align:center;padding:4rem;color:var(--color-gray-400);">Nenhum CV gerado. <a href="/pages/step-goal.html" style="color:var(--color-primary);font-weight:700;">Comece aqui</a></p>';
+        } else {
+            function getInitials(name) {
+                if (!name) return 'CV';
+                const parts = name.split(' ').filter(Boolean);
+                if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
+                return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+            }
+
+            const h = cv.header || {};
+            const templateType = state.template || 'modern';
+            const container = document.getElementById('cv-preview');
+            const isClassic = templateType === 'classic';
+            const cls = isClassic ? 'cv-classic' : 'cv-modern';
+
+            // Helper: group skills into categories
+            function groupSkills(skills) {
+                const categories = {
+                    'Desenvolvimento': [], 'Linguagens': [], 'Ferramentas': [],
+                    'Metodologias': [], 'Outros': []
+                };
+                const devKw = ['react', 'angular', 'vue', 'next', 'nuxt', 'frontend', 'backend', 'fullstack', 'web', 'mobile', 'html', 'css', 'tailwind', 'bootstrap', 'rest', 'api', 'graphql', 'desenvolvimento'];
+                const langKw = ['java', 'python', 'javascript', 'typescript', 'c#', 'c++', 'ruby', 'php', 'go', 'rust', 'swift', 'kotlin', 'sql', 'node', 'spring', 'django', 'flask', 'fastapi', 'express', '.net', 'javafx'];
+                const toolKw = ['git', 'github', 'docker', 'kubernetes', 'aws', 'azure', 'gcp', 'ci', 'cd', 'jenkins', 'terraform', 'linux', 'nginx', 'vercel', 'heroku', 'devops', 'postgresql', 'mongodb', 'mysql', 'redis', 'firebase'];
+                const methKw = ['scrum', 'kanban', 'agile', 'ágil', 'tdd', 'bdd', 'solid', 'clean', 'code review', 'mentoria', 'testes', 'unitários', 'integração', 'manutenção'];
+
+                (skills || []).forEach(s => {
+                    const low = s.toLowerCase();
+                    if (devKw.some(k => low.includes(k))) categories['Desenvolvimento'].push(s);
+                    else if (langKw.some(k => low.includes(k))) categories['Linguagens'].push(s);
+                    else if (toolKw.some(k => low.includes(k))) categories['Ferramentas'].push(s);
+                    else if (methKw.some(k => low.includes(k))) categories['Metodologias'].push(s);
+                    else categories['Outros'].push(s);
+                });
+                return Object.entries(categories).filter(([, v]) => v.length > 0);
+            }
+
+            // Header section — differs between classic (no avatar) and modern (avatar)
+            const headerHTML = isClassic ? `
+                <div class="cv-header">
+                    <div class="cv-name">${h.name || state.profile?.name || ''}</div>
+                    <div class="cv-title">${h.title || ''}</div>
+                    <div class="cv-contact">
+                        ${h.contact?.phone ? `<span><svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:2px;"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg> ${h.contact.phone}</span>` : ''}
+                        ${h.contact?.email ? `<span><svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:2px;"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg> ${h.contact.email}</span>` : ''}
+                        ${h.contact?.location ? `<span><svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:2px;"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg> ${h.contact.location}</span>` : ''}
+                    </div>
+                </div>
+            ` : `
+                <div class="cv-header">
+                    <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+                        <div>
+                            <div class="cv-name">${h.name || state.profile?.name || ''}</div>
+                            <div class="cv-title">${h.title || ''}</div>
+                            <div class="cv-contact">
+                                ${h.contact?.phone ? `<span><svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:2px;"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg> ${h.contact.phone}</span>` : ''}
+                                ${h.contact?.email ? `<span><svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:2px;"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg> ${h.contact.email}</span>` : ''}
+                                ${h.contact?.location ? `<span><svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:2px;"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg> ${h.contact.location}</span>` : ''}
+                            </div>
+                        </div>
+                        <div style="width:3.2rem;height:3.2rem;background:#2563eb;border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-size:14pt;font-weight:800;flex-shrink:0;">
+                            ${getInitials(h.name || state.profile?.name)}
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Shared body content — same structure, styles differ via CSS class
+            const bodyHTML = `
+                <div class="cv-body">
+                    <!-- Left Column: Experience + Education -->
+                    <div>
+                        <div class="cv-section-title">EXPERIÊNCIA</div>
+                        ${(cv.experiences || []).map(exp => `
+                            <div class="cv-exp-item">
+                                <div class="cv-exp-title">${exp.title || ''}</div>
+                                <div class="cv-exp-company">${exp.company || ''}</div>
+                                <div class="cv-exp-meta"><svg xmlns="http://www.w3.org/2000/svg" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> ${exp.period || ''}\u00A0\u00A0\u00A0<svg xmlns="http://www.w3.org/2000/svg" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg> Localização</div>
+                                <ul class="cv-exp-bullets">
+                                    ${(exp.bullets || []).map(b => {
+                                        let text = b.replace(/^[•\s]+/, '');
+                                        if (cv.resultFormat) {
+                                            // Highlight metrics: numbers, percentages, currency
+                                            text = text.replace(/(\d+[.,]?\d*\s*%|R\$\s*[\d.,]+|\d+[.,]?\d*\+?\s*(?:mil|M|K|projetos|clientes|equipes|pessoas|meses|anos|dias|horas|cidades|unidades|entregas))/gi, '<b style="color:#1c1c1c;">$1</b>');
+                                        }
+                                        return `<li>${text}</li>`;
+                                    }).join('')}
+                                </ul>
+                            </div>
+                        `).join('')}
+
+                        <div class="cv-section-title" style="margin-top:16px;">EDUCAÇÃO</div>
+                        ${(cv.education || []).map(edu => `
+                            <div class="cv-edu-item">
+                                <div class="cv-edu-degree">${edu.degree || ''}</div>
+                                <div class="cv-edu-inst">${edu.institution || ''}</div>
+                                ${edu.period ? `<div class="cv-edu-meta"><svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:2px;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> ${edu.period}</div>` : ''}
+                            </div>
+                        `).join('')}
+
+                        ${(cv.certifications && cv.certifications.length) ? `
+                        <div class="cv-section-title" style="margin-top:16px;">CERTIFICAÇÕES</div>
+                        ${cv.certifications.map(c => `<div class="cv-cert-item"><b>${c.name}</b> — ${c.institution}</div>`).join('')}
+                        ` : ''}
+
+                        ${(cv.projects && cv.projects.length) ? `
+                        <div class="cv-section-title" style="margin-top:16px;">PROJETOS</div>
+                        ${cv.projects.map(p => `
+                            <div class="cv-proj-item">
+                                <div class="cv-proj-title">${p.title}</div>
+                                <div class="cv-proj-desc">${p.description}</div>
+                            </div>
+                        `).join('')}
+                        ` : ''}
+                    </div>
+
+                    <!-- Right Column: Summary + Skills + Languages -->
+                    <div>
+                        <div class="cv-section-title">RESUMO</div>
+                        <p class="cv-summary-text" style="margin-bottom:12px;">${cv.summary || ''}</p>
+
+                        <div class="cv-section-title">HABILIDADES</div>
+                        ${groupSkills(cv.skills).map(([cat, items]) => `
+                            <div class="cv-skill-group">
+                                <div class="cv-skill-group-title">${cat}</div>
+                                <div class="cv-skill-items">${items.map(s => '<span style="border-bottom:2px solid #ebebeb;padding-bottom:2px;margin-right:6px;display:inline-block;margin-bottom:4px;">' + s.charAt(0).toUpperCase() + s.slice(1) + '</span>').join('')}</div>
+                            </div>
+                        `).join('')}
+
+                        ${(cv.languages && cv.languages.length) ? `
+                        <div class="cv-section-title" style="margin-top:14px;">IDIOMAS</div>
+                        ${cv.languages.map(l => `<div class="cv-lang-item"><b>${l.name}</b> — ${l.level}</div>`).join('')}
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+
+            container.innerHTML = `<div class="${cls}">${headerHTML}${bodyHTML}</div>`;
+
+            // ═══ KPI Dashboard — Post-optimization metrics ═══
+            const allKw = state.analysisResult?.keywords || [];
+            const matchedBefore = state.analysisResult?.ats?.matchedKeywords || state.analysisResult?.matchedKeywords || [];
+            const missingBefore = state.analysisResult?.ats?.missingKeywords || allKw.filter(k => !matchedBefore.some(m => m.toLowerCase() === k.toLowerCase()));
+            const kwUsed = cv.keywordsUsed || [];
+            const scoreBefore = state.analysisResult?.ats?.score || state.analysisResult?.matchPercentage || 0;
+
+            // Calculate post-optimization score: % of all keywords now present
+            const kwCoverage = allKw.length > 0 ? Math.round((kwUsed.length / allKw.length) * 100) : 0;
+            // Blend: 60% keyword coverage + 40% based on missing keywords addressed
+            const missingNowFixed = missingBefore.filter(m => kwUsed.some(k => k.toLowerCase().includes(m.toLowerCase()) || m.toLowerCase().includes(k.toLowerCase())));
+            const gapFixRate = missingBefore.length > 0 ? Math.round((missingNowFixed.length / missingBefore.length) * 100) : 100;
+            const scoreAfter = Math.min(99, Math.round(kwCoverage * 0.6 + gapFixRate * 0.4));
+
+            // Populate KPI cards
+            document.getElementById('kpi-score-before').textContent = scoreBefore + '%';
+            document.getElementById('kpi-score-after').textContent = scoreAfter + '%';
+            document.getElementById('kpi-score-after').style.color = scoreAfter >= 70 ? 'var(--color-success)' : scoreAfter >= 40 ? '#f59e0b' : 'var(--color-error)';
+            document.getElementById('kpi-kw-total').textContent = allKw.length;
+            document.getElementById('kpi-kw-used').textContent = kwUsed.length;
+            document.getElementById('kpi-kw-missing-fixed').textContent = missingNowFixed.length + '/' + missingBefore.length;
+            
+            // Progress bar
+            const pctBar = document.getElementById('kpi-progress-fill');
+            if (pctBar) {
+                pctBar.style.width = Math.min(100, kwCoverage) + '%';
+                pctBar.style.background = kwCoverage >= 70 ? 'var(--color-success)' : kwCoverage >= 40 ? '#f59e0b' : 'var(--color-error)';
+            }
+            document.getElementById('kpi-progress-label').textContent = kwCoverage + '%';
+
+            // Keywords inserted list
+            const kwListEl = document.getElementById('kpi-kw-list');
+            if (kwListEl && kwUsed.length) {
+                kwListEl.innerHTML = kwUsed.map(k => {
+                    const wasMissing = missingBefore.some(m => m.toLowerCase() === k.toLowerCase());
+                    return `<span style="display:inline-block;font-size:0.7rem;padding:2px 8px;margin:2px;border-radius:4px;background:var(--color-gray-50);border:1px solid var(--color-gray-200);color:${wasMissing ? 'var(--color-success)' : 'var(--color-gray-600)'};font-weight:500;">${k}${wasMissing ? '<span style="color:var(--color-success);font-size:0.6rem;margin-left:4px;">✓</span>' : ''}</span>`;
+                }).join('');
+            }
+
+            // Setup PDF Download
+            document.getElementById('btn-download').addEventListener('click', () => {
+                const element = document.getElementById('cv-preview');
+                const btn = document.getElementById('btn-download');
+                btn.innerHTML = '<div class="spinner" style="width:1.25rem;height:1.25rem;border-color:var(--color-primary);border-top-color:transparent;"></div> Gerando...';
+                btn.style.pointerEvents = 'none';
+
+                // Save original styles
+                const saved = { boxShadow: element.style.boxShadow, borderRadius: element.style.borderRadius, padding: element.style.padding, width: element.style.width, maxWidth: element.style.maxWidth, minHeight: element.style.minHeight, overflow: element.style.overflow };
+                // A4=8.27in, 0.3in margins each side => 7.67in content => 736px at 96dpi
+                const marginIn = 0.3;
+                const contentWidthPx = Math.round((8.27 - 2 * marginIn) * 96);
+                element.style.boxShadow = 'none';
+                element.style.borderRadius = '0';
+                element.style.padding = '24px';
+                element.style.width = contentWidthPx + 'px';
+                element.style.maxWidth = contentWidthPx + 'px';
+                element.style.minHeight = 'auto';
+                element.style.overflow = 'visible';
+
+                const opt = {
+                    margin: [marginIn, marginIn, marginIn, marginIn],
+                    filename: `${(h.name || 'CV').replace(/\s+/g, '_')}_Otimizado.pdf`,
+                    image: { type: 'jpeg', quality: 0.98 },
+                    html2canvas: { scale: 2, useCORS: true, width: contentWidthPx },
+                    jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' },
+                    pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+                };
+
+                window.html2pdf().set(opt).from(element).save().then(() => {
+                    Object.assign(element.style, saved);
+                    btn.innerHTML = '<i class="pi pi-download" style="font-size:1rem;"></i> Download PDF Otimizado';
+                    btn.style.pointerEvents = 'auto';
+                });
+            });
+        }
+    </script>
+
+    <div style="height:4.5rem;"></div>
+    <main
+        style="max-width:72rem;margin:0 auto;padding:2rem 1rem 4rem;display:grid;grid-template-columns:2fr 1fr;gap:3rem;">
+
+        <!-- CV Preview -->
+        <div id="cv-preview"
+            style="background:white;box-shadow:var(--shadow-lg),0 0 0 1px var(--color-gray-100);border-radius:var(--radius-xl);padding:2rem;min-height:50rem;position:relative;overflow:hidden;">
+            <!-- Rendered via JS -->
+        </div>
+
+        <!-- Sidebar -->
+        <div class="space-y-6">
+            <div
+                style="background:var(--color-primary);color:white;padding:2rem;border-radius:var(--radius-xl);box-shadow:var(--shadow-lg);">
+                <div
+                    style="width:4rem;height:4rem;background:rgba(255,255,255,0.2);border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;margin-bottom:1.5rem;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                        <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                    </svg>
+                </div>
+                <h2 style="font-size:1.5rem;font-weight:900;margin-bottom:0.5rem;">Pronto para Enviar!</h2>
+                <p style="color:rgba(255,255,255,0.7);font-size:0.875rem;margin-bottom:2rem;line-height:1.6;">Seu
+                    currículo foi otimizado com foco em <b>Experiências Relevantes</b> para esta vaga específica.</p>
+                <button id="btn-download"
+                    style="display:flex;align-items:center;justify-content:center;gap:0.5rem;width:100%;height:3.5rem;border-radius:var(--radius-lg);background:white;color:var(--color-primary);font-weight:900;font-size:1rem;border:none;cursor:pointer;box-shadow:var(--shadow-lg);margin-bottom:1rem;">
+                    <i class="pi pi-download" style="font-size:1rem;"></i> Download PDF Otimizado
+                </button>
+                <p
+                    style="text-align:center;font-size:0.625rem;font-weight:700;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:0.1em;">
+                    <i class="pi pi-shield" style="font-size:0.75rem;margin-right:0.25rem;"></i> IA Powered Match
+                </p>
+            </div>
+
+            <!-- KPI Dashboard -->
+            <div class="card" style="padding:1.25rem;">
+                <h3 style="font-weight:800;margin-bottom:1rem;font-size:0.85rem;display:flex;align-items:center;gap:0.5rem;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="2.5"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+                    Impacto da Otimização
+                </h3>
+
+                <!-- Score Before → After -->
+                <div style="display:flex;gap:0.5rem;margin-bottom:0.75rem;">
+                    <div style="flex:1;text-align:center;padding:0.6rem;background:var(--color-gray-50);border-radius:var(--radius-sm);border:1px solid var(--color-gray-100);">
+                        <div style="font-size:0.6rem;font-weight:700;color:var(--color-gray-400);text-transform:uppercase;letter-spacing:0.05em;">Antes</div>
+                        <div id="kpi-score-before" style="font-size:1.25rem;font-weight:900;color:var(--color-error);">—</div>
+                    </div>
+                    <div style="display:flex;align-items:center;color:var(--color-gray-300);font-size:1.2rem;">→</div>
+                    <div style="flex:1;text-align:center;padding:0.6rem;background:var(--color-gray-50);border-radius:var(--radius-sm);border:1px solid var(--color-gray-100);">
+                        <div style="font-size:0.6rem;font-weight:700;color:var(--color-gray-400);text-transform:uppercase;letter-spacing:0.05em;">Depois</div>
+                        <div id="kpi-score-after" style="font-size:1.25rem;font-weight:900;color:var(--color-success);">—</div>
+                    </div>
+                </div>
+
+                <!-- Keyword Coverage Progress Bar -->
+                <div style="margin-bottom:0.75rem;">
+                    <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+                        <span style="font-size:0.65rem;font-weight:700;color:var(--color-gray-500);">Cobertura de Keywords</span>
+                        <span id="kpi-progress-label" style="font-size:0.65rem;font-weight:900;color:var(--color-gray-700);">0%</span>
+                    </div>
+                    <div style="height:6px;background:var(--color-gray-100);border-radius:99px;overflow:hidden;">
+                        <div id="kpi-progress-fill" style="height:100%;border-radius:99px;width:0%;transition:width 1s ease;background:var(--color-success);"></div>
+                    </div>
+                </div>
+
+                <!-- Mini KPI cards -->
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.4rem;margin-bottom:0.75rem;">
+                    <div style="padding:0.5rem;background:var(--color-gray-50);border-radius:var(--radius-sm);border:1px solid var(--color-gray-100);text-align:center;">
+                        <div style="font-size:1rem;font-weight:900;color:var(--color-primary);" id="kpi-kw-used">0</div>
+                        <div style="font-size:0.55rem;font-weight:700;color:var(--color-gray-400);text-transform:uppercase;">KW Usadas</div>
+                    </div>
+                    <div style="padding:0.5rem;background:var(--color-gray-50);border-radius:var(--radius-sm);border:1px solid var(--color-gray-100);text-align:center;">
+                        <div style="font-size:1rem;font-weight:900;color:var(--color-primary);" id="kpi-kw-total">0</div>
+                        <div style="font-size:0.55rem;font-weight:700;color:var(--color-gray-400);text-transform:uppercase;">KW da Vaga</div>
+                    </div>
+                </div>
+                <div style="padding:0.5rem;background:var(--color-gray-50);border-radius:var(--radius-sm);border:1px solid var(--color-gray-100);text-align:center;margin-bottom:0.75rem;">
+                    <div style="font-size:1rem;font-weight:900;color:var(--color-success);" id="kpi-kw-missing-fixed">0/0</div>
+                    <div style="font-size:0.55rem;font-weight:700;color:var(--color-gray-400);text-transform:uppercase;">Gaps Corrigidos</div>
+                </div>
+
+                <!-- Keywords inserted list -->
+                <div>
+                    <div style="font-size:0.65rem;font-weight:700;color:var(--color-gray-500);margin-bottom:6px;">Keywords Aplicadas:</div>
+                    <div id="kpi-kw-list" style="line-height:1.8;"></div>
+                </div>
+            </div>
+
+            <a href="/pages/dashboard.html"
+                style="display:flex;align-items:center;justify-content:center;height:3rem;border-radius:var(--radius-lg);color:var(--color-gray-400);font-weight:700;font-size:0.875rem;">Voltar
+                ao Dashboard</a>
+        </div>
+    </main>
+</body>
+
+</html>
