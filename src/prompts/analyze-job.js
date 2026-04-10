@@ -1,124 +1,94 @@
 /**
- * ATS Job Analysis Prompt.
- * Extracts keywords, calculates compatibility, and identifies highlights.
+ * ATS Job Analysis — Hybrid Engine.
+ * Phase 1 (Algorithmic): keyword extraction, matching, scoring.
+ * Phase 2 (AI, optional): narrative summary + actionable tips.
  */
 import { chatCompletion } from '../api/sonar.js';
+import { calculateATSScore } from '../lib/ats-scorer.js';
 
 /**
  * Analyze a job description against the user's profile.
+ * Uses deterministic scoring first, then optionally enriches with AI.
+ *
  * @param {object} profile - User profile from store
  * @param {string} jobDescription - Raw job description text
+ * @param {object} [options]
+ * @param {boolean} [options.skipAI=false] - If true, return only algorithmic results
  * @returns {Promise<object>} Analysis result
  */
-export async function analyzeJob(profile, jobDescription) {
-    const profileSummary = buildProfileSummary(profile);
+export async function analyzeJob(profile, jobDescription, { skipAI = false } = {}) {
+  // ═══════════════════════════════════════
+  // PHASE 1: Deterministic Analysis (instant, free)
+  // ═══════════════════════════════════════
+  const result = calculateATSScore(profile, jobDescription);
 
-    const systemPrompt = `Você é um especialista em análise ATS (Applicant Tracking System) e recrutamento.
-Sua tarefa é analisar uma descrição de vaga e compará-la com o perfil de um candidato.
+  if (skipAI) return result;
 
-REGRAS:
-- Responda SOMENTE em JSON válido, sem markdown, sem explicações extras.
-- Identifique todas as palavras-chave técnicas e comportamentais da vaga.
-- Compare cada palavra-chave com as habilidades, experiências e formação do candidato.
-- Calcule um percentual de compatibilidade real baseado no match das keywords.
-- Identifique experiências do candidato que podem ser destacadas para esta vaga.
-- Sugira melhorias concretas no currículo para aumentar o score ATS.
+  // ═══════════════════════════════════════
+  // PHASE 2: AI Enrichment (summary + tips only)
+  // ═══════════════════════════════════════
+  try {
+    const aiEnrichment = await enrichWithAI(profile, jobDescription, result);
 
-FORMATO DE RESPOSTA OBRIGATÓRIO (JSON):
-{
-  "keywords": ["palavra1", "palavra2", "..."],
-  "matchPercentage": 73,
-  "highlightableExperiences": [
-    { "title": "Nome do cargo", "reason": "Motivo para destacar" }
-  ],
-  "suggestions": [
-    "Sugestão concreta 1"
-  ],
-  "ats": {
-    "score": 33,
-    "classification": "Reprovado automaticamente pelo ATS",
-    "risk": "ALTO", 
-    "summary": "O candidato possui experiência limitada... há um desalinhamento...",
-    "breakdown": {
-       "hardSkills": { "score": 15, "max": 40 },
-       "experience": { "score": 5, "max": 30 },
-       "keywords": { "score": 8, "max": 20 },
-       "education": { "score": 5, "max": 10 }
-    },
-    "criticalGaps": [
-       "Ausência de experiência com Node.js e TypeScript (requisitos obrigatórios)"
-    ],
-    "missingKeywords": ["Node.js", "TypeScript", "AWS"],
-    "matchedKeywords": ["Docker", "PostgreSQL"],
-    "strengths": [
-       "Experiência documentada com Docker e PostgreSQL"
-    ],
-    "tips": [
-       { "text": "Adicionar experiência prática com Node.js...", "impact": "alto" },
-       { "text": "Mencionar explicitamente a aplicação dos princípios...", "impact": "medio" }
-    ]
-  }
-}`;
-
-    const userMessage = `PERFIL DO CANDIDATO:
-${profileSummary}
-
-DESCRIÇÃO DA VAGA:
-${jobDescription}
-
-Analise rigorosamente e retorne APENAS o JSON com a análise ATS completa.`;
-
-    const response = await chatCompletion([
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userMessage },
-    ]);
-
-    try {
-        const jsonMatch = response.match(/\{[\s\S]*\}/);
-        if (!jsonMatch) throw new Error('A resposta da IA não contém um JSON válido.');
-        return JSON.parse(jsonMatch[0]);
-    } catch (e) {
-        console.error('Failed to parse analysis response:', response);
-        throw new Error('Erro ao processar análise da vaga: ' + e.message);
+    // Merge AI narratives into the algorithmic result
+    if (aiEnrichment) {
+      if (aiEnrichment.summary) result.ats.summary = aiEnrichment.summary;
+      if (aiEnrichment.tips?.length) result.ats.tips = aiEnrichment.tips;
+      if (aiEnrichment.strengths?.length) result.ats.strengths = aiEnrichment.strengths;
     }
+  } catch (err) {
+    // AI enrichment failed — no problem, algorithmic result is still complete
+    console.warn('AI enrichment failed, using algorithmic results only:', err.message);
+  }
+
+  return result;
 }
 
-function buildProfileSummary(profile) {
-    const parts = [];
-    if (profile.name) parts.push(`Nome: ${profile.name}`);
-    if (profile.summary) parts.push(`Resumo: ${profile.summary}`);
+/**
+ * Call the AI only for narrative content generation.
+ * The AI receives the pre-computed data and writes human-readable text.
+ */
+async function enrichWithAI(profile, jobDescription, algorithmicResult) {
+  const { ats } = algorithmicResult;
+  const profileName = profile.name || 'O candidato';
 
-    if (profile.experiences?.length) {
-        parts.push('Experiências:');
-        profile.experiences.forEach(exp => {
-            parts.push(`  - ${exp.title} em ${exp.company} (${exp.period}): ${exp.description || ''}`);
-        });
-    }
+  const systemPrompt = `Você é um consultor de carreira. Receberá dados pré-calculados de uma análise ATS e deve gerar apenas TEXTO NARRATIVO.
 
-    if (profile.education?.length) {
-        parts.push('Formação:');
-        profile.education.forEach(edu => {
-            parts.push(`  - ${edu.degree} em ${edu.institution} (${edu.period})`);
-        });
-    }
+REGRAS:
+- Responda SOMENTE em JSON válido.
+- NÃO recalcule scores ou keywords — use os dados fornecidos.
+- Gere textos concisos, profissionais e acionáveis.
+- Máximo 3 frases no summary.
+- Máximo 5 tips.
 
-    if (profile.skills?.length) {
-        parts.push(`Habilidades: ${profile.skills.join(', ')}`);
-    }
+FORMATO:
+{
+  "summary": "Texto narrativo de 2-3 frases analisando o perfil do candidato em relação à vaga",
+  "strengths": ["Ponto forte 1", "Ponto forte 2"],
+  "tips": [
+    { "text": "Dica concreta e acionável", "impact": "alto|medio" }
+  ]
+}`;
 
-    if (profile.languages?.length) {
-        parts.push('Idiomas:');
-        profile.languages.forEach(lang => {
-            parts.push(`  - ${lang.name}: ${lang.level}`);
-        });
-    }
+  const userMessage = `CANDIDATO: ${profileName}
+SCORE: ${ats.score}/100 (${ats.classification})
+KEYWORDS MATCHED: ${ats.matchedKeywords.join(', ')}
+KEYWORDS FALTANTES: ${ats.missingKeywords.join(', ')}
+GAPS CRÍTICOS: ${ats.criticalGaps.join('; ')}
+BREAKDOWN: Hard Skills ${ats.breakdown.hardSkills.score}/${ats.breakdown.hardSkills.max}, Experience ${ats.breakdown.experience.score}/${ats.breakdown.experience.max}
 
-    if (profile.certifications?.length) {
-        parts.push('Certificações:');
-        profile.certifications.forEach(cert => {
-            parts.push(`  - ${cert.name} (${cert.institution})`);
-        });
-    }
+Gere o summary, strengths e tips narrativos em JSON.`;
 
-    return parts.join('\n');
+  const response = await chatCompletion([
+    { role: 'system', content: systemPrompt },
+    { role: 'user', content: userMessage },
+  ], { temperature: 0.3, maxTokens: 1024, provider: 'groq', model: 'llama-3.3-70b-versatile' });
+
+  try {
+    const jsonMatch = response.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) return null;
+    return JSON.parse(jsonMatch[0]);
+  } catch {
+    return null;
+  }
 }

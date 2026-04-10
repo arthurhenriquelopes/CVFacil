@@ -1,3 +1,12 @@
+import fs from 'fs';
+import path from 'path';
+
+const searchDir = process.cwd();
+const styleCssPath = path.join(searchDir, 'src', 'style.css');
+const layoutJsPath = path.join(searchDir, 'src', 'lib', 'layout.js');
+const pagesDir = path.join(searchDir, 'pages');
+
+const styleCSS = `
 @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap');
 @import url('https://cdn.jsdelivr.net/npm/primeicons@6.0.1/primeicons.css');
 
@@ -171,3 +180,59 @@ textarea.form-input { resize: vertical; min-height: 8rem; }
 
 /* Fixes for inline SVGs inside icons or bubbles that use heavy background colors */
 svg { stroke-width: 1.5 !important; }
+`;
+
+fs.writeFileSync(styleCssPath, styleCSS.trim());
+console.log('style.css completely rewritten for Grok aesthetic.');
+
+// Replace layout.js content with minimal styling
+let layoutContent = fs.readFileSync(layoutJsPath, 'utf8');
+layoutContent = layoutContent.replace(/background:\s*rgba\(255,255,255,0\.85\)/g, 'background: var(--color-gray-50); border-bottom: 1px solid var(--color-gray-200);');
+layoutContent = layoutContent.replace(/box-shadow:[^;]+;/g, '');
+layoutContent = layoutContent.replace(/border-radius:[^;]+;/g, '');
+layoutContent = layoutContent.replace(/font-weight:900/g, 'font-weight:700; text-transform:uppercase; letter-spacing:0.1em;');
+// Change 'Criar CV' button styles
+layoutContent = layoutContent.replace(/background:var\(--color-primary\);color:white;/g, 'background:var(--color-gray-900);color:var(--color-gray-50);border:1px solid var(--color-gray-900); border-radius:0;');
+layoutContent = layoutContent.replace(/color:var\(--color-primary\)/g, 'color:var(--color-gray-900)');
+fs.writeFileSync(layoutJsPath, layoutContent);
+console.log('layout.js updated.');
+
+// Clean up HTML files
+function processHtml(filePath) {
+    let html = fs.readFileSync(filePath, 'utf8');
+
+    // Remove strong typography weights in inline styles
+    html = html.replace(/font-weight:900;/g, 'font-weight:700;');
+    html = html.replace(/font-weight:\s*800;/g, 'font-weight:700;');
+
+    // Remove explicit colors from gradients and text-fill
+    html = html.replace(/background:linear-gradient[^;]+;/g, '');
+    html = html.replace(/-webkit-background-clip:text;/g, '');
+    html = html.replace(/-webkit-text-fill-color:transparent;/g, '');
+    
+    // Convert box shadows
+    html = html.replace(/box-shadow:var\(--shadow[^"]*/g, 'border:1px solid var(--color-gray-300)');
+    
+    // Transform "pill" elements (border-radius: 999px) -> border-radius: 0
+    html = html.replace(/border-radius:999px/g, 'border-radius:0');
+    // Transform primary backgrounds to outlines
+    html = html.replace(/background:var\(--color-primary-light\);color:var\(--color-primary\)/g, 'border:1px solid var(--color-gray-400);color:var(--color-gray-900);background:transparent');
+
+    fs.writeFileSync(filePath, html);
+    console.log('Processed HTML: ' + filePath);
+}
+
+processHtml(path.join(searchDir, 'index.html'));
+const pages = fs.readdirSync(pagesDir).filter(f => f.endsWith('.html'));
+for (const p of pages) {
+    if(p !== 'result.html') {
+        processHtml(path.join(pagesDir, p));
+    }
+}
+// For result, handle it carefully
+let resultHtml = fs.readFileSync(path.join(pagesDir, 'result.html'), 'utf8');
+resultHtml = resultHtml.replace(/font-weight:900;/g, 'font-weight:700;');
+resultHtml = resultHtml.replace(/background:var\(--color-primary\);color:white;/g, 'border:1px solid var(--color-gray-300);background:transparent;color:var(--color-gray-900);');
+fs.writeFileSync(path.join(pagesDir, 'result.html'), resultHtml);
+
+console.log('Done refactoring code base!');

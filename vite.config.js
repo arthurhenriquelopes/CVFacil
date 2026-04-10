@@ -35,8 +35,9 @@ const vercelApiPlugin = () => ({
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
-  // Expose env vars to the Vercel handler when running locally
-  process.env.PERPLEXITY_API_KEY = env.PERPLEXITY_API_KEY;
+  // Expose env vars to the API handler when running locally
+  process.env.GROQ_API_KEY = env.GROQ_API_KEY;
+  process.env.GEMINI_API_KEY = env.GEMINI_API_KEY;
 
   return {
     plugins: [vercelApiPlugin()],
@@ -53,6 +54,9 @@ export default defineConfig(({ mode }) => {
           stepTemplate: resolve(__dirname, 'pages/step-template.html'),
           stepGenerating: resolve(__dirname, 'pages/step-generating.html'),
           result: resolve(__dirname, 'pages/result.html'),
+          stepAtsScanner: resolve(__dirname, 'pages/step-ats-scanner.html'),
+          stepAtsLoading: resolve(__dirname, 'pages/step-ats-loading.html'),
+          stepAtsResult: resolve(__dirname, 'pages/step-ats-result.html'),
         },
       },
     },

@@ -169,27 +169,37 @@ REGRAS CRÍTICAS PARA ATS:
 6. Adapte os títulos dos cargos para match com o que a vaga busca (sem mentir).
 7. NÃO use formatação markdown (**, *, #, etc.) em NENHUM campo de texto. O output é renderizado como texto puro em HTML. Escreva texto limpo, sem asteriscos, sem negrito markdown.
 
-INJEÇÃO DE KEYWORDS (REGRA MAIS IMPORTANTE):
-Você receberá uma lista de KEYWORDS FALTANTES — são palavras-chave que a vaga exige mas que o candidato NÃO mencionou no perfil original. Você DEVE incorporá-las organicamente nos seguintes locais:
+INJEÇÃO DE KEYWORDS (COM HONESTIDADE):
+Você receberá uma lista de KEYWORDS FALTANTES. Regras para inserção:
 
-a) RESUMO PROFISSIONAL: Reescreva o resumo incluindo as 3-5 keywords mais importantes da vaga.
-   Construa frases que conectem a experiência real do candidato com as keywords.
-   Exemplo: Se falta "gestão de projetos" e o candidato tem experiência liderando equipes,
-   escreva: "Profissional com experiência em gestão de projetos e liderança de equipes..."
+a) RESUMO PROFISSIONAL: Máximo 5 termos técnicos no resumo. Escreva como narrativa fluida,
+   NÃO como lista disfarçada de parágrafo. Conecte com a experiência real do candidato.
+   RUIM: "Proficiente em Java 17+, Spring MVC, Spring Security e Spring Data JPA..."
+   BOM: "Desenvolvedor Full Stack com experiência sólida em ecossistema Spring e React, atuando em APIs RESTful com autenticação segura."
 
-b) BULLETS DAS EXPERIÊNCIAS: Reescreva cada bullet point incorporando keywords faltantes de forma
-   contextual e honesta. Conecte as atividades reais do candidato com os termos da vaga.
-   Exemplo: Se falta "análise de dados" e o candidato fez relatórios, escreva:
-   "• Elaboração de relatórios com análise de dados para tomada de decisão"
-   NÃO invente experiências. ADAPTE a linguagem para incluir os termos corretos.
+b) BULLETS DAS EXPERIÊNCIAS: Só adicione keywords que tenham CONEXÃO REAL com a atividade descrita.
+   Se o candidato usou JWT, pode mencionar "autenticação JWT/OAuth2".
+   Se o candidato usou Docker, pode mencionar "deploy em containers Docker (AWS ECS)".
+   NÃO invente experiências. Se não há conexão possível, NÃO force a keyword no bullet.
 
-c) LISTA DE SKILLS: Inclua TODAS as keywords faltantes que sejam skills técnicas ou comportamentais
-   na lista de habilidades, ALÉM das que o candidato já possui.
-   Priorize as keywords com maior peso para o ATS (termos técnicos > termos genéricos).
+c) LISTA DE SKILLS: Keywords faltantes que NÃO puderam ser conectadas a experiências reais
+   devem ser adicionadas aqui e SOMENTE aqui. Marque-as internamente no campo "injectedSkills"
+   do JSON para que o frontend saiba quais foram adicionadas vs originais.
 
-REGRA DE COERÊNCIA: Nunca invente experiências que o candidato não tem. Apenas REFORMULE e
-ENRIQUEÇA as experiências reais usando a terminologia exata da vaga. Se uma keyword não pode
-ser conectada a nenhuma experiência real, adicione-a APENAS na lista de skills.
+REGRA DE COERÊNCIA: Nunca invente experiências. O candidato será perguntado sobre tudo na entrevista.
+Se uma keyword não pode ser conectada a nenhuma experiência real, adicione-a APENAS na lista de skills.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+DADOS IMUTÁVEIS — NUNCA ALTERE ESTES CAMPOS:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Nome, email, telefone, localização, nome das empresas anteriores, nome dos cursos e instituições
+de ensino são FATOS VERIFICÁVEIS. Copie-os LITERALMENTE do perfil fornecido.
+
+✗ ALUCINAÇÃO (proibido): Candidato tem "Sistemas de Informação" → output diz "Ciência da Computação"
+✗ ALUCINAÇÃO (proibido): Candidato tem "IFMA" → output diz "Universidade Federal do Maranhão"
+✓ CORRETO: Copie o nome do curso e instituição EXATAMENTE como estão no perfil.
+
+Esta regra se aplica a: nome completo, empresas, cargos reais, cursos, instituições, datas.
 
 ${focusInstructions}
 ${goal ? '\n' + getGoalStrategyPrompt(goal) : ''}
@@ -225,6 +235,7 @@ FORMATO DE RESPOSTA (JSON):
     }
   ],
   "skills": ["skill1", "skill2"],
+  "injectedSkills": ["skills that were NOT in the original profile but added for ATS optimization"],
   "languages": [{ "name": "Português", "level": "Nativo" }],
   "certifications": [{ "name": "Cert", "institution": "Org" }],
   "keywordsUsed": ["lista de todas as keywords da vaga usadas no CV"],
@@ -258,21 +269,47 @@ ${tips.length ? `💡 DICAS DA ANÁLISE PRÉVIA:\n${tips.map(t => `  - [${t.impa
 Compatibilidade atual do candidato: ${matchPct}%
 Meta: Elevar para 85%+ após a otimização.
 
+🔒 ÂNCORA DE DADOS IMUTÁVEIS — COPIE VERBATIM NO JSON:
+Nome: ${profile.name || ''}
+Email: ${profile.email || ''}
+Telefone: ${profile.phone || ''}
+Localização: ${profile.location || ''}
+${(profile.education || []).length ? `Formação (copie degree e institution EXATAMENTE assim):\n${(profile.education || []).map(e => `  degree="${e.degree}" | institution="${e.institution}" | period="${e.startDate || ''}–${e.endDate || ''}"`).join('\n')}` : ''}
+${(profile.experiences || []).length ? `Empresas (copie company e title EXATAMENTE assim):\n${(profile.experiences || []).map(e => `  company="${e.company}" | title="${e.title}"`).join('\n')}` : ''}
+
 Gere o currículo otimizado em formato JSON. Respeite as restrições de tamanho.`;
 
-  // Primary attempt with temperature 0.4
+  // Primary: Gemini 2.5 Flash (best prose in Portuguese)
   const messages = [
     { role: 'system', content: systemPrompt },
     { role: 'user', content: userMessage },
   ];
 
-  let response = await chatCompletion(messages, { temperature: 0.4, maxTokens: 4000 });
-  let parsed = parseJsonResponse(response);
+  let response, parsed;
 
-  // Retry with lower temperature if parse failed
+  // Attempt 1: Gemini 2.5 Flash
+  try {
+    response = await chatCompletion(messages, { temperature: 0.4, maxTokens: 4000, provider: 'gemini', model: 'gemini-2.5-flash' });
+    parsed = parseJsonResponse(response);
+  } catch (err) {
+    console.warn('Gemini 2.5 Flash failed:', err.message);
+  }
+
+  // Attempt 2: Gemini 2.0 Flash
   if (!parsed) {
-    console.warn('First CV generation produced invalid JSON. Retrying with temperature 0.2...');
-    response = await chatCompletion(messages, { temperature: 0.2, maxTokens: 4000 });
+    try {
+      console.warn('Trying Gemini 2.0 Flash...');
+      response = await chatCompletion(messages, { temperature: 0.4, maxTokens: 4000, provider: 'gemini', model: 'gemini-2.0-flash' });
+      parsed = parseJsonResponse(response);
+    } catch (err) {
+      console.warn('Gemini 2.0 Flash failed:', err.message);
+    }
+  }
+
+  // Attempt 3: Groq llama-3.3-70b
+  if (!parsed) {
+    console.warn('Falling back to Groq llama-3.3-70b...');
+    response = await chatCompletion(messages, { temperature: 0.3, maxTokens: 4000, provider: 'groq', model: 'llama-3.3-70b-versatile' });
     parsed = parseJsonResponse(response);
   }
 

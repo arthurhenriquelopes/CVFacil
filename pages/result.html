@@ -410,7 +410,7 @@
     </style>
 </head>
 
-<body style="background:white;">
+<body >
     <script type="module">
         import { injectNavbar } from '/src/lib/layout.js';
         import { getState } from '/src/lib/store.js';
@@ -594,7 +594,7 @@
             if (kwListEl && kwUsed.length) {
                 kwListEl.innerHTML = kwUsed.map(k => {
                     const wasMissing = missingBefore.some(m => m.toLowerCase() === k.toLowerCase());
-                    return `<span style="display:inline-block;font-size:0.7rem;padding:2px 8px;margin:2px;border-radius:4px;background:var(--color-gray-50);border:1px solid var(--color-gray-200);color:${wasMissing ? 'var(--color-success)' : 'var(--color-gray-600)'};font-weight:500;">${k}${wasMissing ? '<span style="color:var(--color-success);font-size:0.6rem;margin-left:4px;">✓</span>' : ''}</span>`;
+                    return `<span style="display:inline-block;font-size:0.7rem;padding:2px 8px;margin:2px;border-radius:4px;border:1px solid var(--color-gray-200);color:${wasMissing ? 'var(--color-success)' : 'var(--color-gray-600)'};font-weight:500;">${k}${wasMissing ? '<span style="color:var(--color-success);font-size:0.6rem;margin-left:4px;">✓</span>' : ''}</span>`;
                 }).join('');
             }
 
@@ -642,14 +642,14 @@
 
         <!-- CV Preview -->
         <div id="cv-preview"
-            style="background:white;box-shadow:var(--shadow-lg),0 0 0 1px var(--color-gray-100);border-radius:var(--radius-xl);padding:2rem;min-height:50rem;position:relative;overflow:hidden;">
+            style="background:white;color:black;box-shadow:var(--shadow-lg),0 0 0 1px rgba(255,255,255,0.1);border-radius:var(--radius-xl);padding:2rem;min-height:50rem;position:relative;overflow:hidden;">
             <!-- Rendered via JS -->
         </div>
 
         <!-- Sidebar -->
         <div class="space-y-6">
             <div
-                style="background:var(--color-primary);color:white;padding:2rem;border-radius:var(--radius-xl);box-shadow:var(--shadow-lg);">
+                style="border:1px solid var(--color-gray-300);background:transparent;color:var(--color-gray-900);padding:2rem;border-radius:var(--radius-xl);box-shadow:var(--shadow-lg);">
                 <div
                     style="width:4rem;height:4rem;background:rgba(255,255,255,0.2);border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;margin-bottom:1.5rem;">
                     <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none"
@@ -658,11 +658,11 @@
                         <polyline points="22 4 12 14.01 9 11.01"></polyline>
                     </svg>
                 </div>
-                <h2 style="font-size:1.5rem;font-weight:900;margin-bottom:0.5rem;">Pronto para Enviar!</h2>
+                <h2 style="font-size:1.5rem;font-weight:700;margin-bottom:0.5rem;">Pronto para Enviar!</h2>
                 <p style="color:rgba(255,255,255,0.7);font-size:0.875rem;margin-bottom:2rem;line-height:1.6;">Seu
                     currículo foi otimizado com foco em <b>Experiências Relevantes</b> para esta vaga específica.</p>
                 <button id="btn-download"
-                    style="display:flex;align-items:center;justify-content:center;gap:0.5rem;width:100%;height:3.5rem;border-radius:var(--radius-lg);background:white;color:var(--color-primary);font-weight:900;font-size:1rem;border:none;cursor:pointer;box-shadow:var(--shadow-lg);margin-bottom:1rem;">
+                    style="display:flex;align-items:center;justify-content:center;gap:0.5rem;width:100%;height:3.5rem;border-radius:var(--radius-lg);color:var(--color-primary);font-weight:700;font-size:1rem;border:none;cursor:pointer;box-shadow:var(--shadow-lg);margin-bottom:1rem;">
                     <i class="pi pi-download" style="font-size:1rem;"></i> Download PDF Otimizado
                 </button>
                 <p
@@ -680,14 +680,14 @@
 
                 <!-- Score Before → After -->
                 <div style="display:flex;gap:0.5rem;margin-bottom:0.75rem;">
-                    <div style="flex:1;text-align:center;padding:0.6rem;background:var(--color-gray-50);border-radius:var(--radius-sm);border:1px solid var(--color-gray-100);">
+                    <div style="flex:1;text-align:center;padding:0.6rem;border-radius:var(--radius-sm);border:1px solid var(--color-gray-100);">
                         <div style="font-size:0.6rem;font-weight:700;color:var(--color-gray-400);text-transform:uppercase;letter-spacing:0.05em;">Antes</div>
-                        <div id="kpi-score-before" style="font-size:1.25rem;font-weight:900;color:var(--color-error);">—</div>
+                        <div id="kpi-score-before" style="font-size:1.25rem;font-weight:700;color:var(--color-error);">—</div>
                     </div>
                     <div style="display:flex;align-items:center;color:var(--color-gray-300);font-size:1.2rem;">→</div>
-                    <div style="flex:1;text-align:center;padding:0.6rem;background:var(--color-gray-50);border-radius:var(--radius-sm);border:1px solid var(--color-gray-100);">
+                    <div style="flex:1;text-align:center;padding:0.6rem;border-radius:var(--radius-sm);border:1px solid var(--color-gray-100);">
                         <div style="font-size:0.6rem;font-weight:700;color:var(--color-gray-400);text-transform:uppercase;letter-spacing:0.05em;">Depois</div>
-                        <div id="kpi-score-after" style="font-size:1.25rem;font-weight:900;color:var(--color-success);">—</div>
+                        <div id="kpi-score-after" style="font-size:1.25rem;font-weight:700;color:var(--color-success);">—</div>
                     </div>
                 </div>
 
@@ -695,7 +695,7 @@
                 <div style="margin-bottom:0.75rem;">
                     <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
                         <span style="font-size:0.65rem;font-weight:700;color:var(--color-gray-500);">Cobertura de Keywords</span>
-                        <span id="kpi-progress-label" style="font-size:0.65rem;font-weight:900;color:var(--color-gray-700);">0%</span>
+                        <span id="kpi-progress-label" style="font-size:0.65rem;font-weight:700;color:var(--color-gray-700);">0%</span>
                     </div>
                     <div style="height:6px;background:var(--color-gray-100);border-radius:99px;overflow:hidden;">
                         <div id="kpi-progress-fill" style="height:100%;border-radius:99px;width:0%;transition:width 1s ease;background:var(--color-success);"></div>
@@ -704,17 +704,17 @@
 
                 <!-- Mini KPI cards -->
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.4rem;margin-bottom:0.75rem;">
-                    <div style="padding:0.5rem;background:var(--color-gray-50);border-radius:var(--radius-sm);border:1px solid var(--color-gray-100);text-align:center;">
-                        <div style="font-size:1rem;font-weight:900;color:var(--color-primary);" id="kpi-kw-used">0</div>
+                    <div style="padding:0.5rem;border-radius:var(--radius-sm);border:1px solid var(--color-gray-100);text-align:center;">
+                        <div style="font-size:1rem;font-weight:700;color:var(--color-primary);" id="kpi-kw-used">0</div>
                         <div style="font-size:0.55rem;font-weight:700;color:var(--color-gray-400);text-transform:uppercase;">KW Usadas</div>
                     </div>
-                    <div style="padding:0.5rem;background:var(--color-gray-50);border-radius:var(--radius-sm);border:1px solid var(--color-gray-100);text-align:center;">
-                        <div style="font-size:1rem;font-weight:900;color:var(--color-primary);" id="kpi-kw-total">0</div>
+                    <div style="padding:0.5rem;border-radius:var(--radius-sm);border:1px solid var(--color-gray-100);text-align:center;">
+                        <div style="font-size:1rem;font-weight:700;color:var(--color-primary);" id="kpi-kw-total">0</div>
                         <div style="font-size:0.55rem;font-weight:700;color:var(--color-gray-400);text-transform:uppercase;">KW da Vaga</div>
                     </div>
                 </div>
-                <div style="padding:0.5rem;background:var(--color-gray-50);border-radius:var(--radius-sm);border:1px solid var(--color-gray-100);text-align:center;margin-bottom:0.75rem;">
-                    <div style="font-size:1rem;font-weight:900;color:var(--color-success);" id="kpi-kw-missing-fixed">0/0</div>
+                <div style="padding:0.5rem;border-radius:var(--radius-sm);border:1px solid var(--color-gray-100);text-align:center;margin-bottom:0.75rem;">
+                    <div style="font-size:1rem;font-weight:700;color:var(--color-success);" id="kpi-kw-missing-fixed">0/0</div>
                     <div style="font-size:0.55rem;font-weight:700;color:var(--color-gray-400);text-transform:uppercase;">Gaps Corrigidos</div>
                 </div>
 

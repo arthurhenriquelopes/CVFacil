@@ -37,7 +37,7 @@
         const renderAccordionHeader = (title, subtitle, expanded, index, type) => `
             <div class="${type}-header" data-index="${index}" style="padding:1rem 1.25rem; cursor:pointer; display:flex; justify-content:space-between; align-items:center; background:${expanded ? 'white' : 'var(--color-gray-50)'};">
                 <div>
-                    <h4 style="font-weight:800; font-size:1rem; color:var(--color-gray-900); margin-bottom:0.125rem;">${title}</h4>
+                    <h4 style="font-weight:700; font-size:1rem; color:var(--color-gray-900); margin-bottom:0.125rem;">${title}</h4>
                     <p style="font-size:0.8125rem; color:var(--color-gray-500); margin:0;">${subtitle}</p>
                 </div>
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--color-gray-400); transform: ${expanded ? 'rotate(180deg)' : 'rotate(0deg)'}; transition: transform 0.2s;"><polyline points="6 9 12 15 18 9"></polyline></svg>
@@ -55,7 +55,7 @@
         function renderExperiences() {
             const exps = getState().profile.experiences || [];
             renderArr(exps, 'experiences-list', 'badge-exp', (exp, idx) => `
-                <div style="border:1px solid var(--color-gray-300); border-radius:var(--radius-md); overflow:hidden; background:white; margin-bottom:1rem;">
+                <div style="border:1px solid var(--color-gray-300); border-radius:var(--radius-md); overflow:hidden;  margin-bottom:1rem;">
                     ${renderAccordionHeader(exp.title || 'Cargo não definido', `${exp.company || 'Empresa'} • ${exp.startDate || 'Início'} - ${exp.isCurrent ? 'Atual' : (exp.endDate || 'Fim')}`, exp._expanded, idx, 'exp')}
                     <div style="display: ${exp._expanded ? 'block' : 'none'}; padding:1.25rem; border-top:1px solid var(--color-gray-200);">
                         <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1rem;">
@@ -79,7 +79,7 @@
         function renderEducation() {
             const edus = getState().profile.education || [];
             renderArr(edus, 'education-list', 'badge-edu', (edu, idx) => `
-                <div style="border:1px solid var(--color-gray-300); border-radius:var(--radius-md); overflow:hidden; background:white; margin-bottom:1rem;">
+                <div style="border:1px solid var(--color-gray-300); border-radius:var(--radius-md); overflow:hidden;  margin-bottom:1rem;">
                     ${renderAccordionHeader(edu.degree || 'Curso não definido', edu.institution || 'Instituição', edu._expanded, idx, 'edu')}
                     <div style="display: ${edu._expanded ? 'block' : 'none'}; padding:1.25rem; border-top:1px solid var(--color-gray-200);">
                         <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1rem;">
@@ -97,7 +97,7 @@
         function renderLanguages() {
             const langs = getState().profile.languages || [];
             renderArr(langs, 'languages-list', 'badge-lang', (lang, idx) => `
-                <div style="border:1px solid var(--color-gray-300); border-radius:var(--radius-md); overflow:hidden; background:white; margin-bottom:1rem;">
+                <div style="border:1px solid var(--color-gray-300); border-radius:var(--radius-md); overflow:hidden;  margin-bottom:1rem;">
                     ${renderAccordionHeader(lang.name || 'Idioma não definido', lang.level || 'Nível não informado', lang._expanded, idx, 'lang')}
                     <div style="display: ${lang._expanded ? 'block' : 'none'}; padding:1.25rem; border-top:1px solid var(--color-gray-200);">
                         <div style="display:grid; gap:1rem; margin-bottom:1rem;">
@@ -120,7 +120,7 @@
         function renderProjects() {
             const projs = getState().profile.projects || [];
             renderArr(projs, 'projects-list', 'badge-proj', (proj, idx) => `
-                <div style="border:1px solid var(--color-gray-300); border-radius:var(--radius-md); overflow:hidden; background:white; margin-bottom:1rem;">
+                <div style="border:1px solid var(--color-gray-300); border-radius:var(--radius-md); overflow:hidden;  margin-bottom:1rem;">
                     ${renderAccordionHeader(proj.title || 'Novo projeto', proj.role || 'Papel no projeto', proj._expanded, idx, 'proj')}
                     <div style="display: ${proj._expanded ? 'block' : 'none'}; padding:1.25rem; border-top:1px solid var(--color-gray-200);">
                         <div style="display:grid; gap:1rem; margin-bottom:1rem;">
@@ -137,7 +137,7 @@
         function renderCertifications() {
             const certs = getState().profile.certifications || [];
             renderArr(certs, 'certifications-list', 'badge-cert', (cert, idx) => `
-                <div style="border:1px solid var(--color-gray-300); border-radius:var(--radius-md); overflow:hidden; background:white; margin-bottom:1rem;">
+                <div style="border:1px solid var(--color-gray-300); border-radius:var(--radius-md); overflow:hidden;  margin-bottom:1rem;">
                     ${renderAccordionHeader(cert.title || 'Nova certificação', cert.issuer || 'Instituição emissora', cert._expanded, idx, 'cert')}
                     <div style="display: ${cert._expanded ? 'block' : 'none'}; padding:1.25rem; border-top:1px solid var(--color-gray-200);">
                         <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1rem;">
@@ -157,7 +157,7 @@
 
             let html = '<div style="display:flex; flex-wrap:wrap; gap:0.5rem; margin-bottom:1rem;">';
             html += skills.map((s, i) => `
-                <span style="display:inline-flex; align-items:center; gap:0.5rem; padding:0.375rem 0.75rem; border:1px solid var(--color-gray-300); border-radius:1rem; font-size:0.875rem; font-weight:500; color:var(--color-gray-700); background:white; box-shadow:0 1px 2px rgba(0,0,0,0.05);">
+                <span style="display:inline-flex; align-items:center; gap:0.5rem; padding:0.375rem 0.75rem; border:1px solid var(--color-gray-300); border-radius:1rem; font-size:0.875rem; font-weight:500; color:var(--color-gray-700);  box-shadow:0 1px 2px rgba(0,0,0,0.05);">
                     ${s}
                     <button class="btn-remove-skill" data-index="${i}" style="background:transparent; border:none; color:var(--color-gray-400); cursor:pointer; padding:0; display:flex; align-items:center; transition:color 0.2s;">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
@@ -387,7 +387,7 @@
     <main class="page-content step-content"
         style="max-width:var(--max-width);margin:0 auto;padding-left:1rem;padding-right:1rem;">
         <div style="text-align:center;margin-bottom:2rem;">
-            <h2 style="font-size:1.5rem;font-weight:900;">Suas Informações</h2>
+            <h2 style="font-size:1.5rem;font-weight:700;">Suas Informações</h2>
             <p style="color:var(--color-gray-500);font-weight:500;">Mantenha seu perfil atualizado para obter os
                 melhores resultados.</p>
         </div>
@@ -406,14 +406,14 @@
                         </svg>
                     </div>
                     <div>
-                        <h3 style="font-weight:800;font-size:1.125rem;">Importar Dados</h3>
+                        <h3 style="font-weight:700;font-size:1.125rem;">Importar Dados</h3>
                         <p style="font-size:0.8125rem;color:var(--color-gray-500);font-weight:500;">Substitua seus dados
                             via LinkedIn ou PDF</p>
                     </div>
                 </div>
                 <input type="file" id="file-upload" accept="application/pdf" style="display:none;">
                 <button id="btn-import"
-                    style="width:100%;height:3rem;border-radius:var(--radius-md);background:white;border:1px solid var(--color-gray-300);font-weight:700;font-size:0.875rem;color:var(--color-gray-700);display:flex;align-items:center;justify-content:center;gap:0.5rem;cursor:pointer;transition:background 0.2s;">
+                    style="width:100%;height:3rem;border-radius:var(--radius-md);border:1px solid var(--color-gray-300);font-weight:700;font-size:0.875rem;color:var(--color-gray-700);display:flex;align-items:center;justify-content:center;gap:0.5rem;cursor:pointer;transition:background 0.2s;">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"></path>
@@ -423,7 +423,7 @@
                     Importar do LinkedIn ou PDF
                 </button>
                 <div id="import-status"
-                    style="display:none;align-items:center;justify-content:center;gap:0.75rem;width:100%;height:3rem;background:var(--color-gray-50);border-radius:var(--radius-md);border:1px solid var(--color-gray-200);">
+                    style="display:none;align-items:center;justify-content:center;gap:0.75rem;width:100%;height:3rem;border-radius:var(--radius-md);border:1px solid var(--color-gray-200);">
                 </div>
             </div>
 
@@ -431,14 +431,14 @@
             <div class="card" style="padding:1.5rem;">
                 <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:1.25rem;">
                     <div
-                        style="width:2.5rem;height:2.5rem;border-radius:var(--radius-sm);background:var(--color-primary-light);color:var(--color-primary);display:flex;align-items:center;justify-content:center;">
+                        style="width:2.5rem;height:2.5rem;border-radius:var(--radius-sm);border:1px solid var(--color-gray-400);color:var(--color-gray-900);background:transparent;display:flex;align-items:center;justify-content:center;">
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
                             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
                             <circle cx="12" cy="7" r="4"></circle>
                         </svg>
                     </div>
-                    <h3 style="font-weight:800;">Dados Pessoais</h3>
+                    <h3 style="font-weight:700;">Dados Pessoais</h3>
                 </div>
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
                     <div>
@@ -481,7 +481,7 @@
                             </svg>
                         </div>
                         <div style="display:flex;align-items:center;gap:0.5rem;">
-                            <h3 style="font-weight:800;">Habilidades</h3>
+                            <h3 style="font-weight:700;">Habilidades</h3>
                             <span class="badge" id="badge-skill">0</span>
                         </div>
                     </div>
@@ -509,7 +509,7 @@
                 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.5rem;">
                     <div style="display:flex;align-items:center;gap:0.75rem;">
                         <div
-                            style="width:2.5rem;height:2.5rem;border-radius:var(--radius-sm);background:var(--color-primary-light);color:var(--color-primary);display:flex;align-items:center;justify-content:center;">
+                            style="width:2.5rem;height:2.5rem;border-radius:var(--radius-sm);border:1px solid var(--color-gray-400);color:var(--color-gray-900);background:transparent;display:flex;align-items:center;justify-content:center;">
                             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
                                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                                 stroke-linejoin="round">
@@ -518,12 +518,12 @@
                             </svg>
                         </div>
                         <div style="display:flex;align-items:center;gap:0.5rem;">
-                            <h3 style="font-weight:800;">Experiências</h3>
+                            <h3 style="font-weight:700;">Experiências</h3>
                             <span class="badge" id="badge-exp">0</span>
                         </div>
                     </div>
                     <button id="btn-add-exp"
-                        style="background:var(--color-primary);color:white;border:none;padding:0.4rem 1rem;border-radius:0.5rem;font-weight:700;font-size:0.8125rem;cursor:pointer;display:flex;align-items:center;gap:0.25rem;">
+                        style="background:var(--color-gray-900);color:var(--color-gray-50);border:none;padding:0.4rem 1rem;border-radius:0.5rem;font-weight:700;font-size:0.8125rem;cursor:pointer;display:flex;align-items:center;gap:0.25rem;">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                             stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                             <line x1="12" y1="5" x2="12" y2="19"></line>
@@ -551,12 +551,12 @@
                             </svg>
                         </div>
                         <div style="display:flex;align-items:center;gap:0.5rem;">
-                            <h3 style="font-weight:800;">Formação Acadêmica</h3>
+                            <h3 style="font-weight:700;">Formação Acadêmica</h3>
                             <span class="badge" id="badge-edu">0</span>
                         </div>
                     </div>
                     <button id="btn-add-edu"
-                        style="background:var(--color-primary);color:white;border:none;padding:0.4rem 1rem;border-radius:0.5rem;font-weight:700;font-size:0.8125rem;cursor:pointer;display:flex;align-items:center;gap:0.25rem;">
+                        style="background:var(--color-gray-900);color:var(--color-gray-50);border:none;padding:0.4rem 1rem;border-radius:0.5rem;font-weight:700;font-size:0.8125rem;cursor:pointer;display:flex;align-items:center;gap:0.25rem;">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                             stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                             <line x1="12" y1="5" x2="12" y2="19"></line>
@@ -585,12 +585,12 @@
                             </svg>
                         </div>
                         <div style="display:flex;align-items:center;gap:0.5rem;">
-                            <h3 style="font-weight:800;">Idiomas</h3>
+                            <h3 style="font-weight:700;">Idiomas</h3>
                             <span class="badge" id="badge-lang">0</span>
                         </div>
                     </div>
                     <button id="btn-add-lang"
-                        style="background:var(--color-primary);color:white;border:none;padding:0.4rem 1rem;border-radius:0.5rem;font-weight:700;font-size:0.8125rem;cursor:pointer;display:flex;align-items:center;gap:0.25rem;">
+                        style="background:var(--color-gray-900);color:var(--color-gray-50);border:none;padding:0.4rem 1rem;border-radius:0.5rem;font-weight:700;font-size:0.8125rem;cursor:pointer;display:flex;align-items:center;gap:0.25rem;">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                             stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                             <line x1="12" y1="5" x2="12" y2="19"></line>
@@ -617,12 +617,12 @@
                             </svg>
                         </div>
                         <div style="display:flex;align-items:center;gap:0.5rem;">
-                            <h3 style="font-weight:800;">Projetos</h3>
+                            <h3 style="font-weight:700;">Projetos</h3>
                             <span class="badge" id="badge-proj">0</span>
                         </div>
                     </div>
                     <button id="btn-add-proj"
-                        style="background:var(--color-primary);color:white;border:none;padding:0.4rem 1rem;border-radius:0.5rem;font-weight:700;font-size:0.8125rem;cursor:pointer;display:flex;align-items:center;gap:0.25rem;">
+                        style="background:var(--color-gray-900);color:var(--color-gray-50);border:none;padding:0.4rem 1rem;border-radius:0.5rem;font-weight:700;font-size:0.8125rem;cursor:pointer;display:flex;align-items:center;gap:0.25rem;">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                             stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                             <line x1="12" y1="5" x2="12" y2="19"></line>
@@ -647,12 +647,12 @@
                             </svg>
                         </div>
                         <div style="display:flex;align-items:center;gap:0.5rem;">
-                            <h3 style="font-weight:800;">Certificações</h3>
+                            <h3 style="font-weight:700;">Certificações</h3>
                             <span class="badge" id="badge-cert">0</span>
                         </div>
                     </div>
                     <button id="btn-add-cert"
-                        style="background:var(--color-primary);color:white;border:none;padding:0.4rem 1rem;border-radius:0.5rem;font-weight:700;font-size:0.8125rem;cursor:pointer;display:flex;align-items:center;gap:0.25rem;">
+                        style="background:var(--color-gray-900);color:var(--color-gray-50);border:none;padding:0.4rem 1rem;border-radius:0.5rem;font-weight:700;font-size:0.8125rem;cursor:pointer;display:flex;align-items:center;gap:0.25rem;">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                             stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                             <line x1="12" y1="5" x2="12" y2="19"></line>

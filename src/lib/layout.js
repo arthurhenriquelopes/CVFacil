@@ -58,18 +58,18 @@ export function injectStepFooter({ label = 'Continuar', id = 'btn-continue', dis
 export function injectNavbar({ activePage = 'landing' } = {}) {
   const nav = document.createElement('nav');
   nav.style.cssText = `
-    position: sticky; top: 0; z-index: 50; background: rgba(255,255,255,0.85);
+    position: sticky; top: 0; z-index: 50; background: rgba(18,18,18,0.85);;
     backdrop-filter: blur(12px); border-bottom: 1px solid var(--color-gray-100);
     padding: 0 1rem; height: 4rem; display: flex; align-items: center;
     justify-content: space-between; max-width: var(--max-width); margin: 0 auto; width: 100%;
   `;
   nav.innerHTML = `
-    <a href="/" style="font-size:1.5rem;font-weight:900;color:var(--color-primary);letter-spacing:-0.025em;">
+    <a href="/" style="font-size:1.5rem;font-weight:700; text-transform:uppercase; letter-spacing:0.1em;;color:var(--color-gray-900);letter-spacing:-0.025em;">
       CvPorVaga<span style="color:var(--color-gray-300)">.</span>
     </a>
     <div style="display:flex;gap:0.75rem;align-items:center;">
-      <a href="/pages/dashboard.html" style="padding:0.5rem 1rem;font-weight:500;font-size:0.875rem;border-radius:0.5rem;transition:background 0.2s;">Entrar</a>
-      <a href="/pages/step-goal.html" style="padding:0.5rem 1.25rem;font-weight:700;font-size:0.875rem;background:var(--color-primary);color:white;border-radius:0.75rem;box-shadow:0 4px 14px rgba(37,99,235,0.25);transition:transform 0.15s;">
+      <a href="/pages/dashboard.html" style="padding:0.5rem 1rem;font-weight:500;font-size:0.875rem;transition:background 0.2s;">Entrar</a>
+      <a href="/pages/step-goal.html" style="padding:0.5rem 1.25rem;font-weight:700;font-size:0.875rem;background:var(--color-gray-900);color:var(--color-gray-50);border:1px solid var(--color-gray-900); border-radius:0;transition:transform 0.15s;">
         Criar CV →
       </a>
     </div>

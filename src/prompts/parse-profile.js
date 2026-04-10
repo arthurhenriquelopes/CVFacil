@@ -10,70 +10,70 @@ import { chatCompletion } from '../api/sonar.js';
  */
 export async function parseProfileFromText(rawText) {
   const systemPrompt = `Você é um assistente especialista em extração de dados de currículos.
-Sua tarefa é ler um texto extraído de um PDF (que pode estar desformatado) e extrair os dados organizados em um JSON estruturado.
+  Sua tarefa é ler um texto extraído de um PDF (que pode estar desformatado) e extrair os dados organizados em um JSON estruturado.
 
-REGRAS:
-- Retorne APENAS um JSON válido.
-- Verifique todas as seções do currículo: experiências, formação acadêmica, habilidades (array de strings), projetos, idiomas e certificações.
-- Extraia tudo nos dados estruturados abaixo. Deixe vazio ou array vazio quando não achar a informação.
-- Ajuste datas para o formato 'MM/YYYY' ou apenas 'YYYY'. Nas experiências, se for o emprego atual, marque isCurrent como true e deixe endDate vazio.
+  REGRAS:
+  - Retorne APENAS um JSON válido.
+  - Verifique todas as seções do currículo: experiências, formação acadêmica, habilidades (array de strings), projetos, idiomas e certificações.
+  - Extraia tudo nos dados estruturados abaixo. Deixe vazio ou array vazio quando não achar a informação.
+  - Ajuste datas para o formato 'MM/YYYY' ou apenas 'YYYY'. Nas experiências, se for o emprego atual, marque isCurrent como true e deixe endDate vazio.
 
-FORMATO ESPERADO:
-{
-  "name": "",
-  "email": "",
-  "phone": "",
-  "location": "",
-  "summary": "",
-  "skills": [],
-  "experiences": [
-    {
-      "title": "",
-      "company": "",
-      "startDate": "",
-      "endDate": "",
-      "isCurrent": false,
-      "description": ""
-    }
-  ],
-  "education": [
-    {
-      "degree": "",
-      "institution": "",
-      "startDate": "",
-      "endDate": ""
-    }
-  ],
-  "languages": [
-    {
-      "name": "",
-      "level": ""
-    }
-  ],
-  "projects": [
-    {
-      "title": "",
-      "role": "",
-      "description": ""
-    }
-  ],
-  "certifications": [
-    {
-      "name": "",
-      "institution": ""
-    }
-  ]
-}`;
+  FORMATO ESPERADO:
+  {
+    "name": "",
+    "email": "",
+    "phone": "",
+    "location": "",
+    "summary": "",
+    "skills": [],
+    "experiences": [
+      {
+        "title": "",
+        "company": "",
+        "startDate": "",
+        "endDate": "",
+        "isCurrent": false,
+        "description": ""
+      }
+    ],
+    "education": [
+      {
+        "degree": "",
+        "institution": "",
+        "startDate": "",
+        "endDate": ""
+      }
+    ],
+    "languages": [
+      {
+        "name": "",
+        "level": ""
+      }
+    ],
+    "projects": [
+      {
+        "title": "",
+        "role": "",
+        "description": ""
+      }
+    ],
+    "certifications": [
+      {
+        "name": "",
+        "institution": ""
+      }
+    ]
+  }`;
 
   const userMessage = `TEXTO DO CURRÍCULO:
-${rawText}
+  ${rawText}
 
-Extraia os dados no formato JSON solicitado.`;
+  Extraia os dados no formato JSON solicitado.`;
 
   const response = await chatCompletion([
     { role: 'system', content: systemPrompt },
     { role: 'user', content: userMessage },
-  ], { temperature: 0.1 });
+  ], { temperature: 0.1, provider: 'groq', model: 'llama-3.1-8b-instant' });
 
   try {
     const jsonMatch = response.match(/\{[\s\S]*\}/);
