@@ -1,202 +1,277 @@
-import { getState } from '/src/lib/store.js';
+/**
+ * ATS Result Page — Renders three-panel dashboard from Evolui-CV analysis.
+ * Left: CV summary + score gauge
+ * Center: Recruiter analysis (issues, strengths, actions)
+ * Right: Improvement suggestions (selectable for CV generation)
+ */
+import { getState, setState } from '/src/lib/store.js';
 
 const state = getState();
 const res = state.analysisResult;
 
-if (!res) {
-    window.location.href = '/pages/dashboard.html';
+if (!res || !res.analysis) {
+  window.location.href = '/pages/dashboard.html';
 }
 
-// Se 'ats' não existir, cria um baseado na proporção real com a nota base 10
-const ats = res.ats || {
-    score: Math.round(
-        (res.matchPercentage / 100) * 40 +
-        (res.matchPercentage / 100) * 30 +
-        (res.matchPercentage / 100) * 20 +
-        10
-    ) || 33,
-    classification: (res.matchPercentage >= 70) ? "Aprovado pelo ATS" : "Reprovado automaticamente pelo ATS",
-    risk: (res.matchPercentage >= 70) ? "BAIXO" : "ALTO",
-    summary: "O seu currículo foi analisado com base nas palavras-chave e requisitos da vaga.",
-    breakdown: {
-        hardSkills: { score: Math.round((res.matchPercentage / 100) * 40), max: 40 },
-        experience: { score: Math.round((res.matchPercentage / 100) * 30), max: 30 },
-        keywords: { score: Math.round((res.matchPercentage / 100) * 20), max: 20 },
-        education: { score: Math.round((res.matchPercentage / 100) * 10), max: 10 }
-    },
-    criticalGaps: res.suggestions?.slice(0, 3) || ["Ausência de palavras-chave adequadas"],
-    missingKeywords: res.keywords?.filter(k => !(res.matchedKeywords || []).includes(k)) || ["Node.js", "TypeScript"],
-    matchedKeywords: res.matchedKeywords || ["Docker", "PostgreSQL"],
-    strengths: (res.highlightableExperiences || []).map(e => e.reason),
-    tips: res.suggestions?.map(s => ({ text: s, impact: 'alto' })) || []
-};
+const analysis = res.analysis;
+const improvements = res.improvements;
+const suggestions = improvements?.suggestions || [];
+const isGeneratorFlow = !!(state.profile && state.profile.name);
 
-const isApproved = ats.score >= 70;
-const colorMain = isApproved ? 'var(--color-success)' : 'var(--color-error)';
-const badgeStyle = isApproved
-    ? 'background:#dcfce7; color:#15803d;'
-    : 'background:#fee2e2; color:#b91c1c;';
-const badgeText = isApproved ? 'APROVAR' : 'REPROVAR';
+// Score classification
+const score = analysis.overallScore || 0;
+const scoreColor = score >= 80 ? '#22c55e' : score >= 60 ? '#f59e0b' : '#ef4444';
+const scoreLabel = score >= 80 ? 'Excelente' : score >= 60 ? 'Competitivo' : score >= 40 ? 'Precisa de ajustes' : 'Requer revisão';
 
-const criticalGapsHtml = ats.criticalGaps.map(g => `
-    <li style="font-size:0.875rem; color:var(--color-error); display:flex; align-items:flex-start; gap:0.5rem; margin-bottom:0.5rem;">
-        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0; margin-top:0.25rem;"><circle cx="12" cy="12" r="10"></circle><path d="m15 9-6 6"></path><path d="m9 9 6 6"></path></svg>
-        ${g}
-    </li>
-`).join('');
+// SVG gauge calculations
+const radius = 68;
+const circumference = 2 * Math.PI * radius;
+const dashOffset = circumference - (score / 100) * circumference;
 
-const missingKwHtml = ats.missingKeywords.map(k => `
-    <span style="padding:0.25rem 0.75rem; background:#fef2f2; color:#b91c1c; border:1px solid #fee2e2; font-size:0.875rem; font-weight:500;">${k}</span>
-`).join('');
+// ═══════════════════════════════════════
+// LEFT PANEL — CV Summary + Score
+// ═══════════════════════════════════════
+const leftPanel = `
+<div class="result-panel" style="position:sticky;top:1rem;">
+  <div class="result-panel-title">
+    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/></svg>
+    Currículo Enviado
+  </div>
 
-const matchedKwHtml = ats.matchedKeywords.map(k => `
-    <span style="padding:0.25rem 0.75rem; background:#f0fdf4; color:#15803d; border:1px solid #dcfce7; font-size:0.875rem;">${k}</span>
-`).join('');
-
-const strengthsHtml = ats.strengths.map(s => `
-    <li style="display:flex; align-items:flex-start; gap:0.75rem; font-size:0.875rem; color:var(--color-gray-600); margin-bottom:1rem;">
-        <div style="width:0.375rem; height:0.375rem; border-radius:50%; background:var(--color-success); margin-top:0.375rem; flex-shrink:0;"></div>
-        ${s}
-    </li>
-`).join('');
-
-const tipsHtml = ats.tips.map(t => `
-    <li style="display:flex; align-items:flex-start; gap:0.75rem; font-size:0.875rem; color:var(--color-gray-600); margin-bottom:1rem;">
-        <div style="width:0.375rem; height:0.375rem; border-radius:50%; background:${t.impact === 'alto' ? 'var(--color-error)' : 'var(--color-warning)'}; margin-top:0.375rem; flex-shrink:0;"></div>
-        <span style="${t.impact === 'alto' ? 'font-weight:600; color:var(--color-gray-800);' : ''}">${t.text}</span>
-    </li>
-`).join('');
-
-const ctaHtml = !isApproved ? `
-    <div style="background:var(--color-gray-200); border:1px solid var(--color-gray-300); padding:2rem; margin-top:2rem; text-align:center; color:var(--color-gray-900);">
-        <div style="display:inline-flex; align-items:center; gap:0.5rem; padding:0.375rem 1rem; background:var(--color-error); color:white; font-size:0.875rem; font-weight:700; margin-bottom:1rem;">
-            ⚠ Atenção: Seu CV está sendo eliminado
-        </div>
-        <h2 style="font-size:1.5rem; font-weight:700; margin:0 0 0.75rem;">Com esse score, você está perdendo vagas agora</h2>
-        <p style="color:var(--color-gray-600); font-weight:500; max-width:40rem; margin:0 auto 2rem;">Enquanto você lê isso, outros candidatos com CVs otimizados estão sendo chamados para entrevista.</p>
-        <div style="display:flex; justify-content:center; gap:1rem; flex-wrap:wrap;">
-            <a href="/pages/step-template.html" style="background:var(--color-gray-900); color:var(--color-gray-50); padding:1rem 2rem; font-weight:700;">
-                🚀 Gerar currículo otimizado
-            </a>
-            <a href="/pages/step-ats-scanner.html" style="color:var(--color-gray-600); padding:1rem 1.5rem; font-weight:700; border:1px solid var(--color-gray-300);">
-                Testar outra vaga
-            </a>
-        </div>
+  <!-- Score Gauge -->
+  <div class="score-gauge" style="margin-bottom:1.5rem;">
+    <svg viewBox="0 0 160 160" width="160" height="160">
+      <circle class="score-gauge-track" cx="80" cy="80" r="${radius}"/>
+      <circle class="score-gauge-fill" cx="80" cy="80" r="${radius}"
+        stroke="${scoreColor}"
+        stroke-dasharray="${circumference}"
+        stroke-dashoffset="${dashOffset}"/>
+    </svg>
+    <div class="score-gauge-value">
+      <span class="score-gauge-number" style="color:${scoreColor};">${score}</span>
+      <span class="score-gauge-label" style="color:${scoreColor};">${scoreLabel}</span>
     </div>
-` : `
-    <div style="background:var(--color-gray-200); border:1px solid var(--color-success); padding:2rem; margin-top:2rem; text-align:center; color:var(--color-gray-900);">
-        <h2 style="font-size:1.5rem; font-weight:700; margin:0 0 0.75rem; color:var(--color-success);">Seu currículo está forte!</h2>
-        <p style="color:var(--color-gray-600); font-weight:500; max-width:40rem; margin:0 auto 2rem;">Pode enviar com confiança, o ATS não será uma barreira para você.</p>
-        <a href="/pages/step-ats-scanner.html" style="display:inline-flex; background:var(--color-gray-900); color:var(--color-gray-50); padding:1rem 2rem; font-weight:700;">
-            Testar outra vaga
-        </a>
-    </div>
-`;
+  </div>
 
-const finalMarkup = `
-<div style="width:100%; max-width:64rem; margin:0 auto; padding:2rem 1rem;">
-    <div style="display:grid; gap:1.5rem;" class="main-grid">
-        <!-- Top Summary Grid -->
-        <div class="col-span-2" style="border:1px solid var(--color-gray-300); padding:2rem;">
-            <div style="display:flex; align-items:flex-start; justify-content:space-between;">
-                <div>
-                    <h2 style="font-size:1.875rem; font-weight:700; color:var(--color-gray-900); margin:0;">Resultado da Análise</h2>
-                    <p style="color:var(--color-gray-500); font-weight:500; margin-top:0.25rem; font-size:0.875rem;">Baseado nos critérios de +50 ATS do mercado</p>
-                </div>
-                <div style="padding:0.25rem 1rem; font-size:0.75rem; font-weight:700; letter-spacing:0.05em; ${badgeStyle}">${badgeText}</div>
-            </div>
-            
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:2rem; margin-top:1.5rem;">
-                <div>
-                    <div style="font-size:0.875rem; color:var(--color-gray-500); font-weight:700; text-transform:uppercase; margin-bottom:0.25rem;">Score Geral</div>
-                    <div style="font-size:3.75rem; font-weight:700; color:${colorMain}; line-height:1;">${ats.score}<span style="font-size:1.5rem; color:var(--color-gray-400); font-weight:400;">/100</span></div>
-                </div>
-                <div>
-                    <div style="font-size:0.875rem; color:var(--color-gray-400); font-weight:700; text-transform:uppercase; margin-bottom:0.25rem;">Classificação</div>
-                    <div style="font-size:1.25rem; font-weight:700; color:var(--color-gray-800); line-height:1.2;">${ats.classification}</div>
-                    <div style="margin-top:0.5rem; display:flex; align-items:center; gap:0.5rem;">
-                        <div style="width:0.75rem; height:0.75rem; border-radius:50%; background:${colorMain};"></div>
-                        <span style="font-size:0.875rem; color:var(--color-gray-600);">Risco de Rejeição: <strong>${ats.risk}</strong></span>
-                    </div>
-                </div>
-            </div>
-            <p style="color:var(--color-gray-600); font-weight:500; line-height:1.6; border-top:1px solid var(--color-gray-200); padding-top:1.5rem; margin-top:1.5rem;">${ats.summary}</p>
-        </div>
-        
-        <div style="border:1px solid var(--color-gray-300); padding:1.5rem;">
-            <h3 style="font-weight:700; color:var(--color-gray-800); font-size:1.125rem; margin:0 0 1.5rem;">Composição da Nota</h3>
-            <div style="display:flex; flex-direction:column; gap:1rem;">
-                <div>
-                    <div style="display:flex; justify-content:space-between; font-size:0.75rem; margin-bottom:0.25rem;"><span style="font-weight:700; color:var(--color-gray-600);">Hard Skills</span><span style="font-weight:700; color:var(--color-gray-800);">${ats.breakdown.hardSkills.score}/${ats.breakdown.hardSkills.max}</span></div>
-                    <div style="height:0.625rem; width:100%; background:var(--color-gray-200); overflow:hidden;"><div style="height:100%; background:var(--color-error); width: ${(ats.breakdown.hardSkills.score / ats.breakdown.hardSkills.max) * 100}%;"></div></div>
-                </div>
-                <div>
-                    <div style="display:flex; justify-content:space-between; font-size:0.75rem; margin-bottom:0.25rem;"><span style="font-weight:700; color:var(--color-gray-600);">Experiência</span><span style="font-weight:700; color:var(--color-gray-800);">${ats.breakdown.experience.score}/${ats.breakdown.experience.max}</span></div>
-                    <div style="height:0.625rem; width:100%; background:var(--color-gray-200); overflow:hidden;"><div style="height:100%; background:var(--color-error); width: ${(ats.breakdown.experience.score / ats.breakdown.experience.max) * 100}%;"></div></div>
-                </div>
-                <div>
-                    <div style="display:flex; justify-content:space-between; font-size:0.75rem; margin-bottom:0.25rem;"><span style="font-weight:700; color:var(--color-gray-600);">Palavras-chave</span><span style="font-weight:700; color:var(--color-gray-800);">${ats.breakdown.keywords.score}/${ats.breakdown.keywords.max}</span></div>
-                    <div style="height:0.625rem; width:100%; background:var(--color-gray-200); overflow:hidden;"><div style="height:100%; background:var(--color-error); width: ${(ats.breakdown.keywords.score / ats.breakdown.keywords.max) * 100}%;"></div></div>
-                </div>
-                <div>
-                    <div style="display:flex; justify-content:space-between; font-size:0.75rem; margin-bottom:0.25rem;"><span style="font-weight:700; color:var(--color-gray-600);">Formação</span><span style="font-weight:700; color:var(--color-gray-800);">${ats.breakdown.education.score}/${ats.breakdown.education.max}</span></div>
-                    <div style="height:0.625rem; width:100%; background:var(--color-gray-200); overflow:hidden;"><div style="height:100%; background:var(--color-warning); width: ${(ats.breakdown.education.score / ats.breakdown.education.max) * 100}%;"></div></div>
-                </div>
-            </div>
-            
-            <div style="padding-top:1.25rem; border-top:1px solid var(--color-gray-200); margin-top:1.25rem;">
-                <div style="font-size:0.75rem; font-weight:700; color:var(--color-gray-500); text-transform:uppercase; margin-bottom:0.75rem;">Gaps Críticos</div>
-                <ul style="list-style:none; padding:0; margin:0;">
-                    ${criticalGapsHtml}
-                </ul>
-            </div>
-        </div>
-    </div>
+  <!-- Meta info -->
+  <div style="display:flex;flex-direction:column;gap:0.75rem;border-top:1px solid var(--color-border);padding-top:1rem;">
+    ${state.professionalGoal ? `
+    <div>
+      <div style="font-size:0.625rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--color-text-muted);margin-bottom:0.25rem;">Objetivo</div>
+      <div style="font-size:0.8125rem;color:var(--color-text-secondary);line-height:1.4;">${state.professionalGoal}</div>
+    </div>` : ''}
+    ${state.targetRole ? `
+    <div>
+      <div style="font-size:0.625rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--color-text-muted);margin-bottom:0.25rem;">Cargo Alvo</div>
+      <div style="font-size:0.8125rem;color:var(--color-text-secondary);">${state.targetRole}</div>
+    </div>` : ''}
+    ${state.cvFileName ? `
+    <div>
+      <div style="font-size:0.625rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--color-text-muted);margin-bottom:0.25rem;">Arquivo</div>
+      <div style="font-size:0.8125rem;color:var(--color-text-secondary);display:flex;align-items:center;gap:0.5rem;">
+        <i class="pi pi-file-pdf" style="color:#ef4444;"></i> ${state.cvFileName}
+      </div>
+    </div>` : ''}
+  </div>
 
-    <!-- Keywords -->
-    <div style="border:1px solid var(--color-gray-300); overflow:hidden; margin-top:1.5rem;">
-        <div style="padding:1.5rem; border-bottom:1px solid var(--color-gray-200);">
-            <h3 style="font-weight:700; font-size:1.125rem; display:flex; align-items:center; gap:0.5rem; color:var(--color-gray-800); margin:0;">
-                ⚠ Palavras-chave Ausentes
-            </h3>
-            <p style="color:var(--color-gray-500); font-size:0.875rem; font-weight:500; margin:0.25rem 0 0;">Termos importantes da vaga que não foram encontrados no seu CV.</p>
-        </div>
-        <div style="padding:1.5rem;">
-            <div style="display:flex; flex-wrap:wrap; gap:0.5rem;">
-                ${missingKwHtml}
-            </div>
-            <div style="margin-top:1.5rem; padding-top:1.5rem; border-top:1px solid var(--color-gray-200);">
-                <h4 style="font-weight:700; font-size:0.875rem; color:var(--color-gray-700); margin:0 0 0.75rem;">Termos encontrados (Match)</h4>
-                <div style="display:flex; flex-wrap:wrap; gap:0.75rem;">
-                    ${matchedKwHtml}
-                </div>
-            </div>
-        </div>
-    </div>
+  <!-- Quick Actions -->
+  <div style="margin-top:1.25rem;display:flex;flex-direction:column;gap:0.5rem;">
+    <a href="/pages/step-ats-scanner.html" style="display:flex;align-items:center;justify-content:center;gap:0.5rem;padding:0.625rem;border:1px solid var(--color-border);border-radius:var(--radius-md);font-size:0.75rem;font-weight:600;color:var(--color-text-secondary);text-decoration:none;transition:all 0.2s;">
+      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+      Novo teste
+    </a>
+  </div>
+</div>`;
 
-    <!-- Strengths and Tips -->
-    <div style="display:grid; gap:1.5rem; margin-top:1.5rem;" class="main-grid-2">
-        <div style="border:1px solid var(--color-gray-300); padding:1.5rem;">
-            <h3 style="font-weight:700; font-size:1.125rem; display:flex; align-items:center; gap:0.5rem; margin:0 0 1.25rem; color:var(--color-success);">
-                ✓ Pontos Fortes
-            </h3>
-            <ul style="list-style:none; padding:0; margin:0;">
-                ${strengthsHtml}
-            </ul>
-        </div>
-        <div style="border:1px solid var(--color-gray-300); padding:1.5rem;">
-            <h3 style="font-weight:700; font-size:1.125rem; display:flex; align-items:center; gap:0.5rem; margin:0 0 1.25rem; color:var(--color-gray-600);">
-                ⓘ Dicas de Otimização
-            </h3>
-            <ul style="list-style:none; padding:0; margin:0;">
-                ${tipsHtml}
-            </ul>
-        </div>
+// ═══════════════════════════════════════
+// CENTER PANEL — Analysis
+// ═══════════════════════════════════════
+const issuesHtml = (analysis.issues || []).map(issue => `
+<div class="issue-card" style="margin-bottom:0.75rem;">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.625rem;">
+    <span style="font-size:0.75rem;font-weight:700;color:var(--color-text-secondary);">${issue.section || 'Geral'}</span>
+    <span class="severity-badge severity-${(issue.severity || 'medium').toLowerCase()}">${issue.severity || 'MEDIUM'}</span>
+  </div>
+  <p style="font-size:0.8125rem;font-weight:600;color:var(--color-text);margin-bottom:0.375rem;line-height:1.4;">${issue.problem}</p>
+  <p style="font-size:0.75rem;color:var(--color-text-tertiary);margin-bottom:0.5rem;line-height:1.4;">
+    <strong style="color:var(--color-text-secondary);">Por quê:</strong> ${issue.reason}
+  </p>
+  ${issue.suggestion ? `<p style="font-size:0.75rem;color:var(--color-success);line-height:1.4;">
+    <strong>Sugestão:</strong> ${issue.suggestion}
+  </p>` : ''}
+</div>`).join('');
+
+const strengthsHtml = (analysis.strengths || []).map(s =>
+  `<div class="strength-item">${s}</div>`
+).join('');
+
+const actionsHtml = (analysis.recommendedActions || []).map(a =>
+  `<div class="action-item">${a}</div>`
+).join('');
+
+const centerPanel = `
+<div style="display:flex;flex-direction:column;gap:1.25rem;">
+  <!-- Executive Summary -->
+  <div class="result-panel">
+    <div class="result-panel-title">
+      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
+      Parecer do Recrutador IA
+    </div>
+    <p style="font-size:0.875rem;color:var(--color-text-secondary);line-height:1.7;">${analysis.executiveSummary || ''}</p>
+  </div>
+
+  <!-- Strengths -->
+  ${(analysis.strengths || []).length ? `
+  <div class="result-panel">
+    <div class="result-panel-title" style="color:var(--color-success);">
+      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg>
+      Pontos Fortes
+    </div>
+    ${strengthsHtml}
+  </div>` : ''}
+
+  <!-- Issues -->
+  ${(analysis.issues || []).length ? `
+  <div class="result-panel">
+    <div class="result-panel-title" style="color:var(--color-error);">
+      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>
+      Problemas Encontrados (${(analysis.issues || []).length})
+    </div>
+    ${issuesHtml}
+  </div>` : ''}
+
+  <!-- Recommended Actions -->
+  ${(analysis.recommendedActions || []).length ? `
+  <div class="result-panel">
+    <div class="result-panel-title">
+      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z"/><path d="m9 12 2 2 4-4"/></svg>
+      Próximos Passos
+    </div>
+    <div class="actions-list">
+      ${actionsHtml}
+    </div>
+  </div>` : ''}
+</div>`;
+
+// ═══════════════════════════════════════
+// RIGHT PANEL — Improvement Suggestions
+// ═══════════════════════════════════════
+const actionLabels = { ADD: 'Adicionar', REMOVE: 'Remover', REWRITE: 'Reescrever', IMPROVE: 'Refinar' };
+
+const suggestionsHtml = suggestions.map((s, i) => {
+  const actionClass = `action-${(s.action || 'improve').toLowerCase()}`;
+  return `
+  <div class="suggestion-card" data-idx="${i}" style="margin-bottom:0.75rem;">
+    <div class="check-indicator">✓</div>
+    <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.625rem;flex-wrap:wrap;">
+      <span class="action-badge ${actionClass}">${actionLabels[s.action] || s.action}</span>
+      <span style="font-size:0.6875rem;color:var(--color-text-tertiary);">${s.section || ''}</span>
+      <span class="severity-badge severity-${(s.impact || 'medium').toLowerCase()}" style="margin-left:auto;">${s.impact || 'MEDIUM'}</span>
+    </div>
+    ${s.current ? `<div class="current-text" style="margin-bottom:0.5rem;">${s.current}</div>` : ''}
+    ${s.proposed ? `<div class="proposed-text" style="margin-bottom:0.5rem;">${s.proposed}</div>` : ''}
+    ${s.rationale ? `<p style="font-size:0.6875rem;color:var(--color-text-muted);margin-top:0.375rem;line-height:1.4;">${s.rationale}</p>` : ''}
+  </div>`;
+}).join('');
+
+const rightPanel = `
+<div style="display:flex;flex-direction:column;gap:1rem;">
+  <div class="result-panel">
+    <div class="result-panel-title">
+      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+      Sugestões de Melhoria (${suggestions.length})
     </div>
 
-    <!-- Bottom CTA -->
-    ${ctaHtml}
-</div>
-`;
+    ${isGeneratorFlow ? `
+    <div style="display:flex;align-items:center;gap:0.5rem;padding:0.625rem 0.75rem;background:rgba(34,197,94,0.06);border:1px solid rgba(34,197,94,0.15);border-radius:var(--radius-md);margin-bottom:1rem;">
+      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z"/><path d="m9 12 2 2 4-4"/></svg>
+      <span style="font-size:0.6875rem;color:var(--color-success);font-weight:600;">Selecione as sugestões que deseja aplicar ao gerar o CV</span>
+    </div>` : ''}
 
-document.getElementById('render-target').innerHTML = finalMarkup;
+    <div id="suggestions-list">
+      ${suggestionsHtml}
+    </div>
+
+    ${suggestions.length ? `
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-top:0.75rem;padding-top:0.75rem;border-top:1px solid var(--color-border);">
+      <button id="btn-select-all" style="font-size:0.6875rem;font-weight:600;color:var(--color-text-secondary);background:none;border:1px solid var(--color-border);padding:0.375rem 0.75rem;border-radius:var(--radius-sm);cursor:pointer;transition:all 0.2s;">
+        Selecionar Todas
+      </button>
+      <span id="selected-count" style="font-size:0.6875rem;color:var(--color-text-muted);font-weight:600;">0 selecionadas</span>
+    </div>` : ''}
+  </div>
+
+  ${isGeneratorFlow ? `
+  <button id="btn-generate" class="btn-continue" style="width:100%;border-radius:var(--radius-lg);">
+    Gerar CV com Sugestões Selecionadas
+    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-left:0.5rem;"><path d="m9 18 6-6-6-6"/></svg>
+  </button>` : ''}
+</div>`;
+
+// ═══════════════════════════════════════
+// RENDER
+// ═══════════════════════════════════════
+const markup = `
+<div class="result-grid">
+  ${leftPanel}
+  ${centerPanel}
+  ${rightPanel}
+</div>`;
+
+document.getElementById('render-target').innerHTML = markup;
+
+// ═══════════════════════════════════════
+// INTERACTIVITY — Suggestion Selection
+// ═══════════════════════════════════════
+const selectedSet = new Set();
+
+function updateSelectedCount() {
+  const el = document.getElementById('selected-count');
+  if (el) el.textContent = `${selectedSet.size} selecionada${selectedSet.size !== 1 ? 's' : ''}`;
+}
+
+document.querySelectorAll('.suggestion-card').forEach(card => {
+  card.addEventListener('click', () => {
+    const idx = parseInt(card.dataset.idx);
+    if (selectedSet.has(idx)) {
+      selectedSet.delete(idx);
+      card.classList.remove('selected');
+    } else {
+      selectedSet.add(idx);
+      card.classList.add('selected');
+    }
+    updateSelectedCount();
+    // Persist selection
+    setState({ selectedSuggestions: suggestions.filter((_, i) => selectedSet.has(i)) });
+  });
+});
+
+// Select All button
+const btnSelectAll = document.getElementById('btn-select-all');
+if (btnSelectAll) {
+  btnSelectAll.addEventListener('click', () => {
+    const allSelected = selectedSet.size === suggestions.length;
+    document.querySelectorAll('.suggestion-card').forEach(card => {
+      const idx = parseInt(card.dataset.idx);
+      if (allSelected) {
+        selectedSet.delete(idx);
+        card.classList.remove('selected');
+      } else {
+        selectedSet.add(idx);
+        card.classList.add('selected');
+      }
+    });
+    btnSelectAll.textContent = allSelected ? 'Selecionar Todas' : 'Desmarcar Todas';
+    updateSelectedCount();
+    setState({ selectedSuggestions: suggestions.filter((_, i) => selectedSet.has(i)) });
+  });
+}
+
+// Generate CV button (generator flow only)
+const btnGenerate = document.getElementById('btn-generate');
+if (btnGenerate) {
+  btnGenerate.addEventListener('click', () => {
+    setState({ selectedSuggestions: suggestions.filter((_, i) => selectedSet.has(i)) });
+    window.location.href = '/pages/step-template.html';
+  });
+}

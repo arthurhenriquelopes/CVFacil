@@ -93,7 +93,6 @@
 
     <script type="module">
         import { setState } from '/src/lib/store.js';
-        import { parseProfileFromText } from '/src/prompts/parse-profile.js';
         import { extractTextFromPDF } from '/src/lib/pdf.js';
 
         const input = document.getElementById('pdf-upload');
@@ -125,8 +124,8 @@
                 fileSizeEl.textContent = (selectedFile.size / (1024 * 1024)).toFixed(2) + ' MB';
 
                 btn.disabled = false;
-                btn.style.background = 'var(--color-gray-900)'; // Blue primary
-                btn.style.color = 'var(--color-gray-50)';
+                btn.style.background = 'var(--color-text)';
+                btn.style.color = 'var(--color-bg)';
                 btn.style.cursor = 'pointer';
             }
         });
@@ -149,24 +148,18 @@
             if (!selectedFile) return;
 
             btn.disabled = true;
-            btn.textContent = 'Processando arquivo...';
+            btn.textContent = 'Extraindo texto do PDF...';
 
             try {
-                // Extract PDF Text
+                // Extract raw text from PDF — NO AI parsing needed
                 const fullText = await extractTextFromPDF(selectedFile);
 
-                btn.textContent = 'Extraindo perfil...';
-
-                // Call Sonar to parse
-                const parsedData = await parseProfileFromText(fullText);
-
-                // Ensure dynamic arrays exist
-                ['experiences', 'education', 'skills', 'languages', 'projects', 'certifications'].forEach(k => {
-                    if (!parsedData[k]) parsedData[k] = [];
+                // Save raw text and flag as ATS flow
+                setState({
+                    flow: 'ats',
+                    cvText: fullText,
+                    cvFileName: selectedFile.name,
                 });
-
-                // Flag this flow as ATS Scanner
-                setState({ flow: 'ats', profile: parsedData });
 
                 // Redirect to job description step
                 window.location.href = '/pages/step-job.html';

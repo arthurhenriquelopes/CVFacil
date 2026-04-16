@@ -19,10 +19,11 @@
 
         const steps = [
             { id: 'step-0', text: 'Analisando seu perfil...' },
-            { id: 'step-1', text: 'Identificando palavras-chave...' },
-            { id: 'step-2', text: 'Estruturando seções do currículo...' },
-            { id: 'step-3', text: 'Otimizando para ATS...' },
-            { id: 'step-4', text: 'Finalizando formatação...' },
+            { id: 'step-1', text: 'Selecionando certificações relevantes...' },
+            { id: 'step-2', text: 'Identificando palavras-chave...' },
+            { id: 'step-3', text: 'Estruturando seções do currículo...' },
+            { id: 'step-4', text: 'Otimizando para ATS...' },
+            { id: 'step-5', text: 'Finalizando formatação...' },
         ];
 
         const state = getState();
@@ -34,10 +35,10 @@
             profile: state.profile,
             jobDescription: state.jobDescription,
             goal: state.goal,
-            frequency: state.frequency,
             focus: state.focus || 'experiences',
             template: state.template || 'modern',
             analysis: state.analysisResult,
+            selectedSuggestions: state.selectedSuggestions || [],
         }).then(cv => {
             setState({ generatedCV: cv });
             cvGenerated = true;
@@ -105,7 +106,7 @@
                     <div style="width:0.5rem;height:0.5rem;border-radius:50%;border:2px solid var(--color-gray-200);">
                     </div>
                 </span>
-                <span class="step-text">Identificando palavras-chave...</span>
+                <span class="step-text">Selecionando certificações relevantes...</span>
             </div>
             <div id="step-2"
                 style="display:flex;align-items:center;gap:1rem;font-weight:700;color:var(--color-gray-300);transition:color 0.3s;">
@@ -114,7 +115,7 @@
                     <div style="width:0.5rem;height:0.5rem;border-radius:50%;border:2px solid var(--color-gray-200);">
                     </div>
                 </span>
-                <span class="step-text">Estruturando seções do currículo...</span>
+                <span class="step-text">Identificando palavras-chave...</span>
             </div>
             <div id="step-3"
                 style="display:flex;align-items:center;gap:1rem;font-weight:700;color:var(--color-gray-300);transition:color 0.3s;">
@@ -123,9 +124,18 @@
                     <div style="width:0.5rem;height:0.5rem;border-radius:50%;border:2px solid var(--color-gray-200);">
                     </div>
                 </span>
-                <span class="step-text">Otimizando para ATS...</span>
+                <span class="step-text">Estruturando seções do currículo...</span>
             </div>
             <div id="step-4"
+                style="display:flex;align-items:center;gap:1rem;font-weight:700;color:var(--color-gray-300);transition:color 0.3s;">
+                <span class="step-icon"
+                    style="width:1.5rem;height:1.5rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                    <div style="width:0.5rem;height:0.5rem;border-radius:50%;border:2px solid var(--color-gray-200);">
+                    </div>
+                </span>
+                <span class="step-text">Otimizando para ATS...</span>
+            </div>
+            <div id="step-5"
                 style="display:flex;align-items:center;gap:1rem;font-weight:700;color:var(--color-gray-300);transition:color 0.3s;">
                 <span class="step-icon"
                     style="width:1.5rem;height:1.5rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;">

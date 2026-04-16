@@ -21,10 +21,14 @@ const DEFAULT_STATE = {
         projects: [],
         certifications: [],
     },
+    cvText: '',
+    professionalGoal: '',
+    targetRole: '',
     jobDescription: '',
     focus: 'experiences',
     template: 'modern',
     analysisResult: null,
+    selectedSuggestions: [],
     generatedCV: null,
 };
 

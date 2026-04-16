@@ -7,6 +7,30 @@
     <title>Qual seu objetivo? | CvPorVaga</title>
     <link rel="stylesheet" href="/src/style.css">
     <script type="module" src="/src/main.js"></script>
+    <style>
+        .goal-icon {
+            width: 3.5rem; height: 3.5rem;
+            border-radius: var(--radius-lg);
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 1.25rem;
+            background: var(--color-accent-dim);
+            color: var(--color-text-secondary);
+            transition: all var(--transition-base);
+        }
+        .card.selected .goal-icon {
+            background: rgba(255,255,255,0.1);
+            color: var(--color-text);
+        }
+        .goal-title {
+            font-weight: 700; font-size: 1rem; margin-bottom: 0.25rem;
+            transition: color var(--transition-base);
+        }
+        .goal-desc {
+            font-size: 0.8125rem; color: var(--color-text-tertiary);
+            transition: color var(--transition-base);
+        }
+        .card.selected .goal-desc { color: var(--color-text-secondary); }
+    </style>
 </head>
 
 <body>
@@ -19,7 +43,7 @@
         document.addEventListener('click', e => {
             const targetBtn = e.target.closest('#btn-next');
             if (targetBtn && targetBtn.style.pointerEvents !== 'none') {
-                window.location.href = '/pages/step-frequency.html';
+                window.location.href = '/pages/step-profile.html';
                 return;
             }
 
@@ -35,42 +59,47 @@
     </script>
 
     <main class="page-content step-content">
-        <div style="text-align:center;max-width:48rem;margin:0 auto;">
-            <div
-                style="width:4rem;height:4rem;border:1px solid var(--color-gray-400);color:var(--color-gray-900);background:transparent;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 2rem;">
-                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none"
-                    stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                </svg>
-            </div>
-            <h2
-                style="font-size:clamp(1.75rem,4vw,2.5rem);font-weight:700;margin-bottom:0.75rem;letter-spacing:-0.025em;">
+        <div style="text-align:center;max-width:48rem;margin:0 auto;" class="animate-fade-in-up">
+            <p style="font-size:0.6875rem;font-weight:600;text-transform:uppercase;letter-spacing:0.15em;color:var(--color-text-tertiary);margin-bottom:1.5rem;">
+                Passo 1 de 10
+            </p>
+            <h2 style="font-size:clamp(1.75rem,4vw,2.5rem);font-weight:700;margin-bottom:0.75rem;letter-spacing:-0.025em;">
                 Qual é o seu objetivo?</h2>
-            <p
-                style="color:var(--color-gray-500);font-weight:500;margin-bottom:3rem;max-width:28rem;margin-left:auto;margin-right:auto;">
+            <p style="color:var(--color-text-secondary);font-weight:400;margin-bottom:3rem;max-width:26rem;margin-left:auto;margin-right:auto;font-size:0.9375rem;">
                 Isso nos ajuda a personalizar seu currículo da melhor forma.</p>
 
-            <div class="grid grid-2" style="gap:1.5rem;max-width:40rem;margin:0 auto;">
+            <div class="grid grid-2 stagger" style="gap:0.75rem;max-width:36rem;margin:0 auto;">
                 <div class="card" data-goal="emprego"
-                    style="cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:2rem;">
-                    <h3 style="font-weight:700;font-size:1.125rem;margin-bottom:0.25rem;">Conseguir emprego</h3>
-                    <p style="font-size:0.875rem;color:var(--color-gray-500);">Quero ser contratado</p>
+                    style="cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:2rem 1.5rem;">
+                    <div class="goal-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 20V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/><rect width="20" height="14" x="2" y="6" rx="2"/></svg>
+                    </div>
+                    <h3 class="goal-title">Conseguir emprego</h3>
+                    <p class="goal-desc">Quero ser contratado</p>
                 </div>
                 <div class="card" data-goal="transicao"
-                    style="cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:2rem;">
-                    <h3 style="font-weight:700;font-size:1.125rem;margin-bottom:0.25rem;">Transição de carreira</h3>
-                    <p style="font-size:0.875rem;color:var(--color-gray-500);">Mudar de área</p>
+                    style="cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:2rem 1.5rem;">
+                    <div class="goal-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                    </div>
+                    <h3 class="goal-title">Transição de carreira</h3>
+                    <p class="goal-desc">Mudar de área</p>
                 </div>
                 <div class="card" data-goal="promocao"
-                    style="cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:2rem;">
-                    <h3 style="font-weight:700;font-size:1.125rem;margin-bottom:0.25rem;">Promoção interna</h3>
-                    <p style="font-size:0.875rem;color:var(--color-gray-500);">Crescer na empresa</p>
+                    style="cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:2rem 1.5rem;">
+                    <div class="goal-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 11 18-5v12L3 13v-2z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg>
+                    </div>
+                    <h3 class="goal-title">Promoção interna</h3>
+                    <p class="goal-desc">Crescer na empresa</p>
                 </div>
                 <div class="card" data-goal="freelancer"
-                    style="cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:2rem;">
-                    <h3 style="font-weight:700;font-size:1.125rem;margin-bottom:0.25rem;">Freelancer / PJ</h3>
-                    <p style="font-size:0.875rem;color:var(--color-gray-500);">Portfolio profissional</p>
+                    style="cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:2rem 1.5rem;">
+                    <div class="goal-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                    </div>
+                    <h3 class="goal-title">Freelancer / PJ</h3>
+                    <p class="goal-desc">Portfolio profissional</p>
                 </div>
             </div>
         </div>

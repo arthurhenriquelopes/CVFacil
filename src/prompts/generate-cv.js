@@ -4,7 +4,7 @@
  */
 import { chatCompletion } from '../api/sonar.js';
 import { getGoalStrategyPrompt } from './goal-strategy.js';
-import { getFrequencyStrategyPrompt } from './frequency-strategy.js';
+import { selectBestCertifications } from './select-certifications.js';
 
 /**
  * Build a clean, readable profile summary for the AI (no raw JSON).
@@ -137,23 +137,47 @@ function parseJsonResponse(response) {
  * @param {object} params.profile - User profile
  * @param {string} params.jobDescription - Job description text
  * @param {string} params.goal - Goal chosen by user
- * @param {string} params.frequency - Frequency chosen by user
  * @param {string} params.focus - 'experiences' | 'skills' | 'results'
  * @param {string} params.template - 'modern' | 'classic'
- * @param {object} params.analysis - Result from analyzeJob
+ * @param {object} params.analysis - Result from analyzeJob (new format: {analysis, improvements})
+ * @param {Array} params.selectedSuggestions - User-selected improvement suggestions
  * @returns {Promise<object>} Generated CV data
  */
-export async function generateCV({ profile, jobDescription, goal, frequency, focus, template, analysis }) {
+export async function generateCV({ profile, jobDescription, goal, focus, template, analysis, selectedSuggestions = [] }) {
 
-  // Extract keyword intelligence from the analysis
-  const allKeywords = analysis?.keywords || [];
-  const matchedKeywords = analysis?.ats?.matchedKeywords || analysis?.matchedKeywords || [];
-  const missingKeywords = analysis?.ats?.missingKeywords || allKeywords.filter(k =>
-    !matchedKeywords.some(m => m.toLowerCase() === k.toLowerCase())
-  );
-  const matchPct = analysis?.matchPercentage || 0;
-  const criticalGaps = analysis?.ats?.criticalGaps || [];
-  const tips = analysis?.ats?.tips || [];
+  // ═══ CERTIFICATE SELECTOR AGENT ═══
+  // If user has >5 certifications, AI picks the best 3-5 for the target role
+  let workingProfile = { ...profile };
+  let certSelectionResult = null;
+
+  if (profile.certifications?.length > 5) {
+    try {
+      const state = await import('../lib/store.js').then(m => m.getState());
+      certSelectionResult = await selectBestCertifications({
+        certifications: profile.certifications,
+        professionalGoal: state.professionalGoal || goal || '',
+        targetRole: state.targetRole || '',
+        jobDescription: jobDescription || '',
+      });
+      workingProfile.certifications = certSelectionResult.filtered;
+      console.log(
+        `🎯 Agente de Certificados: ${profile.certifications.length} → ${certSelectionResult.filtered.length} selecionadas`,
+        certSelectionResult.selected?.map(s => `✓ ${s.title} (${s.reason})`),
+        certSelectionResult.dropped?.map(d => `✗ ${d.title} (${d.reason})`)
+      );
+    } catch (err) {
+      console.warn('Certificado selector falhou, usando todas:', err.message);
+      // Fallback: use all certifications
+    }
+  }
+
+  // Extract intelligence from the new Evolui-CV analysis format
+  const recruiterAnalysis = analysis?.analysis || {};
+  const overallScore = recruiterAnalysis.overallScore || 0;
+  const issues = recruiterAnalysis.issues || [];
+  const strengths = recruiterAnalysis.strengths || [];
+  const recommendedActions = recruiterAnalysis.recommendedActions || [];
+  const executiveSummary = recruiterAnalysis.executiveSummary || '';
 
   const focusInstructions = buildFocusInstructions(focus);
 
@@ -166,7 +190,7 @@ REGRAS CRÍTICAS PARA ATS:
 3. Use formato cronológico reverso nas experiências.
 4. Use bullet points simples (•) para listar responsabilidades.
 5. Quantifique resultados sempre que possível (%, R$, números).
-6. Adapte os títulos dos cargos para match com o que a vaga busca (sem mentir).
+6. NÃO altere os cargos das experiências — copie EXATAMENTE do perfil (veja seção DADOS IMUTÁVEIS).
 7. NÃO use formatação markdown (**, *, #, etc.) em NENHUM campo de texto. O output é renderizado como texto puro em HTML. Escreva texto limpo, sem asteriscos, sem negrito markdown.
 
 INJEÇÃO DE KEYWORDS (COM HONESTIDADE):
@@ -192,18 +216,18 @@ Se uma keyword não pode ser conectada a nenhuma experiência real, adicione-a A
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 DADOS IMUTÁVEIS — NUNCA ALTERE ESTES CAMPOS:
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Nome, email, telefone, localização, nome das empresas anteriores, nome dos cursos e instituições
-de ensino são FATOS VERIFICÁVEIS. Copie-os LITERALMENTE do perfil fornecido.
+Nome, email, telefone, localização, nome das empresas anteriores, CARGOS DAS EXPERIÊNCIAS,
+nome dos cursos e instituições de ensino são FATOS VERIFICÁVEIS. Copie-os LITERALMENTE do perfil.
 
 ✗ ALUCINAÇÃO (proibido): Candidato tem "Sistemas de Informação" → output diz "Ciência da Computação"
 ✗ ALUCINAÇÃO (proibido): Candidato tem "IFMA" → output diz "Universidade Federal do Maranhão"
-✓ CORRETO: Copie o nome do curso e instituição EXATAMENTE como estão no perfil.
+✗ ALUCINAÇÃO (proibido): Cargo é "Estagiário de Desenvolvimento Full Stack" → output diz "Desenvolvedor Java Estagiário"
+✓ CORRETO: Copie EXATAMENTE o cargo, curso, instituição e empresa como estão no perfil.
 
-Esta regra se aplica a: nome completo, empresas, cargos reais, cursos, instituições, datas.
+Esta regra se aplica a: nome completo, CARGOS, empresas, cursos, instituições, datas.
 
 ${focusInstructions}
 ${goal ? '\n' + getGoalStrategyPrompt(goal) : ''}
-${frequency ? '\n' + getFrequencyStrategyPrompt(frequency) : ''}
 
 RESTRIÇÕES DE TAMANHO:
 - Máximo 1 página A4 (guia para concisão, não regra absoluta).
@@ -211,11 +235,24 @@ RESTRIÇÕES DE TAMANHO:
 - Resumo profissional: máximo 3 linhas.
 - Seja conciso, direto e impactante.
 
+CALIBRAÇÃO DE SENIORIDADE NO TÍTULO (header.title):
+O campo "title" é o subtítulo do CV (ex: "Desenvolvedor Java Full Stack"). Ele DEVE refletir
+o nível REAL de experiência do candidato. Regras:
+- Se o candidato é estagiário ou tem <1 ano de experiência: use termos como "Desenvolvedor Junior",
+  "Desenvolvedor em Formação", "Estagiário de [Área]". NUNCA use "Especialista", "Sênior", "Expert".
+- Se o candidato tem 1-3 anos: pode usar "Desenvolvedor [Área]" sem qualificador de senioridade.
+- Se o candidato tem 3-5 anos: pode usar "Desenvolvedor Pleno" ou equivalente.
+- Se o candidato tem 5+ anos: pode usar "Especialista", "Sênior", etc.
+- O título pode conter keywords da vaga (ex: "Microsserviços", "APIs RESTful") mas o nível
+  de senioridade DEVE ser honesto.
+✗ PROIBIDO: Estagiário com título "Especialista em Microsserviços e APIs RESTful"
+✓ CORRETO: Estagiário com título "Desenvolvedor Java Junior | Foco em Microsserviços e APIs RESTful"
+
 FORMATO DE RESPOSTA (JSON):
 {
   "header": {
     "name": "Nome Completo",
-    "title": "Título profissional otimizado para a vaga",
+    "title": "Título profissional calibrado ao nível real + keywords da vaga",
     "contact": { "email": "", "phone": "", "location": "" }
   },
   "summary": "Resumo profissional otimizado com palavras-chave da vaga (máx. 3 linhas)",
@@ -242,7 +279,7 @@ FORMATO DE RESPOSTA (JSON):
   "resultFormat": false
 }`;
 
-  const profileSummary = buildProfileSummary(profile);
+  const profileSummary = buildProfileSummary(workingProfile);
 
   const userMessage = `PERFIL DO CANDIDATO:
 ${profileSummary}
@@ -254,20 +291,21 @@ ${jobDescription}
 INTELIGÊNCIA ATS (use estas informações para otimizar o CV):
 ═══════════════════════════════════════
 
-TODAS as keywords da vaga: ${JSON.stringify(allKeywords)}
+SCORE ATUAL DO CV: ${overallScore}/100
+PARECER DO RECRUTADOR: ${executiveSummary}
 
-KEYWORDS QUE O CANDIDATO JÁ TEM: ${JSON.stringify(matchedKeywords)}
-→ Estas já existem no perfil. Mantenha-as e destaque-as.
+PONTOS FORTES IDENTIFICADOS: ${JSON.stringify(strengths)}
+→ Mantenha e destaque estes pontos no CV.
 
-⚠️ KEYWORDS FALTANTES (CRÍTICO — INJETE NO CV): ${JSON.stringify(missingKeywords)}
-→ Estas NÃO existem no perfil atual. Você DEVE incorporá-las organicamente no resumo, nos bullets das experiências e na lista de skills.
+${issues.length ? `PROBLEMAS IDENTIFICADOS:\n${issues.map(i => `  - [${i.severity}] ${i.section}: ${i.problem} → ${i.suggestion || ''}`).join('\n')}` : ''}
 
-${criticalGaps.length ? `🚨 GAPS CRÍTICOS IDENTIFICADOS:\n${criticalGaps.map(g => `  - ${g}`).join('\n')}` : ''}
+${recommendedActions.length ? `AÇÕES RECOMENDADAS:\n${recommendedActions.map(a => `  - ${a}`).join('\n')}` : ''}
 
-${tips.length ? `💡 DICAS DA ANÁLISE PRÉVIA:\n${tips.map(t => `  - [${t.impact?.toUpperCase() || 'MEDIO'}] ${t.text}`).join('\n')}` : ''}
+${selectedSuggestions.length ? `SUGESTÕES DE MELHORIA SELECIONADAS PELO USUÁRIO (APLIQUE TODAS):\n${selectedSuggestions.map(s => `  - [${s.action}] ${s.section}: ${s.current ? `"${s.current}" → ` : ''}"${s.proposed || ''}" (${s.rationale})`).join('\n')}` : ''}
 
-Compatibilidade atual do candidato: ${matchPct}%
-Meta: Elevar para 85%+ após a otimização.
+${certSelectionResult ? `🎯 CERTIFICAÇÕES CURADAS POR IA (use SOMENTE estas no CV):\n${certSelectionResult.selected?.map(s => `  ✓ ${s.title} — ${s.reason}`).join('\n') || 'Nenhuma selecionada'}\n${certSelectionResult.dropped?.length ? `  Descartadas: ${certSelectionResult.dropped.map(d => d.title).join(', ')}` : ''}` : ''}
+
+Meta: Elevar o score para 85%+ após a otimização.
 
 🔒 ÂNCORA DE DADOS IMUTÁVEIS — COPIE VERBATIM NO JSON:
 Nome: ${profile.name || ''}

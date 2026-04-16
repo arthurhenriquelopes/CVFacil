@@ -11,58 +11,20 @@
 
 <body>
     <script type="module">
-        import { injectStepHeader, injectStepFooter } from '/src/lib/layout.js';
-        import { getState, setState } from '/src/lib/store.js';
-        import { analyzeJob } from '/src/prompts/analyze-job.js';
+        import { injectStepHeader } from '/src/lib/layout.js';
+        import { getState } from '/src/lib/store.js';
 
         injectStepHeader({ step: 6, backHref: '/pages/step-job.html' });
 
+        // The new flow uses step-ats-loading for both ATS and generator paths.
+        // Redirect there to run the 2-stage AI analysis.
         const state = getState();
-        const loadingEl = document.getElementById('analysis-loading');
-        const contentEl = document.getElementById('analysis-content');
-        const selectionEl = document.getElementById('selection-section');
-        const errorEl = document.getElementById('error-section');
-
-        async function runAnalysis() {
-            try {
-                const result = await analyzeJob(state.profile, state.jobDescription);
-                setState({ analysisResult: result });
-
-                // Populate results
-                document.getElementById('keyword-count').textContent = `Encontramos ${result.keywords?.length || 0} palavras-chave na vaga`;
-                document.getElementById('match-pct').textContent = `Seu perfil tem ${result.matchPercentage || 0}% de compatibilidade`;
-                document.getElementById('exp-count').textContent = `${result.highlightableExperiences?.length || 0} experiências podem ser destacadas`;
-
-                loadingEl.style.display = 'none';
-                contentEl.style.display = 'block';
-                contentEl.classList.add('fade-in');
-
-                setTimeout(() => {
-                    selectionEl.style.display = 'block';
-                    selectionEl.classList.add('fade-in');
-                    const footer = document.getElementById('footer-wrap');
-                    if (footer) footer.style.display = 'block';
-                }, 800);
-            } catch (err) {
-                console.error(err);
-                loadingEl.style.display = 'none';
-                errorEl.style.display = 'block';
-                document.getElementById('error-msg').textContent = err.message;
-            }
+        if (!state.professionalGoal) {
+            // If somehow we got here without a goal, go back
+            window.location.href = '/pages/step-job.html';
+        } else {
+            window.location.href = '/pages/step-ats-loading.html';
         }
-
-        runAnalysis();
-
-        // Focus selection
-        document.addEventListener('click', e => {
-            const card = e.target.closest('[data-focus]');
-            if (!card) return;
-            document.querySelectorAll('[data-focus]').forEach(c => c.classList.remove('selected'));
-            card.classList.add('selected');
-            setState({ focus: card.dataset.focus });
-
-            // Footer is already shown
-        });
     </script>
 
     <main class="page-content step-content" style="max-width:var(--max-width);margin:0 auto;">

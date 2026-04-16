@@ -8,55 +8,45 @@
     <link rel="stylesheet" href="/src/style.css">
     <script type="module" src="/src/main.js"></script>
     <style>
-        .spinner {
+        .loader-spinner {
             width: 3rem;
             height: 3rem;
-            border: 3px solid var(--color-gray-100);
-            border-top-color: var(--color-primary);
+            border: 3px solid var(--color-border);
+            border-top-color: var(--color-text);
             border-radius: 50%;
             animation: spin 1s linear infinite;
         }
 
-        @keyframes spin {
-            100% {
-                transform: rotate(360deg);
-            }
-        }
-
         .step-icon-active {
-            border-color: var(--color-primary) !important;
+            border-color: var(--color-text) !important;
             border-left-color: transparent !important;
             animation: spin 1s linear infinite;
         }
 
         .step-text-active {
-            color: var(--color-primary) !important;
+            color: var(--color-text) !important;
         }
 
         .step-row-active {
-            background: rgba(37, 99, 235, 0.05);
-            border: 1px solid rgba(37, 99, 235, 0.2) !important;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08) !important;
         }
     </style>
 </head>
 
-<body
-    style=" padding-bottom: 6rem; display:flex; flex-direction:column; min-height:100vh;">
+<body style="padding-bottom: 6rem; display:flex; flex-direction:column; min-height:100vh;">
     <!-- Basic minimal header -->
     <header
-        style=" border-bottom:1px solid var(--color-gray-100); padding:1rem 1.5rem; display:flex; align-items:center; gap:1rem;">
-        <h1 style="font-size:0.875rem; font-weight:700; color:var(--color-gray-900); margin:0;">ATS Scanner Pro</h1>
+        style="border-bottom:1px solid var(--color-border); padding:1rem 1.5rem; display:flex; align-items:center; gap:1rem;">
+        <h1 style="font-size:0.875rem; font-weight:700; color:var(--color-text); margin:0;">ATS Scanner Pro</h1>
     </header>
 
     <main class="page-content"
         style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:2rem 1rem;">
 
-        <div
-            style=" width:5rem; height:5rem; border-radius:50%; border:1px solid var(--color-gray-300)">
-            <div class="spinner"></div>
-        </div>
+        <div class="loader-spinner" style="margin-bottom:2rem;"></div>
 
-        <h2 style="font-size:1.5rem; font-weight:700; color:var(--color-gray-900); margin-bottom:3rem;">Analisando seu
+        <h2 style="font-size:1.5rem; font-weight:700; color:var(--color-text); margin-bottom:3rem;">Analisando seu
             Currículo</h2>
 
         <div style="width:100%; max-width:28rem; display:flex; flex-direction:column; gap:1rem;">
@@ -65,11 +55,11 @@
                 style="display:flex; align-items:center; justify-content:space-between; padding:1rem 1.5rem; border:1px solid transparent; border-radius:0.75rem; transition:all 0.3s;">
                 <div style="display:flex; align-items:center; gap:1rem;">
                     <div class="step-icon"
-                        style="width:1.25rem; height:1.25rem; border-radius:50%; border:2px solid var(--color-gray-200); display:flex; align-items:center; justify-content:center;">
+                        style="width:1.25rem; height:1.25rem; border-radius:50%; border:2px solid var(--color-border); display:flex; align-items:center; justify-content:center;">
                     </div>
                     <span class="step-text"
-                        style="font-size:0.875rem; font-weight:700; color:var(--color-gray-400);">Escaneando estrutura
-                        do PDF...</span>
+                        style="font-size:0.875rem; font-weight:700; color:var(--color-text-tertiary);">Enviando
+                        currículo...</span>
                 </div>
             </div>
 
@@ -77,11 +67,11 @@
                 style="display:flex; align-items:center; justify-content:space-between; padding:1rem 1.5rem; border:1px solid transparent; border-radius:0.75rem; transition:all 0.3s;">
                 <div style="display:flex; align-items:center; gap:1rem;">
                     <div class="step-icon"
-                        style="width:1.25rem; height:1.25rem; border-radius:50%; border:2px solid var(--color-gray-200); display:flex; align-items:center; justify-content:center;">
+                        style="width:1.25rem; height:1.25rem; border-radius:50%; border:2px solid var(--color-border); display:flex; align-items:center; justify-content:center;">
                     </div>
                     <span class="step-text"
-                        style="font-size:0.875rem; font-weight:700; color:var(--color-gray-400);">Extraindo
-                        palavras-chave...</span>
+                        style="font-size:0.875rem; font-weight:700; color:var(--color-text-tertiary);">Analisando com
+                        recrutador IA...</span>
                 </div>
             </div>
 
@@ -89,14 +79,11 @@
                 style="display:flex; align-items:center; justify-content:space-between; padding:1rem 1.5rem; border:1px solid transparent; border-radius:0.75rem; transition:all 0.3s;">
                 <div style="display:flex; align-items:center; gap:1rem;">
                     <div class="step-icon"
-                        style="width:1.25rem; height:1.25rem; border-radius:50%; border:2px solid var(--color-gray-200); display:flex; align-items:center; justify-content:center;">
+                        style="width:1.25rem; height:1.25rem; border-radius:50%; border:2px solid var(--color-border); display:flex; align-items:center; justify-content:center;">
                     </div>
                     <span class="step-text"
-                        style="font-size:0.875rem; font-weight:700; color:var(--color-gray-400);">Cruzando dados com a
-                        vaga...</span>
-                </div>
-                <div class="step-extra" style="display:none; color:var(--color-primary);">
-                    <i class="pi pi-ellipsis-h"></i>
+                        style="font-size:0.875rem; font-weight:700; color:var(--color-text-tertiary);">Gerando sugestões
+                        de melhoria...</span>
                 </div>
             </div>
 
@@ -104,11 +91,11 @@
                 style="display:flex; align-items:center; justify-content:space-between; padding:1rem 1.5rem; border:1px solid transparent; border-radius:0.75rem; transition:all 0.3s;">
                 <div style="display:flex; align-items:center; gap:1rem;">
                     <div class="step-icon"
-                        style="width:1.25rem; height:1.25rem; border-radius:50%; border:2px solid var(--color-gray-200); display:flex; align-items:center; justify-content:center;">
+                        style="width:1.25rem; height:1.25rem; border-radius:50%; border:2px solid var(--color-border); display:flex; align-items:center; justify-content:center;">
                     </div>
                     <span class="step-text"
-                        style="font-size:0.875rem; font-weight:700; color:var(--color-gray-400);">Calculando score de
-                        aderência...</span>
+                        style="font-size:0.875rem; font-weight:700; color:var(--color-text-tertiary);">Finalizando
+                        relatório...</span>
                 </div>
             </div>
 
@@ -129,8 +116,6 @@
                 el.querySelector('.step-icon').style.border = 'none';
                 el.querySelector('.step-icon').innerHTML = '<i class="pi pi-check-circle" style="color:#22c55e; font-size:1.25rem;"></i>';
                 el.querySelector('.step-text').style.color = '#22c55e';
-                const ex = el.querySelector('.step-extra');
-                if (ex) ex.style.display = 'none';
             }
 
             // Current step active
@@ -139,24 +124,7 @@
             el.querySelector('.step-text').classList.add('step-text-active');
             el.querySelector('.step-icon').classList.add('step-icon-active');
             el.querySelector('.step-icon').innerHTML = '';
-
-            const ex = el.querySelector('.step-extra');
-            if (ex) ex.style.display = 'block';
         }
-
-        function animateStep() {
-            updateUI();
-            if (currentIdx >= 4) return;
-
-            const delay = 1000 + Math.random() * 1500;
-            setTimeout(() => {
-                currentIdx++;
-                animateStep();
-            }, delay);
-        }
-
-        // Start animation visually independent of real analysis time
-        setTimeout(animateStep, 400);
 
         // Actual logic call
         import { getState, setState, resetFlow } from '/src/lib/store.js';
@@ -165,10 +133,64 @@
         async function run() {
             try {
                 const state = getState();
-                if (!state.profile || !state.jobDescription) {
-                    throw new Error('Faltam dados do perfil ou vaga');
+
+                // Determine CV text source: raw cvText (ATS flow) or built from profile (generator flow)
+                let cvText = state.cvText;
+                if (!cvText && state.profile) {
+                    // Build text from structured profile for generator flow
+                    const p = state.profile;
+                    const parts = [];
+                    if (p.name) parts.push(p.name);
+                    if (p.email) parts.push(`Email: ${p.email}`);
+                    if (p.phone) parts.push(`Telefone: ${p.phone}`);
+                    if (p.location) parts.push(`Localização: ${p.location}`);
+                    if (p.summary) parts.push(`\nResumo: ${p.summary}`);
+                    if (p.experiences?.length) {
+                        parts.push('\nExperiências:');
+                        p.experiences.forEach(exp => {
+                            const period = exp.isCurrent ? `${exp.startDate || ''} - Atual` : `${exp.startDate || ''} - ${exp.endDate || ''}`;
+                            parts.push(`  - ${exp.title || 'Cargo'} em ${exp.company || 'Empresa'} (${period})`);
+                            if (exp.description) parts.push(`    ${exp.description}`);
+                        });
+                    }
+                    if (p.education?.length) {
+                        parts.push('\nFormação:');
+                        p.education.forEach(edu => {
+                            parts.push(`  - ${edu.degree || 'Curso'} em ${edu.institution || 'Instituição'} (${edu.startDate || ''} - ${edu.endDate || ''})`);
+                        });
+                    }
+                    if (p.skills?.length) parts.push(`\nHabilidades: ${p.skills.join(', ')}`);
+                    if (p.languages?.length) {
+                        parts.push('\nIdiomas:');
+                        p.languages.forEach(lang => parts.push(`  - ${lang.name}: ${lang.level}`));
+                    }
+                    if (p.certifications?.length) {
+                        parts.push('\nCertificações:');
+                        p.certifications.forEach(cert => parts.push(`  - ${cert.name || cert.title} (${cert.issuer || cert.institution || ''})`));
+                    }
+                    cvText = parts.join('\n');
                 }
-                const result = await analyzeJob(state.profile, state.jobDescription);
+
+                if (!cvText || !state.professionalGoal) {
+                    throw new Error('Faltam dados do currículo ou objetivo profissional');
+                }
+
+                // Stage tracking via onStageChange callback
+                const stageMap = { recruiter: 1, improvements: 2, done: 3 };
+
+                const result = await analyzeJob({
+                    cvText,
+                    professionalGoal: state.professionalGoal,
+                    targetRole: state.targetRole,
+                    jobDescription: state.jobDescription,
+                    onStageChange: (stage) => {
+                        if (stageMap[stage] !== undefined) {
+                            currentIdx = stageMap[stage];
+                            updateUI();
+                        }
+                    },
+                });
+
                 setState({ analysisResult: result });
 
                 // Jump to 100% complete
@@ -178,19 +200,21 @@
                 setTimeout(() => {
                     if (state.flow === 'ats') {
                         resetFlow();
-                        window.location.href = '/pages/step-ats-result.html';
-                    } else {
-                        window.location.href = '/pages/step-analysis.html';
                     }
+                    // Both flows go to the new result page
+                    window.location.href = '/pages/step-ats-result.html';
                 }, 800);
 
             } catch (err) {
                 console.error(err);
-                alert('Ocorreu um erro ao analisar. Tente novamente.');
+                alert('Ocorreu um erro ao analisar. Tente novamente.\n\n' + err.message);
                 window.location.href = '/pages/step-job.html';
             }
         }
 
+        // Start animation for step 0 immediately
+        currentIdx = 0;
+        updateUI();
         run();
     </script>
 </body>
