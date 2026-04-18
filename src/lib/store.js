@@ -7,7 +7,6 @@ const STORE_KEY = 'cvporvaga_data';
 
 const DEFAULT_STATE = {
     goal: '',
-    frequency: '',
     profile: {
         name: '',
         email: '',

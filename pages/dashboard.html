@@ -7,16 +7,206 @@
     <title>Dashboard | CvPorVaga</title>
     <link rel="stylesheet" href="/src/style.css">
     <script type="module" src="/src/main.js"></script>
+    <style>
+        .dash-hero {
+            text-align: center;
+            padding: 3.5rem 1rem 2rem;
+        }
+        .dash-hero h1 {
+            font-size: clamp(1.5rem, 4vw, 2rem);
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            margin-bottom: 0.5rem;
+        }
+        .dash-hero p {
+            color: var(--color-text-secondary);
+            font-size: 0.9375rem;
+            max-width: 28rem;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        .dash-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.25rem;
+            max-width: 52rem;
+            margin: 0 auto;
+            padding: 0 1.25rem;
+        }
+        @media (max-width: 640px) {
+            .dash-grid { grid-template-columns: 1fr; }
+        }
+
+        .dash-card {
+            position: relative;
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-lg, 1rem);
+            padding: 2rem;
+            background: var(--color-surface, rgba(255,255,255,0.02));
+            cursor: pointer;
+            transition: all 0.25s ease;
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+            overflow: hidden;
+            text-decoration: none;
+            color: inherit;
+        }
+        .dash-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            border-radius: var(--radius-lg, 1rem) var(--radius-lg, 1rem) 0 0;
+            opacity: 0;
+            transition: opacity 0.25s ease;
+        }
+        .dash-card:hover {
+            border-color: var(--color-border-hover);
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.25);
+        }
+        .dash-card:hover::before {
+            opacity: 1;
+        }
+        .dash-card--generator::before {
+            background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+        }
+        .dash-card--scanner::before {
+            background: linear-gradient(90deg, #f59e0b, #ef4444);
+        }
+
+        .dash-card__icon {
+            width: 3rem;
+            height: 3rem;
+            border-radius: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .dash-card--generator .dash-card__icon {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            color: #60a5fa;
+        }
+        .dash-card--scanner .dash-card__icon {
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid rgba(245, 158, 11, 0.2);
+            color: #fbbf24;
+        }
+
+        .dash-card__title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+        .dash-card__desc {
+            font-size: 0.875rem;
+            color: var(--color-text-secondary);
+            line-height: 1.6;
+        }
+
+        .dash-card__features {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            margin-top: auto;
+            padding-top: 0.75rem;
+            border-top: 1px solid var(--color-border);
+        }
+        .dash-card__feature {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: var(--color-text-muted, var(--color-text-secondary));
+        }
+        .dash-card__feature svg {
+            flex-shrink: 0;
+            opacity: 0.5;
+        }
+
+        .dash-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.125rem 0.5rem;
+            border-radius: 1rem;
+            font-size: 0.625rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .dash-badge--new {
+            background: rgba(245, 158, 11, 0.15);
+            color: #fbbf24;
+        }
+
+        .dash-agents {
+            max-width: 52rem;
+            margin: 3rem auto 0;
+            padding: 0 1.25rem 3rem;
+        }
+        .dash-agents__title {
+            font-size: 0.6875rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: var(--color-text-muted, var(--color-text-secondary));
+            margin-bottom: 1rem;
+        }
+        .dash-agents__grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 0.75rem;
+        }
+        @media (max-width: 640px) {
+            .dash-agents__grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+        .dash-agent {
+            display: flex;
+            align-items: center;
+            gap: 0.625rem;
+            padding: 0.75rem;
+            border-radius: var(--radius-md, 0.5rem);
+            border: 1px solid var(--color-border);
+            background: transparent;
+        }
+        .dash-agent__dot {
+            width: 0.5rem;
+            height: 0.5rem;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+        .dash-agent__label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--color-text-secondary);
+        }
+    </style>
 </head>
 
-<body >
+<body>
     <script type="module">
         import { injectNavbar } from '/src/lib/layout.js';
         import { getState, resetFlow } from '/src/lib/store.js';
         injectNavbar({ activePage: 'dashboard' });
         const state = getState();
         const name = state.profile?.name || 'Usuário';
-        document.getElementById('greeting').textContent = `Olá, ${name.split(' ')[0]} 👋`;
+        const firstName = name.split(' ')[0];
+        document.getElementById('greeting-name').textContent = firstName;
+
+        // Get time-of-day greeting
+        const hour = new Date().getHours();
+        let timeGreeting = 'Bom dia';
+        if (hour >= 12 && hour < 18) timeGreeting = 'Boa tarde';
+        if (hour >= 18 || hour < 5) timeGreeting = 'Boa noite';
+        document.getElementById('greeting-time').textContent = timeGreeting;
 
         document.querySelectorAll('a[href="/pages/step-goal.html"]').forEach(btn => {
             btn.addEventListener('click', () => {
@@ -28,74 +218,101 @@
     <div class="page-container">
         <div style="height:4.5rem;"></div>
 
-        <header style="border-bottom:1px solid var(--color-gray-100);padding:0 1rem;">
-            <div
-                style="max-width:var(--max-width);margin:0 auto;display:flex;align-items:center;justify-content:space-between;height:4rem;">
-                <div style="display:flex;align-items:center;gap:0.75rem;">
-                    <div
-                        style="width:2.5rem;height:2.5rem;border-radius:50%;color:white;display:flex;align-items:center;justify-content:center;font-weight:700;">
-                        U</div>
-                    <h1 id="greeting" style="font-weight:700;font-size:1.125rem;">Olá, Usuário 👋</h1>
+        <!-- Hero -->
+        <div class="dash-hero animate-fade-in-up">
+            <h1><span id="greeting-time">Olá</span>, <span id="greeting-name">Usuário</span> 👋</h1>
+            <p>Otimize seu currículo com inteligência artificial e conquiste a vaga que você merece.</p>
+        </div>
+
+        <!-- Product Cards -->
+        <div class="dash-grid">
+            <!-- Card 1: CV Generator -->
+            <a href="/pages/step-goal.html" class="dash-card dash-card--generator">
+                <div class="dash-card__icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                        <path d="M18.375 2.625a1 1 0 0 1 3 3l-9.013 9.014a2 2 0 0 1-.853.505l-2.873.84a.5.5 0 0 1-.62-.62l.84-2.873a2 2 0 0 1 .506-.852z" />
+                    </svg>
                 </div>
-                <div style="display:flex;align-items:center;gap:0.75rem;">
-                    <a href="/pages/step-goal.html" class="btn-continue"
-                        style="width:auto;padding:0 1.5rem;height:2.25rem;font-size:0.8125rem;border-radius:0;">+
-                        Novo CV</a>
-                    <div
-                        style="height:2.25rem;padding:0 0.75rem;border-radius:0;border:1px solid var(--color-gray-200);display:flex;align-items:center;gap:0.5rem;">
-                        <span style="font-size:0.875rem;font-weight:700;color:var(--color-gray-800);">0</span>
-                        <span style="font-size:0.625rem;color:var(--color-gray-500);font-weight:500;">créditos</span>
+                <div>
+                    <div class="dash-card__title">Gerador de CV</div>
+                    <p class="dash-card__desc">Crie um currículo otimizado para ATS, alinhado milimetricamente com a vaga desejada.</p>
+                </div>
+                <div class="dash-card__features">
+                    <div class="dash-card__feature">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m9 11 3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                        Análise IA do seu perfil
+                    </div>
+                    <div class="dash-card__feature">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m9 11 3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                        Sugestões selecionáveis de melhoria
+                    </div>
+                    <div class="dash-card__feature">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m9 11 3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                        Curadoria inteligente de certificados
                     </div>
                 </div>
-            </div>
-        </header>
+            </a>
 
-        <main class="page-content" style="padding-top:3rem;">
-            <div style="max-width:var(--max-width);margin:0 auto;padding:2rem 1rem;">
-                <h2 style="font-size:1.5rem;font-weight:700;margin-bottom:2rem;color:var(--color-gray-900);">O que vamos
-                    fazer hoje?</h2>
+            <!-- Card 2: ATS Scanner -->
+            <a href="/pages/step-ats-scanner.html" class="dash-card dash-card--scanner">
+                <div class="dash-card__icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" />
+                    </svg>
+                </div>
+                <div>
+                    <div style="display:flex;align-items:center;gap:0.5rem;">
+                        <span class="dash-card__title">ATS Scanner</span>
+                        <span class="dash-badge dash-badge--new">Pro</span>
+                    </div>
+                    <p class="dash-card__desc">Envie seu CV atual e descubra como recrutadores e robôs ATS o avaliam. Encontre pontos cegos.</p>
+                </div>
+                <div class="dash-card__features">
+                    <div class="dash-card__feature">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m9 11 3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                        Score de compatibilidade 0-100
+                    </div>
+                    <div class="dash-card__feature">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m9 11 3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                        Parecer de recrutador sênior IA
+                    </div>
+                    <div class="dash-card__feature">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m9 11 3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                        Diagnóstico de erros invisíveis
+                    </div>
+                </div>
+            </a>
+        </div>
 
-                <div class="grid grid-2" style="gap:2rem;">
-                    <!-- Card 1: CV Generator -->
-                    <a href="/pages/step-goal.html" style="text-decoration:none;color:inherit;display:block;">
-                        <div class="card"
-                            style="padding:2rem;display:flex;flex-direction:column;gap:1rem;height:100%;transition:transform 0.2s, box-shadow 0.2s;cursor:pointer;"
-                            onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='var(--shadow-lg)';"
-                            onmouseout="this.style.transform='none';this.style.boxShadow='var(--shadow-sm)';">
-                            <div
-                                style="width:3rem;height:3rem;border:1px solid var(--color-gray-400);color:var(--color-gray-900);background:transparent;border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;">
-                                <i class="pi pi-file-edit" style="font-size:1.5rem;"></i>
-                            </div>
-                            <h3 style="font-size:1.25rem;font-weight:700;margin:0;">Gerador CV Otimizado</h3>
-                            <p style="font-size:0.875rem;color:var(--color-gray-500);line-height:1.6;margin:0;flex:1;">
-                                Crie um currículo focado milimetricamente para uma vaga específica, burlando os filtros
-                                ATS com as palavras-chave certas.</p>
-                        </div>
-                    </a>
-
-                    <!-- Card 2: ATS Scanner -->
-                    <a href="/pages/step-ats-scanner.html" style="text-decoration:none;color:inherit;display:block;">
-                        <div class="card"
-                            style="padding:2rem;display:flex;flex-direction:column;gap:1rem;height:100%;transition:transform 0.2s, box-shadow 0.2s;cursor:pointer;"
-                            onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='var(--shadow-lg)';"
-                            onmouseout="this.style.transform='none';this.style.boxShadow='var(--shadow-sm)';">
-                            <div
-                                style="width:3rem;height:3rem;background:var(--color-gray-100);color:var(--color-gray-700);border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;">
-                                <i class="pi pi-search" style="font-size:1.5rem;"></i>
-                            </div>
-                            <div style="display:flex;align-items:center;gap:0.5rem;">
-                                <h3 style="font-size:1.25rem;font-weight:700;margin:0;">ATS Scanner Pro</h3>
-                                <span
-                                    style="background:var(--color-gray-900);color:var(--color-gray-50);font-size:0.625rem;font-weight:700;padding:0.125rem 0.5rem;border-radius:0;text-transform:uppercase;">Novo</span>
-                            </div>
-                            <p style="font-size:0.875rem;color:var(--color-gray-500);line-height:1.6;margin:0;flex:1;">
-                                Envie seu currículo atual e descubra como as empresas e robôs leem o seu perfil.
-                                Encontre erros invisíveis.</p>
-                        </div>
-                    </a>
+        <!-- AI Agents -->
+        <div class="dash-agents animate-fade-in-up" style="animation-delay:0.15s;">
+            <div class="dash-agents__title">Pipeline de IA ativa</div>
+            <div class="dash-agents__grid">
+                <div class="dash-agent">
+                    <div class="dash-agent__dot" style="background:#60a5fa;"></div>
+                    <span class="dash-agent__label">Recrutador IA</span>
+                </div>
+                <div class="dash-agent">
+                    <div class="dash-agent__dot" style="background:#a78bfa;"></div>
+                    <span class="dash-agent__label">Revisor</span>
+                </div>
+                <div class="dash-agent">
+                    <div class="dash-agent__dot" style="background:#fbbf24;"></div>
+                    <span class="dash-agent__label">OCR Parser</span>
+                </div>
+                <div class="dash-agent">
+                    <div class="dash-agent__dot" style="background:#34d399;"></div>
+                    <span class="dash-agent__label">Seletor Certs</span>
+                </div>
+                <div class="dash-agent">
+                    <div class="dash-agent__dot" style="background:#f472b6;"></div>
+                    <span class="dash-agent__label">CV Builder</span>
                 </div>
             </div>
-        </main>
+        </div>
     </div>
 </body>
 

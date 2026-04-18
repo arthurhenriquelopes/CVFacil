@@ -15,7 +15,7 @@
         import { getState, updateProfile } from '/src/lib/store.js';
         import { extractTextFromPDF } from '/src/lib/pdf.js';
         import { parseProfileFromText } from '/src/prompts/parse-profile.js';
-        import { parseCertificateNames } from '/src/prompts/parse-certificates.js';
+        import { parseCertificateFiles, terminateOCR } from '/src/prompts/parse-certificates.js';
 
         injectStepHeader({ step: 2, backHref: '/pages/step-goal.html' });
         injectStepFooter();
@@ -418,8 +418,6 @@
         });
 
         async function handleCertFiles(files) {
-            const fileNames = files.map(f => f.name);
-            
             // Show loading
             certUploadStatus.style.display = 'flex';
             certUploadStatus.style.alignItems = 'center';
@@ -430,13 +428,22 @@
             certUploadStatus.style.border = '1px solid var(--color-border)';
             certUploadStatus.innerHTML = `
                 <div class="spinner" style="width:1.25rem;height:1.25rem;border-width:2px;"></div>
-                <span style="font-size:0.8125rem;font-weight:700;color:var(--color-text-secondary);">
-                    Analisando ${fileNames.length} certificado${fileNames.length > 1 ? 's' : ''}...
+                <span id="cert-progress-text" style="font-size:0.8125rem;font-weight:700;color:var(--color-text-secondary);">
+                    Iniciando OCR...
                 </span>
             `;
 
             try {
-                const parsed = await parseCertificateNames(fileNames);
+                const parsed = await parseCertificateFiles(files, (current, total, fileName) => {
+                    const progressEl = document.getElementById('cert-progress-text');
+                    if (progressEl) {
+                        const shortName = fileName.length > 30 ? fileName.substring(0, 27) + '...' : fileName;
+                        progressEl.textContent = `Lendo certificado ${current}/${total}: ${shortName}`;
+                    }
+                });
+
+                // Free OCR worker memory
+                await terminateOCR();
 
                 // Merge with existing certifications
                 const existing = getState().profile.certifications || [];
@@ -445,19 +452,21 @@
                 renderCertifications();
 
                 // Show success
+                const count = parsed.length;
                 certUploadStatus.innerHTML = `
                     <span style="color:var(--color-success);font-weight:700;font-size:0.8125rem;display:flex;align-items:center;gap:0.5rem;">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg>
-                        ${parsed.length} certificação${parsed.length > 1 ? 'ões adicionadas' : ' adicionada'}!
+                        ${count} certificação${count !== 1 ? 'ões' : ''} ${count !== 1 ? 'adicionadas' : 'adicionada'}!
                     </span>
                 `;
 
                 setTimeout(() => {
                     certUploadStatus.style.display = 'none';
-                }, 3000);
+                }, 4000);
 
             } catch (err) {
                 console.error('Cert parse error:', err);
+                await terminateOCR();
                 certUploadStatus.innerHTML = `
                     <span style="color:var(--color-error);font-weight:700;font-size:0.8125rem;">
                         Erro ao analisar certificados: ${err.message}
@@ -474,7 +483,7 @@
         style="max-width:var(--max-width);margin:0 auto;padding-left:1rem;padding-right:1rem;">
         <div style="text-align:center;margin-bottom:2.5rem;" class="animate-fade-in-up">
             <p style="font-size:0.6875rem;font-weight:600;text-transform:uppercase;letter-spacing:0.15em;color:var(--color-text-tertiary);margin-bottom:1rem;">
-                Passo 4 de 10
+                Passo 2 de 8
             </p>
             <h2 style="font-size:1.5rem;font-weight:700;letter-spacing:-0.02em;">Suas Informações</h2>
             <p style="color:var(--color-text-secondary);font-weight:400;font-size:0.9375rem;">Mantenha seu perfil atualizado para obter os

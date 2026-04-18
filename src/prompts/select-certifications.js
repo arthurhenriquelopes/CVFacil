@@ -74,7 +74,7 @@ export async function selectBestCertifications({ certifications, professionalGoa
   }
 
   const certList = certifications.map((c, i) => 
-    `[${i}] ${c.title || c.name || 'Sem nome'} — Emissora: ${c.issuer || c.institution || 'N/A'} — Data: ${c.date || 'N/A'}`
+    `[${i}] ${c.title || c.name || 'Sem nome'} — Emissora: ${c.issuer || c.institution || 'N/A'}`
   ).join('\n');
 
   const userMessage = `LISTA COMPLETA DE CERTIFICAÇÕES DO CANDIDATO (${certifications.length} total):

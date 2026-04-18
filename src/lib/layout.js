@@ -10,7 +10,7 @@
  * @param {number} opts.total - Total steps (default 10)
  * @param {string} opts.backHref - URL for the back button
  */
-export function injectStepHeader({ step, total = 10, backHref = '#' }) {
+export function injectStepHeader({ step, total = 8, backHref = '#' }) {
   const pct = Math.round((step / total) * 100);
   const header = document.createElement('header');
   header.className = 'step-header';

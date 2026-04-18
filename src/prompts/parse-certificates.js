@@ -1,120 +1,392 @@
 /**
- * Certificate Name Parser Agent.
+ * Certificate Parser — Deterministic OCR + Heuristic Pipeline.
  * 
- * Reads FILE NAMES of uploaded certificates (no OCR, no content reading)
- * and extracts structured data: title, issuer, date.
+ * 1. Tesseract.js (browser OCR) extracts text from certificate images
+ * 2. pdf.js extracts text from PDF certificates
+ * 3. Robust heuristic rules parse title + issuer + date
  * 
- * Example: "AWS Solutions Architect - Amazon Web Services 2024.pdf"
- *  → { title: "AWS Solutions Architect", issuer: "Amazon Web Services", date: "2024" }
+ * NO AI is used here — this is 100% deterministic and instant.
+ * AI selection of the best 3-5 certs happens later via select-certifications.js
  */
-import { chatCompletion } from '../api/sonar.js';
+import { createWorker } from 'tesseract.js';
 
-const CERT_PARSER_PERSONA = `Você é um parser especializado em extrair informações de NOMES DE ARQUIVO de certificados profissionais. Sua tarefa é analisar uma lista de nomes de arquivo e extrair para cada um:
+// ═══════════════════════════════════════
+// KNOWN PLATFORMS / ISSUERS
+// ═══════════════════════════════════════
 
-- title: O nome da certificação/curso
-- issuer: A instituição emissora (se identificável no nome do arquivo)
-- date: A data (se identificável no nome do arquivo)
+/** Sorted longest-first so "Digital Innovation One" matches before "DIO" */
+const KNOWN_ISSUERS = [
+  // Full names first (longer strings)
+  'Digital Innovation One', 'Amazon Web Services', 'LinkedIn Learning',
+  'Fundação Bradesco', 'Fundacao Bradesco', 'Escola Virtual Gov',
+  'Khan Academy', 'FreeCodeCamp', 'Google Cloud', 'Scrum Alliance',
+  'Red Hat', 'EC-Council',
+  // Global platforms
+  'Coursera', 'Udemy', 'edX', 'Pluralsight', 'Skillshare',
+  'Codecademy', 'HackerRank', 'LeetCode', 'Kaggle', 'Datacamp',
+  'Domestika', 'MasterClass', 'Brilliant', 'Treehouse',
+  // BR platforms
+  'Alura', 'DIO', 'Rocketseat', 'Origamid', 'B7Web', 'Balta.io',
+  'FIAP', 'SENAI', 'SENAC', 'SEBRAE', 'ENAP', 'Impacta',
+  'Descomplica', 'Gran Cursos', 'Estratégia',
+  // Cloud / Tech vendors
+  'AWS', 'Google', 'Microsoft', 'Azure', 'Oracle', 'IBM', 'Cisco',
+  'HashiCorp', 'Terraform', 'VMware', 'Salesforce', 'SAP',
+  'MongoDB', 'Databricks', 'Snowflake', 'Atlassian', 'GitHub',
+  'Docker', 'Kubernetes', 'Meta', 'Apple', 'Huawei',
+  // Certification bodies
+  'PMI', 'Scrum.org', 'EXIN', 'AXELOS', 'CertiProf',
+  'CompTIA', 'ISC2', '(ISC)²', 'ISACA', 'PeopleCert',
+].sort((a, b) => b.length - a.length);
 
-Regras:
-1. Analise SOMENTE o nome do arquivo fornecido. Não invente informações que não estejam no nome.
-2. Remova extensões de arquivo (.pdf, .jpg, .png, .jpeg, .webp, etc.)
-3. Interprete separadores comuns: hífens, underscores, pontos, parênteses como delimitadores lógicos.
-4. Se não conseguir identificar issuer ou date, retorne string vazia "".
-5. Tente identificar abreviações conhecidas:
-   - "AWS" → Amazon Web Services
-   - "GCP" → Google Cloud Platform
-   - "AZ" ou "Azure" → Microsoft Azure
-   - "SCRUM", "PSM", "PSPO" → Scrum.org
-   - "PMP", "CAPM" → PMI
-   - "CKA", "CKAD" → CNCF / Linux Foundation
-   - "OCA", "OCP" → Oracle
-6. Se o nome contiver números de 4 dígitos (ex: 2023, 2024), interprete como ano.
-7. Se contiver padrões como "01-2024" ou "Jan2024", interprete como data.
-8. Responda no idioma predominante dos nomes de arquivo.
-9. Priorize extrair o título mais limpo possível, sem lixo de formatação.
+// Markers that precede or label the issuer
+const ISSUER_MARKERS = [
+  'emitido por', 'emitido pela', 'emitida por', 'emitida pela',
+  'issued by', 'oferecido por', 'oferecido pela', 'oferecida por',
+  'provided by', 'powered by', 'certificado por', 'certificado pela',
+  'certificada por', 'instrutor', 'instructor', 'professor',
+  'organizado por', 'organized by', 'promoted by', 'promovido por',
+  'ministrado por', 'ministrada por', 'taught by',
+];
 
-RESPONDA EXCLUSIVAMENTE em JSON válido:
-{
-  "certificates": [
-    {
-      "originalFileName": "nome_original.pdf",
-      "title": "Nome Limpo da Certificação",
-      "issuer": "Instituição Emissora",
-      "date": "2024"
-    }
-  ]
-}`;
+// Markers that precede or label the title / course
+const TITLE_MARKERS = [
+  'certificado de conclusão', 'certificate of completion',
+  'certificado de participação', 'certificate of participation',
+  'certificate of achievement', 'certificado de aprovação',
+  'concluiu o curso', 'concluiu com sucesso', 'has completed',
+  'has successfully completed', 'completed the course',
+  'completou o curso', 'participou do', 'participated in',
+  'certificado', 'certificate', 'curso', 'course',
+  'formação', 'bootcamp', 'trilha', 'path', 'track',
+  'treinamento', 'training', 'programa', 'program',
+  'workshop', 'masterclass', 'nanodegree', 'specialization',
+  'especialização', 'imersão', 'immersion',
+];
+
+// Month names for date detection
+const MONTHS_PT = ['janeiro','fevereiro','março','marco','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+const MONTHS_EN = ['january','february','march','april','may','june','july','august','september','october','november','december'];
+const MONTHS_SHORT_PT = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+const MONTHS_SHORT_EN = ['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+
+// Institutional keywords (catch universities/schools not in the fixed list)
+const INSTITUTION_KEYWORDS = [
+  'universidade', 'university', 'instituto', 'institute',
+  'faculdade', 'college', 'escola', 'school', 'academia', 'academy',
+  'centro', 'center', 'centre', 'fundação', 'foundation',
+  'associação', 'association', 'laboratório', 'lab',
+];
+
+// ═══════════════════════════════════════
+// OCR ENGINE (Tesseract.js)
+// ═══════════════════════════════════════
+
+let workerInstance = null;
+
+async function getWorker() {
+  if (!workerInstance) {
+    workerInstance = await createWorker('por+eng', 1, {
+      logger: () => {},
+    });
+  }
+  return workerInstance;
+}
+
+async function ocrImage(file) {
+  const worker = await getWorker();
+  const { data: { text } } = await worker.recognize(file);
+  return text.trim();
+}
+
+async function extractPdfText(file) {
+  const { extractTextFromPDF } = await import('../lib/pdf.js');
+  return extractTextFromPDF(file);
+}
+
+// ═══════════════════════════════════════
+// DATE DETECTION
+// ═══════════════════════════════════════
 
 /**
- * Parse certificate file names into structured data.
- * 
- * @param {string[]} fileNames - Array of file names (with extensions)
+ * Extract a date from text using multiple regex patterns.
+ * Returns the LAST (most likely completion) date found, or ''.
+ * @param {string} text
+ * @returns {string}
+ */
+function detectDate(text) {
+  if (!text) return '';
+
+  const allMonths = [...MONTHS_PT, ...MONTHS_EN, ...MONTHS_SHORT_PT, ...MONTHS_SHORT_EN].join('|');
+  const dates = [];
+
+  // Pattern 1: "Janeiro 2024", "Jan 2024", "January 2024", "jan/2024"
+  const monthYear = new RegExp(`\\b(${allMonths})[\\s./\\-,]*(\\d{4})\\b`, 'gi');
+  for (const m of text.matchAll(monthYear)) {
+    dates.push({ text: `${capitalize(m[1])} ${m[2]}`, pos: m.index });
+  }
+
+  // Pattern 2: "01/2024", "01-2024", "01.2024" (MM/YYYY)
+  const mmYYYY = /\b(0[1-9]|1[0-2])[\/\-\.](20\d{2}|19\d{2})\b/g;
+  for (const m of text.matchAll(mmYYYY)) {
+    dates.push({ text: `${m[1]}/${m[2]}`, pos: m.index });
+  }
+
+  // Pattern 3: "01/01/2024", "01-01-2024" (DD/MM/YYYY)
+  const ddMMYYYY = /\b(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](20\d{2}|19\d{2})\b/g;
+  for (const m of text.matchAll(ddMMYYYY)) {
+    dates.push({ text: `${m[1]}/${m[2]}/${m[3]}`, pos: m.index });
+  }
+
+  // Pattern 4: "2024-01-15" (ISO)
+  const iso = /\b(20\d{2})[\/\-\.](\d{1,2})[\/\-\.](\d{1,2})\b/g;
+  for (const m of text.matchAll(iso)) {
+    dates.push({ text: `${m[3]}/${m[2]}/${m[1]}`, pos: m.index });
+  }
+
+  // Pattern 5: standalone year "2023", "2024" (only 2015+)
+  // Less reliable — only use if no better pattern found
+  const standaloneYear = /\b(20[1-9]\d)\b/g;
+  const yearMatches = [];
+  for (const m of text.matchAll(standaloneYear)) {
+    yearMatches.push({ text: m[1], pos: m.index });
+  }
+
+  // Return the last precise date found (likely the completion date)
+  if (dates.length) {
+    return dates[dates.length - 1].text;
+  }
+  // Fallback to last standalone year
+  if (yearMatches.length) {
+    return yearMatches[yearMatches.length - 1].text;
+  }
+
+  return '';
+}
+
+function capitalize(str) {
+  return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+}
+
+// ═══════════════════════════════════════
+// ISSUER DETECTION
+// ═══════════════════════════════════════
+
+/**
+ * Detect the certificate issuer from text.
+ * Uses multiple strategies in priority order.
+ * @param {string} text
+ * @returns {string}
+ */
+function detectIssuer(text) {
+  if (!text) return '';
+  const lower = text.toLowerCase();
+
+  // Strategy 1: Explicit markers like "emitido por: Coursera"
+  for (const marker of ISSUER_MARKERS) {
+    const idx = lower.indexOf(marker);
+    if (idx !== -1) {
+      const after = text.substring(idx + marker.length).replace(/^[\s:—\-–]+/, '');
+      const line = after.split(/[\n\r]/)[0].trim().substring(0, 100);
+      // Clean trailing punctuation and IDs
+      const cleaned = line.replace(/[.!,;]+$/, '').trim();
+      if (cleaned.length > 1) return cleaned;
+    }
+  }
+
+  // Strategy 2: Match known issuers (already sorted longest-first)
+  for (const issuer of KNOWN_ISSUERS) {
+    const issuerLower = issuer.toLowerCase();
+    // Word-boundary-ish check to avoid false positives (e.g. "DIO" inside "ESTÚDIO")
+    const idx = lower.indexOf(issuerLower);
+    if (idx !== -1) {
+      const before = idx > 0 ? lower[idx - 1] : ' ';
+      const after = idx + issuerLower.length < lower.length ? lower[idx + issuerLower.length] : ' ';
+      const isBoundary = /[\s,.;:!?/()\-–—]/.test(before) || idx === 0;
+      const isEndBoundary = /[\s,.;:!?/()\-–—]/.test(after) || (idx + issuerLower.length) === lower.length;
+      if (isBoundary && isEndBoundary) {
+        // Return with original casing from our list
+        return issuer;
+      }
+    }
+  }
+
+  // Strategy 3: Extract from URLs (e.g. "coursera.org", "udemy.com")
+  const urlMatch = text.match(/(?:https?:\/\/)?(?:www\.)?([a-zA-Z0-9-]+)\.(com|org|io|dev|net|edu|com\.br|org\.br)/i);
+  if (urlMatch) {
+    const domain = urlMatch[1];
+    // Check if domain matches a known issuer
+    for (const issuer of KNOWN_ISSUERS) {
+      if (issuer.toLowerCase().replace(/[\s.]/g, '') === domain.toLowerCase()) {
+        return issuer;
+      }
+    }
+    // Use capitalized domain as issuer
+    if (domain.length > 2) {
+      return capitalize(domain);
+    }
+  }
+
+  // Strategy 4: Look for institutional keywords (catches unknown universities etc.)
+  const lines = text.split(/[\n\r]+/).map(l => l.trim()).filter(l => l.length > 3);
+  for (const line of lines) {
+    const lineLower = line.toLowerCase();
+    for (const kw of INSTITUTION_KEYWORDS) {
+      if (lineLower.includes(kw)) {
+        // Return the whole line (trimmed) as issuer — it likely says "Universidade Federal de ..."
+        const clean = line.substring(0, 100).replace(/[.!,;]+$/, '').trim();
+        if (clean.length > 3 && clean.length < 80) return clean;
+      }
+    }
+  }
+
+  return '';
+}
+
+// ═══════════════════════════════════════
+// TITLE DETECTION
+// ═══════════════════════════════════════
+
+/**
+ * Extract the certificate title from text.
+ * @param {string} text
+ * @param {string} fileName
+ * @returns {string}
+ */
+function detectTitle(text, fileName) {
+  const lines = text.split(/[\n\r]+/).map(l => l.trim()).filter(l => l.length > 3);
+
+  if (!lines.length) return cleanFileName(fileName);
+
+  const lower = text.toLowerCase();
+
+  // 1. Look for text after title markers (e.g. "concluiu o curso React Avançado")
+  for (const marker of TITLE_MARKERS) {
+    const idx = lower.indexOf(marker);
+    if (idx !== -1) {
+      const afterMarker = text.substring(idx + marker.length).replace(/^[\s:—\-–"']+/, '');
+      const sameLine = afterMarker.split(/[\n\r]/)[0].trim();
+
+      if (sameLine.length > 5 && sameLine.length < 120) {
+        // Remove trailing punctuation
+        return sameLine.replace(/[.!,;:]+$/, '').trim();
+      }
+
+      // Check next non-empty line
+      const restLines = afterMarker.split(/[\n\r]+/).map(l => l.trim()).filter(l => l.length > 3);
+      if (restLines.length > 0 && restLines[0].length < 120) {
+        return restLines[0].replace(/[.!,;:]+$/, '').trim();
+      }
+    }
+  }
+
+  // 2. Heuristic: best candidate line (not a date, URL, ID, or boilerplate)
+  const skipPatterns = [
+    /^https?:\/\//i,
+    /^\d{1,2}[\/.]\d{1,2}[\/.]\d{2,4}$/,
+    /^(id|código|code|credential|credencial|verificar|verify|data|date|hora|time)/i,
+    /^(emitido|issued|válido|valid|expir)/i,
+    /^(nome|name|email|cpf|rg|endereço|address)/i,
+    /certificamos que/i,
+    /^[\d\s\-\/.,]+$/,  // Lines that are just numbers/dates
+  ];
+
+  const candidates = lines.filter(l =>
+    l.length > 5 &&
+    l.length < 120 &&
+    !skipPatterns.some(p => p.test(l))
+  );
+
+  if (candidates.length) {
+    // Score candidates: prefer 10-80 char lines, penalize very short/long
+    const scored = candidates.map(l => ({
+      text: l,
+      score: (l.length >= 10 && l.length <= 80 ? 10 : 0) +
+             (l.length >= 15 && l.length <= 60 ? 5 : 0) +
+             (/[A-ZÀ-Ú]/.test(l[0]) ? 3 : 0) +  // Starts with uppercase
+             (lines.indexOf(l) < 5 ? 2 : 0),      // Early in text
+    }));
+    scored.sort((a, b) => b.score - a.score);
+    return scored[0].text;
+  }
+
+  return cleanFileName(fileName);
+}
+
+/**
+ * Clean a filename into a readable title.
+ */
+function cleanFileName(name) {
+  return name
+    .replace(/\.[^.]+$/, '')                            // remove extension
+    .replace(/certificado[_\s-]*(de[_\s-]*)?/gi, '')    // remove "Certificado de"
+    .replace(/[_\-]+/g, ' ')                            // underscores/hyphens to spaces
+    .replace(/\s+/g, ' ')                               // collapse whitespace
+    .trim() || name;
+}
+
+/**
+ * Try to detect an issuer from just the file name.
+ */
+function detectIssuerFromFileName(fileName) {
+  const lower = fileName.toLowerCase();
+  for (const issuer of KNOWN_ISSUERS) {
+    if (lower.includes(issuer.toLowerCase())) {
+      return issuer;
+    }
+  }
+  return '';
+}
+
+// ═══════════════════════════════════════
+// MAIN PIPELINE
+// ═══════════════════════════════════════
+
+/**
+ * Parse multiple certificate files using OCR + deterministic heuristics.
+ * Returns structured data with title, issuer and date — NO AI involved.
+ *
+ * @param {File[]} files - Certificate files (images or PDFs)
+ * @param {function} [onProgress] - (current, total, fileName) => void
  * @returns {Promise<Array<{title: string, issuer: string, date: string}>>}
  */
-export async function parseCertificateNames(fileNames) {
-  if (!fileNames?.length) return [];
+export async function parseCertificateFiles(files, onProgress) {
+  if (!files?.length) return [];
 
-  // For very simple/short lists, try local heuristic first
-  if (fileNames.length <= 2 && fileNames.every(f => f.split(/[-_.\s]/).length <= 3)) {
-    return fileNames.map(f => heuristicParse(f));
-  }
+  const results = [];
 
-  const fileList = fileNames.map((f, i) => `[${i}] ${f}`).join('\n');
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i];
+    if (onProgress) onProgress(i + 1, files.length, file.name);
 
-  const response = await chatCompletion([
-    { role: 'system', content: CERT_PARSER_PERSONA },
-    { role: 'user', content: `Extraia as informações dos seguintes nomes de arquivo de certificados:\n\n${fileList}\n\nResponda SOMENTE em JSON válido.` },
-  ], {
-    temperature: 0.1,
-    maxTokens: 1024,
-    provider: 'groq',
-    model: 'llama-3.3-70b-versatile',
-  });
-
-  const result = parseJson(response);
-  return (result.certificates || []).map(c => ({
-    title: c.title || '',
-    issuer: c.issuer || '',
-    date: c.date || '',
-    _expanded: false,
-  }));
-}
-
-/**
- * Simple heuristic fallback for trivial file names.
- */
-function heuristicParse(fileName) {
-  // Remove extension
-  const name = fileName.replace(/\.(pdf|jpg|jpeg|png|webp|gif|bmp|tiff?)$/i, '');
-  // Replace common separators with spaces
-  const clean = name.replace(/[_\-]+/g, ' ').replace(/\s+/g, ' ').trim();
-
-  // Try to extract year
-  const yearMatch = clean.match(/\b(20\d{2})\b/);
-  const date = yearMatch ? yearMatch[1] : '';
-  const titleWithoutDate = clean.replace(/\b20\d{2}\b/, '').trim();
-
-  return {
-    title: titleWithoutDate || clean,
-    issuer: '',
-    date,
-    _expanded: false,
-  };
-}
-
-/**
- * Parse JSON with fallback.
- */
-function parseJson(text) {
-  try { return JSON.parse(text); } catch { /* continue */ }
-  const fence = text.match(/```(?:json)?\s*(\{[\s\S]*?\})\s*```/);
-  if (fence) { try { return JSON.parse(fence[1]); } catch { /* continue */ } }
-  const brace = text.match(/\{[\s\S]*\}/);
-  if (brace) {
-    try { return JSON.parse(brace[0]); } catch { /* continue */ }
+    let text = '';
     try {
-      return JSON.parse(brace[0].replace(/,\s*}/g, '}').replace(/,\s*]/g, ']'));
-    } catch { /* continue */ }
+      const ext = file.name.split('.').pop().toLowerCase();
+      if (ext === 'pdf') {
+        text = await extractPdfText(file);
+      } else if (['jpg', 'jpeg', 'png', 'webp', 'bmp', 'tiff', 'tif', 'gif'].includes(ext)) {
+        text = await ocrImage(file);
+      }
+    } catch (err) {
+      console.warn(`Extraction failed for ${file.name}:`, err.message);
+    }
+
+    const title = detectTitle(text, file.name);
+    const issuer = detectIssuer(text) || detectIssuerFromFileName(file.name);
+    const date = detectDate(text);
+
+    results.push({ title, issuer, date, _expanded: false });
   }
-  return { certificates: [] };
+
+  return results;
+}
+
+/**
+ * Terminate the OCR worker to free memory.
+ */
+export async function terminateOCR() {
+  if (workerInstance) {
+    await workerInstance.terminate();
+    workerInstance = null;
+  }
 }
