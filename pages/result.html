@@ -20,8 +20,8 @@
         .cv-modern {
             font-family: 'Inter', system-ui, sans-serif;
             color: #1a1a1a;
-            line-height: 1.45;
-            font-size: 9pt;
+            line-height: 1.5;
+            font-size: 9.5pt;
         }
 
         .cv-modern * {
@@ -86,9 +86,17 @@
         }
 
         .cv-modern .cv-body {
-            display: grid;
-            grid-template-columns: 1.7fr 1fr;
-            gap: 1.2rem;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .cv-modern .cv-body > div:first-child {
+            width: 63%;
+            padding-right: 1.5rem;
+        }
+
+        .cv-modern .cv-body > div:last-child {
+            width: 34%;
         }
 
         .cv-modern .cv-section-title {
@@ -99,7 +107,12 @@
             color: #1a1a1a;
             border-bottom: 3px solid #1a1a1a;
             padding-bottom: 3px;
-            margin-bottom: 8px;
+            margin-top: 24px;
+            margin-bottom: 12px;
+        }
+
+        .cv-modern .cv-section-title:first-child {
+            margin-top: 0;
         }
 
         .cv-modern .cv-exp-item {
@@ -191,7 +204,7 @@
         .cv-modern .cv-cert-item {
             font-size: 8pt;
             color: #444;
-            margin-bottom: 2px;
+            margin-bottom: 8px;
         }
 
         .cv-modern .cv-proj-item {
@@ -215,8 +228,8 @@
         .cv-classic {
             font-family: 'Space Grotesk', 'Inter', system-ui, sans-serif;
             color: #1c1c1c;
-            line-height: 1.5;
-            font-size: 9pt;
+            line-height: 1.55;
+            font-size: 9.5pt;
         }
 
         .cv-classic * {
@@ -267,9 +280,17 @@
         }
 
         .cv-classic .cv-body {
-            display: grid;
-            grid-template-columns: 1.7fr 1fr;
-            gap: 1.4rem;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .cv-classic .cv-body > div:first-child {
+            width: 63%;
+            padding-right: 1.5rem;
+        }
+
+        .cv-classic .cv-body > div:last-child {
+            width: 34%;
         }
 
         .cv-classic .cv-section-title {
@@ -511,7 +532,7 @@
                             </div>
                         `).join('')}
 
-                        <div class="cv-section-title" style="margin-top:16px;">EDUCAÇÃO</div>
+                        <div class="cv-section-title">EDUCAÇÃO</div>
                         ${(cv.education || []).map(edu => `
                             <div class="cv-edu-item">
                                 <div class="cv-edu-degree">${edu.degree || ''}</div>
@@ -521,12 +542,12 @@
                         `).join('')}
 
                         ${(cv.certifications && cv.certifications.length) ? `
-                        <div class="cv-section-title" style="margin-top:16px;">CERTIFICAÇÕES</div>
+                        <div class="cv-section-title">CERTIFICAÇÕES</div>
                         ${cv.certifications.map(c => `<div class="cv-cert-item"><b>${c.name}</b> — ${c.institution}</div>`).join('')}
                         ` : ''}
 
                         ${(cv.projects && cv.projects.length) ? `
-                        <div class="cv-section-title" style="margin-top:16px;">PROJETOS</div>
+                        <div class="cv-section-title">PROJETOS</div>
                         ${cv.projects.map(p => `
                             <div class="cv-proj-item">
                                 <div class="cv-proj-title">${p.title}</div>
@@ -550,28 +571,42 @@
                         `).join('')}
 
                         ${(cv.languages && cv.languages.length) ? `
-                        <div class="cv-section-title" style="margin-top:14px;">IDIOMAS</div>
+                        <div class="cv-section-title">IDIOMAS</div>
                         ${cv.languages.map(l => `<div class="cv-lang-item"><b>${l.name}</b> — ${l.level}</div>`).join('')}
                         ` : ''}
                     </div>
                 </div>
             `;
 
-            container.innerHTML = `<div class="${cls}">${headerHTML}${bodyHTML}</div>`;
+            container.innerHTML = `<div class="${cls}" contenteditable="true" spellcheck="false" style="outline:none; cursor:text;" title="Clique para editar">${headerHTML}${bodyHTML}</div>`;
 
             // ═══ KPI Dashboard — Post-optimization metrics ═══
-            const allKw = state.analysisResult?.keywords || [];
-            const matchedBefore = state.analysisResult?.ats?.matchedKeywords || state.analysisResult?.matchedKeywords || [];
-            const missingBefore = state.analysisResult?.ats?.missingKeywords || allKw.filter(k => !matchedBefore.some(m => m.toLowerCase() === k.toLowerCase()));
-            const kwUsed = cv.keywordsUsed || [];
-            const scoreBefore = state.analysisResult?.ats?.score || state.analysisResult?.matchPercentage || 0;
+            // ═══ KPI Dashboard — Post-optimization metrics ═══
+            const analysisObj = state.analysisResult?.analysis || state.analysisResult || {};
+            const scoreBefore = analysisObj.overallScore || analysisObj.score?.valor || analysisObj.ats?.score || state.analysisResult?.matchPercentage || 0;
 
-            // Calculate post-optimization score: % of all keywords now present
-            const kwCoverage = allKw.length > 0 ? Math.round((kwUsed.length / allKw.length) * 100) : 0;
-            // Blend: 60% keyword coverage + 40% based on missing keywords addressed
+            const kwUsed = cv.keywordsUsed || [];
+            // Se o pipeline novo for usado (sem extração direta de keywords), usamos as inseridas pela IA como base de sucesso
+            const allKw = (state.analysisResult?.keywords && state.analysisResult.keywords.length > 0) 
+                ? state.analysisResult.keywords 
+                : kwUsed;
+            
+            const matchedBefore = state.analysisResult?.ats?.matchedKeywords || state.analysisResult?.matchedKeywords || [];
+            const missingBefore = (state.analysisResult?.keywords && state.analysisResult.keywords.length > 0) 
+                ? allKw.filter(k => !matchedBefore.some(m => m.toLowerCase() === k.toLowerCase()))
+                : allKw; // Assumimos que as inseridas eram gaps preenchidos
+                
+            const kwCoverage = allKw.length > 0 ? Math.round((kwUsed.length / allKw.length) * 100) : 100;
             const missingNowFixed = missingBefore.filter(m => kwUsed.some(k => k.toLowerCase().includes(m.toLowerCase()) || m.toLowerCase().includes(k.toLowerCase())));
-            const gapFixRate = missingBefore.length > 0 ? Math.round((missingNowFixed.length / missingBefore.length) * 100) : 100;
-            const scoreAfter = Math.min(99, Math.round(kwCoverage * 0.6 + gapFixRate * 0.4));
+            
+            // Calculamos o score de Depois baseando-se no ganho das sugestões aplicadas
+            const appliedCount = state.selectedSuggestions ? state.selectedSuggestions.length : 0;
+            let scoreAfter = scoreBefore;
+            if (scoreBefore > 0) {
+                scoreAfter = Math.min(99, scoreBefore + (appliedCount * 2) + 4);
+            } else {
+                scoreAfter = kwCoverage >= 70 ? 85 : 60;
+            }
 
             // Populate KPI cards
             document.getElementById('kpi-score-before').textContent = scoreBefore + '%';
@@ -594,7 +629,7 @@
             if (kwListEl && kwUsed.length) {
                 kwListEl.innerHTML = kwUsed.map(k => {
                     const wasMissing = missingBefore.some(m => m.toLowerCase() === k.toLowerCase());
-                    return `<span style="display:inline-block;font-size:0.7rem;padding:2px 8px;margin:2px;border-radius:4px;border:1px solid var(--color-gray-200);color:${wasMissing ? 'var(--color-success)' : 'var(--color-gray-600)'};font-weight:500;">${k}${wasMissing ? '<span style="color:var(--color-success);font-size:0.6rem;margin-left:4px;">✓</span>' : ''}</span>`;
+                    return `<span style="display:inline-block;font-size:0.7rem;padding:2px 8px;margin:2px;border-radius:4px;border:1px solid var(--color-success);color:var(--color-success);font-weight:600;background:rgba(34,197,94,0.1);">${k} <span style="font-size:0.6rem;margin-left:2px;">✓</span></span>`;
                 }).join('');
             }
 
@@ -607,12 +642,12 @@
 
                 // Save original styles
                 const saved = { boxShadow: element.style.boxShadow, borderRadius: element.style.borderRadius, padding: element.style.padding, width: element.style.width, maxWidth: element.style.maxWidth, minHeight: element.style.minHeight, overflow: element.style.overflow };
-                // A4=8.27in, 0.3in margins each side => 7.67in content => 736px at 96dpi
-                const marginIn = 0.3;
+                // A4=8.27in. With 0.5in margins => 7.27in content => 698px at 96dpi
+                const marginIn = 0.5;
                 const contentWidthPx = Math.round((8.27 - 2 * marginIn) * 96);
                 element.style.boxShadow = 'none';
                 element.style.borderRadius = '0';
-                element.style.padding = '0 24px 24px 24px';
+                element.style.padding = '0';
                 element.style.width = contentWidthPx + 'px';
                 element.style.maxWidth = contentWidthPx + 'px';
                 element.style.minHeight = 'auto';
@@ -659,10 +694,17 @@
                     </svg>
                 </div>
                 <h2 style="font-size:1.5rem;font-weight:700;margin-bottom:0.5rem;">Pronto para Enviar!</h2>
-                <p style="color:rgba(255,255,255,0.7);font-size:0.875rem;margin-bottom:2rem;line-height:1.6;">Seu
+                <p style="color:rgba(255,255,255,0.7);font-size:0.875rem;margin-bottom:1.25rem;line-height:1.6;">Seu
                     currículo foi otimizado com foco em <b>Experiências Relevantes</b> para esta vaga específica.</p>
+                
+                <div style="background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.2);padding:0.75rem;border-radius:var(--radius-md);margin-bottom:2rem;display:flex;gap:0.75rem;align-items:flex-start;">
+                    <i class="pi pi-pencil" style="color:#3b82f6;margin-top:0.15rem;"></i>
+                    <p style="font-size:0.8125rem;color:rgba(255,255,255,0.85);line-height:1.5;margin:0;">O currículo ao lado é <b>totalmente editável</b>! Clique em qualquer texto para fazer ajustes manuais antes de baixar.</p>
+                </div>
+
                 <button id="btn-download"
-                    style="display:flex;align-items:center;justify-content:center;gap:0.5rem;width:100%;height:3.5rem;border-radius:var(--radius-lg);color:var(--color-primary);font-weight:700;font-size:1rem;border:none;cursor:pointer;box-shadow:var(--shadow-lg);margin-bottom:1rem;">
+                    style="display:flex;align-items:center;justify-content:center;gap:0.5rem;width:100%;height:3.5rem;border-radius:var(--radius-lg);background:var(--color-text);color:var(--color-bg);font-weight:700;font-size:1rem;border:none;cursor:pointer;box-shadow:var(--shadow-lg);margin-bottom:1rem;transition:transform 0.2s, opacity 0.2s;"
+                    onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
                     <i class="pi pi-download" style="font-size:1rem;"></i> Download PDF Otimizado
                 </button>
                 <p

@@ -301,7 +301,8 @@ ${issues.length ? `PROBLEMAS IDENTIFICADOS:\n${issues.map(i => `  - [${i.severit
 
 ${recommendedActions.length ? `AÇÕES RECOMENDADAS:\n${recommendedActions.map(a => `  - ${a}`).join('\n')}` : ''}
 
-${selectedSuggestions.length ? `SUGESTÕES DE MELHORIA SELECIONADAS PELO USUÁRIO (APLIQUE TODAS):\n${selectedSuggestions.map(s => `  - [${s.action}] ${s.section}: ${s.current ? `"${s.current}" → ` : ''}"${s.proposed || ''}" (${s.rationale})`).join('\n')}` : ''}
+${selectedSuggestions.length ? `🔴 URGENTE E OBRIGATÓRIO: O USUÁRIO APROVOU AS SEGUINTES REESCRITAS. VOCÊ DEVE USAR O TEXTO EXATO DA "PROPOSTA" NO JSON FINAL (SUBSTITUINDO O TEXTO ORIGINAL):
+${selectedSuggestions.map(s => `  - SEÇÃO: ${s.section}\n    SUBSTITUIR: "${s.current || '...'}"\n    POR ESTE TEXTO EXATO: "${s.proposed || ''}"`).join('\n\n')}` : ''}
 
 ${certSelectionResult ? `🎯 CERTIFICAÇÕES CURADAS POR IA (use SOMENTE estas no CV):\n${certSelectionResult.selected?.map(s => `  ✓ ${s.title} — ${s.reason}`).join('\n') || 'Nenhuma selecionada'}\n${certSelectionResult.dropped?.length ? `  Descartadas: ${certSelectionResult.dropped.map(d => d.title).join(', ')}` : ''}` : ''}
 
