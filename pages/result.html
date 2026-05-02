@@ -20,8 +20,8 @@
         .cv-modern {
             font-family: 'Inter', system-ui, sans-serif;
             color: #1a1a1a;
-            line-height: 1.5;
-            font-size: 9.5pt;
+            line-height: 1.45;
+            font-size: 9pt;
         }
 
         .cv-modern * {
@@ -86,17 +86,12 @@
         }
 
         .cv-modern .cv-body {
-            display: flex;
-            justify-content: space-between;
+            display: grid;
+            grid-template-columns: 1.7fr 1fr;
         }
 
         .cv-modern .cv-body > div:first-child {
-            width: 63%;
             padding-right: 1.5rem;
-        }
-
-        .cv-modern .cv-body > div:last-child {
-            width: 34%;
         }
 
         .cv-modern .cv-section-title {
@@ -228,8 +223,8 @@
         .cv-classic {
             font-family: 'Space Grotesk', 'Inter', system-ui, sans-serif;
             color: #1c1c1c;
-            line-height: 1.55;
-            font-size: 9.5pt;
+            line-height: 1.5;
+            font-size: 9pt;
         }
 
         .cv-classic * {
@@ -280,17 +275,12 @@
         }
 
         .cv-classic .cv-body {
-            display: flex;
-            justify-content: space-between;
+            display: grid;
+            grid-template-columns: 1.7fr 1fr;
         }
 
         .cv-classic .cv-body > div:first-child {
-            width: 63%;
             padding-right: 1.5rem;
-        }
-
-        .cv-classic .cv-body > div:last-child {
-            width: 34%;
         }
 
         .cv-classic .cv-section-title {
@@ -642,12 +632,12 @@
 
                 // Save original styles
                 const saved = { boxShadow: element.style.boxShadow, borderRadius: element.style.borderRadius, padding: element.style.padding, width: element.style.width, maxWidth: element.style.maxWidth, minHeight: element.style.minHeight, overflow: element.style.overflow };
-                // A4=8.27in. With 0.5in margins => 7.27in content => 698px at 96dpi
-                const marginIn = 0.5;
+                // A4=8.27in, 0.3in margins each side => 7.67in content => 736px at 96dpi
+                const marginIn = 0.3;
                 const contentWidthPx = Math.round((8.27 - 2 * marginIn) * 96);
                 element.style.boxShadow = 'none';
                 element.style.borderRadius = '0';
-                element.style.padding = '0';
+                element.style.padding = '0 24px 24px 24px';
                 element.style.width = contentWidthPx + 'px';
                 element.style.maxWidth = contentWidthPx + 'px';
                 element.style.minHeight = 'auto';
