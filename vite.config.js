@@ -2,6 +2,8 @@ import { defineConfig, loadEnv } from 'vite';
 import { resolve } from 'path';
 import chatHandler from './api/chat.js';
 
+import extractHandler from './api/extract.js';
+
 // Simple Vite plugin to serve the Vercel function locally
 const vercelApiPlugin = () => ({
   name: 'vercel-api-plugin',
@@ -30,6 +32,31 @@ const vercelApiPlugin = () => ({
         next();
       }
     });
+
+    server.middlewares.use('/api/extract', async (req, res, next) => {
+      if (req.method === 'POST') {
+        let body = [];
+        req.on('data', chunk => body.push(chunk));
+        req.on('end', async () => {
+          try {
+            req.body = Buffer.concat(body);
+            // Polyfill Vercel res.status() and res.json()
+            res.status = (code) => { res.statusCode = code; return res; };
+            res.json = (data) => {
+              res.setHeader('Content-Type', 'application/json');
+              res.end(JSON.stringify(data));
+            };
+            await extractHandler(req, res);
+          } catch (err) {
+            console.error('API Error:', err);
+            res.statusCode = 500;
+            res.end(JSON.stringify({ error: err.message }));
+          }
+        });
+      } else {
+        next();
+      }
+    });
   }
 });
 
@@ -37,7 +64,6 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
   // Expose env vars to the API handler when running locally
   process.env.GROQ_API_KEY = env.GROQ_API_KEY;
-  process.env.GEMINI_API_KEY = env.GEMINI_API_KEY;
 
   return {
     plugins: [vercelApiPlugin()],
@@ -57,6 +83,7 @@ export default defineConfig(({ mode }) => {
           stepAtsScanner: resolve(__dirname, 'pages/step-ats-scanner.html'),
           stepAtsLoading: resolve(__dirname, 'pages/step-ats-loading.html'),
           stepAtsResult: resolve(__dirname, 'pages/step-ats-result.html'),
+          certificates: resolve(__dirname, 'pages/certificates.html'),
         },
       },
     },

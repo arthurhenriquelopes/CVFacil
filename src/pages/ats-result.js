@@ -163,7 +163,7 @@ const suggestionsHtml = suggestions.map((s, i) => {
   return `
   <div class="suggestion-card" data-idx="${i}" style="margin-bottom:0.75rem;">
     <div class="check-indicator">✓</div>
-    <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.625rem;flex-wrap:wrap;">
+    <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.625rem;flex-wrap:wrap;padding-right:2.5rem;">
       <span class="action-badge ${actionClass}">${actionLabels[s.action] || s.action}</span>
       <span style="font-size:0.6875rem;color:var(--color-text-tertiary);">${s.section || ''}</span>
       <span class="severity-badge severity-${(s.impact || 'medium').toLowerCase()}" style="margin-left:auto;">${s.impact || 'MEDIUM'}</span>

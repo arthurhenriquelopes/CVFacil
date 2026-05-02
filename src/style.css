@@ -488,7 +488,7 @@ svg { stroke-width: 1.5 !important; }
 }
 .action-add { background: rgba(34, 197, 94, 0.12); color: #22c55e; }
 .action-remove { background: rgba(239, 68, 68, 0.12); color: #ef4444; }
-.action-rewrite { background: rgba(99, 102, 241, 0.12); color: #818cf8; }
+.action-rewrite { background: #ffffff; color: #000000; }
 .action-improve { background: rgba(245, 158, 11, 0.12); color: #f59e0b; }
 
 /* ============ ATS RESULT — CARDS ============ */

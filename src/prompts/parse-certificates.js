@@ -4,11 +4,10 @@
  * 1. Tesseract.js (browser OCR) extracts text from certificate images
  * 2. pdf.js extracts text from PDF certificates
  * 3. Robust heuristic rules parse title + issuer + date
- * 
- * NO AI is used here — this is 100% deterministic and instant.
- * AI selection of the best 3-5 certs happens later via select-certifications.js
  */
-import { createWorker } from 'tesseract.js';
+// NO AI is used here — this is 100% deterministic and instant.
+// AI selection of the best 3-5 certs happens later via select-certifications.js
+import { extractTextFromPDF as extractFileText } from '../lib/pdf.js';
 
 // ═══════════════════════════════════════
 // KNOWN PLATFORMS / ISSUERS
@@ -78,31 +77,7 @@ const INSTITUTION_KEYWORDS = [
   'associação', 'association', 'laboratório', 'lab',
 ];
 
-// ═══════════════════════════════════════
-// OCR ENGINE (Tesseract.js)
-// ═══════════════════════════════════════
 
-let workerInstance = null;
-
-async function getWorker() {
-  if (!workerInstance) {
-    workerInstance = await createWorker('por+eng', 1, {
-      logger: () => {},
-    });
-  }
-  return workerInstance;
-}
-
-async function ocrImage(file) {
-  const worker = await getWorker();
-  const { data: { text } } = await worker.recognize(file);
-  return text.trim();
-}
-
-async function extractPdfText(file) {
-  const { extractTextFromPDF } = await import('../lib/pdf.js');
-  return extractTextFromPDF(file);
-}
 
 // ═══════════════════════════════════════
 // DATE DETECTION
@@ -361,12 +336,7 @@ export async function parseCertificateFiles(files, onProgress) {
 
     let text = '';
     try {
-      const ext = file.name.split('.').pop().toLowerCase();
-      if (ext === 'pdf') {
-        text = await extractPdfText(file);
-      } else if (['jpg', 'jpeg', 'png', 'webp', 'bmp', 'tiff', 'tif', 'gif'].includes(ext)) {
-        text = await ocrImage(file);
-      }
+      text = await extractFileText(file);
     } catch (err) {
       console.warn(`Extraction failed for ${file.name}:`, err.message);
     }
@@ -382,11 +352,8 @@ export async function parseCertificateFiles(files, onProgress) {
 }
 
 /**
- * Terminate the OCR worker to free memory.
+ * Tesseract is no longer used, keep dummy for compatibility.
  */
 export async function terminateOCR() {
-  if (workerInstance) {
-    await workerInstance.terminate();
-    workerInstance = null;
-  }
+  // no-op
 }

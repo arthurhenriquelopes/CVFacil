@@ -6,14 +6,12 @@ const API_URL = '/api/chat';
  * @param {object} [opts]
  * @param {number} [opts.temperature=0.2]
  * @param {number} [opts.maxTokens=4096]
- * @param {'groq'|'gemini'} [opts.provider='groq']
- * @param {string} [opts.model] - Override default model for the provider
+ * @param {string} [opts.model] - Override default model
  * @returns {Promise<string>} The assistant's response content
  */
 export async function chatCompletion(messages, {
     temperature = 0.2,
     maxTokens = 4096,
-    provider = 'groq',
     model,
 } = {}) {
     const maxAttempts = 2;
@@ -28,14 +26,13 @@ export async function chatCompletion(messages, {
                     messages,
                     temperature,
                     max_tokens: maxTokens,
-                    provider,
                     model,
                 }),
             });
 
             if (!response.ok) {
                 const errText = await response.text();
-                throw new Error(`API Error (${provider}) ${response.status}: ${errText}`);
+                throw new Error(`API Error ${response.status}: ${errText}`);
             }
 
             const data = await response.json();

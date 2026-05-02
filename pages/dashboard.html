@@ -28,11 +28,14 @@
 
         .dash-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: repeat(3, 1fr);
             gap: 1.25rem;
-            max-width: 52rem;
+            max-width: 68rem;
             margin: 0 auto;
             padding: 0 1.25rem;
+        }
+        @media (max-width: 1024px) {
+            .dash-grid { grid-template-columns: repeat(2, 1fr); max-width: 52rem; }
         }
         @media (max-width: 640px) {
             .dash-grid { grid-template-columns: 1fr; }
@@ -78,6 +81,9 @@
         .dash-card--scanner::before {
             background: linear-gradient(90deg, #f59e0b, #ef4444);
         }
+        .dash-card--certs::before {
+            background: linear-gradient(90deg, #10b981, #059669);
+        }
 
         .dash-card__icon {
             width: 3rem;
@@ -96,6 +102,11 @@
             background: rgba(245, 158, 11, 0.1);
             border: 1px solid rgba(245, 158, 11, 0.2);
             color: #fbbf24;
+        }
+        .dash-card--certs .dash-card__icon {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            color: #34d399;
         }
 
         .dash-card__title {
@@ -282,6 +293,34 @@
                     <div class="dash-card__feature">
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m9 11 3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
                         Diagnóstico de erros invisíveis
+                    </div>
+                </div>
+            </a>
+
+            <!-- Card 3: Banco de Certificados -->
+            <a href="/pages/certificates.html" class="dash-card dash-card--certs">
+                <div class="dash-card__icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 15V3m0 12l-4-4m4 4l4-4M2 17l.621 2.485A2 2 0 0 0 4.561 21h14.878a2 2 0 0 0 1.94-1.515L22 17"></path>
+                    </svg>
+                </div>
+                <div>
+                    <div class="dash-card__title">Meus Certificados</div>
+                    <p class="dash-card__desc">Gerencie todos os seus certificados e cursos. Extração automática de PDFs e imagens.</p>
+                </div>
+                <div class="dash-card__features">
+                    <div class="dash-card__feature">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m9 11 3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                        Banco centralizado em nuvem
+                    </div>
+                    <div class="dash-card__feature">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m9 11 3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                        Upload com leitor Apache Tika
+                    </div>
+                    <div class="dash-card__feature">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m9 11 3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                        Sincronizado com Gerador de CV
                     </div>
                 </div>
             </a>
