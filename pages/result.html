@@ -10,7 +10,7 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Merriweather:wght@400;700;900&family=Inter:wght@400;500;600;700;800;900&display=swap"
         rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <!-- PDF via native print dialog for pixel-perfect output -->
     <link rel="stylesheet" href="/src/style.css">
     <script type="module" src="/src/main.js"></script>
     <style>
@@ -20,8 +20,8 @@
         .cv-modern {
             font-family: 'Inter', system-ui, sans-serif;
             color: #1a1a1a;
-            line-height: 1.45;
-            font-size: 9pt;
+            line-height: 1.55;
+            font-size: 9.5pt;
         }
 
         .cv-modern * {
@@ -31,7 +31,7 @@
         }
 
         .cv-modern .cv-header {
-            margin-bottom: 0.6rem;
+            margin-bottom: 1.2rem;
         }
 
         .cv-modern .cv-header-top {
@@ -52,16 +52,17 @@
             font-size: 10pt;
             color: #2563eb;
             font-weight: 700;
-            margin-top: 2px;
+            margin-top: 4px;
+            line-height: 1.35;
         }
 
         .cv-modern .cv-contact {
             display: flex;
             flex-wrap: wrap;
             gap: 0.75rem;
-            font-size: 7.5pt;
+            font-size: 8pt;
             color: #666;
-            margin-top: 6px;
+            margin-top: 8px;
             font-weight: 500;
         }
 
@@ -111,11 +112,11 @@
         }
 
         .cv-modern .cv-exp-item {
-            margin-bottom: 10px;
+            margin-bottom: 16px;
         }
 
         .cv-modern .cv-exp-title {
-            font-size: 9.5pt;
+            font-size: 10pt;
             font-weight: 800;
         }
 
@@ -126,8 +127,10 @@
         }
 
         .cv-modern .cv-exp-meta {
-            font-size: 7pt;
+            font-size: 7.5pt;
             color: #888;
+            margin-top: 2px;
+            margin-bottom: 4px;
         }
 
         .cv-modern .cv-exp-bullets {
@@ -136,24 +139,24 @@
         }
 
         .cv-modern .cv-exp-bullets li {
-            font-size: 8pt;
+            font-size: 8.5pt;
             color: #444;
-            margin-bottom: 2px;
-            line-height: 1.4;
+            margin-bottom: 4px;
+            line-height: 1.5;
         }
 
         .cv-modern .cv-edu-item {
-            margin-bottom: 6px;
+            margin-bottom: 10px;
         }
 
         .cv-modern .cv-edu-degree {
-            font-size: 9pt;
+            font-size: 9.5pt;
             font-weight: 800;
             color: #2563eb;
         }
 
         .cv-modern .cv-edu-inst {
-            font-size: 8.5pt;
+            font-size: 9pt;
             font-weight: 700;
         }
 
@@ -163,33 +166,33 @@
         }
 
         .cv-modern .cv-summary-text {
-            font-size: 8pt;
+            font-size: 8.5pt;
             color: #444;
-            line-height: 1.5;
+            line-height: 1.6;
             text-align: justify;
         }
 
         .cv-modern .cv-skill-group {
-            margin-bottom: 6px;
+            margin-bottom: 10px;
         }
 
         .cv-modern .cv-skill-group-title {
-            font-size: 8pt;
+            font-size: 8.5pt;
             font-weight: 800;
             color: #1a1a1a;
-            margin-bottom: 2px;
+            margin-bottom: 4px;
         }
 
         .cv-modern .cv-skill-items {
-            font-size: 7.5pt;
+            font-size: 8pt;
             color: #555;
-            line-height: 1.5;
+            line-height: 1.7;
         }
 
         .cv-modern .cv-lang-item {
-            font-size: 8pt;
+            font-size: 8.5pt;
             color: #444;
-            margin-bottom: 2px;
+            margin-bottom: 6px;
         }
 
         .cv-modern .cv-lang-item b {
@@ -197,9 +200,10 @@
         }
 
         .cv-modern .cv-cert-item {
-            font-size: 8pt;
+            font-size: 8.5pt;
             color: #444;
-            margin-bottom: 8px;
+            margin-bottom: 12px;
+            line-height: 1.5;
         }
 
         .cv-modern .cv-proj-item {
@@ -223,8 +227,8 @@
         .cv-classic {
             font-family: 'Space Grotesk', 'Inter', system-ui, sans-serif;
             color: #1c1c1c;
-            line-height: 1.5;
-            font-size: 9pt;
+            line-height: 1.55;
+            font-size: 9.5pt;
         }
 
         .cv-classic * {
@@ -235,8 +239,8 @@
 
         .cv-classic .cv-header {
             border-bottom: 1px solid #d0d0d0;
-            padding-bottom: 10px;
-            margin-bottom: 12px;
+            padding-bottom: 12px;
+            margin-bottom: 18px;
         }
 
         .cv-classic .cv-name {
@@ -249,21 +253,22 @@
         }
 
         .cv-classic .cv-title {
-            font-size: 9.5pt;
+            font-size: 10pt;
             color: #555;
             font-weight: 400;
-            margin-top: 3px;
+            margin-top: 4px;
             font-style: italic;
             letter-spacing: 0.02em;
+            line-height: 1.35;
         }
 
         .cv-classic .cv-contact {
             display: flex;
             flex-wrap: wrap;
             gap: 1rem;
-            font-size: 7.5pt;
+            font-size: 8pt;
             color: #777;
-            margin-top: 6px;
+            margin-top: 8px;
             font-weight: 400;
             letter-spacing: 0.01em;
         }
@@ -284,37 +289,44 @@
         }
 
         .cv-classic .cv-section-title {
-            font-size: 7.5pt;
+            font-size: 8pt;
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.18em;
             color: #1c1c1c;
             border-bottom: 1.5px solid #1c1c1c;
             padding-bottom: 4px;
-            margin-bottom: 10px;
-        }
-
-        .cv-classic .cv-exp-item {
+            margin-top: 24px;
             margin-bottom: 12px;
         }
 
+        .cv-classic .cv-section-title:first-child {
+            margin-top: 0;
+        }
+
+        .cv-classic .cv-exp-item {
+            margin-bottom: 16px;
+        }
+
         .cv-classic .cv-exp-title {
-            font-size: 9.5pt;
+            font-size: 10pt;
             font-weight: 600;
             color: #1c1c1c;
         }
 
         .cv-classic .cv-exp-company {
-            font-size: 8.5pt;
+            font-size: 9pt;
             color: #444;
             font-weight: 500;
             font-style: italic;
         }
 
         .cv-classic .cv-exp-meta {
-            font-size: 7pt;
+            font-size: 7.5pt;
             color: #999;
             letter-spacing: 0.02em;
+            margin-top: 2px;
+            margin-bottom: 4px;
         }
 
         .cv-classic .cv-exp-bullets {
@@ -323,10 +335,10 @@
         }
 
         .cv-classic .cv-exp-bullets li {
-            font-size: 8pt;
+            font-size: 8.5pt;
             color: #444;
-            margin-bottom: 2px;
-            line-height: 1.45;
+            margin-bottom: 4px;
+            line-height: 1.5;
             position: relative;
             padding-left: 2px;
         }
@@ -339,17 +351,17 @@
         }
 
         .cv-classic .cv-edu-item {
-            margin-bottom: 6px;
+            margin-bottom: 10px;
         }
 
         .cv-classic .cv-edu-degree {
-            font-size: 9pt;
+            font-size: 9.5pt;
             font-weight: 600;
             color: #1c1c1c;
         }
 
         .cv-classic .cv-edu-inst {
-            font-size: 8.5pt;
+            font-size: 9pt;
             font-weight: 400;
             font-style: italic;
             color: #555;
@@ -361,35 +373,35 @@
         }
 
         .cv-classic .cv-summary-text {
-            font-size: 8pt;
+            font-size: 8.5pt;
             color: #444;
-            line-height: 1.6;
+            line-height: 1.7;
             text-align: justify;
         }
 
         .cv-classic .cv-skill-group {
-            margin-bottom: 6px;
+            margin-bottom: 10px;
         }
 
         .cv-classic .cv-skill-group-title {
-            font-size: 7pt;
+            font-size: 8pt;
             font-weight: 700;
             color: #1c1c1c;
             text-transform: uppercase;
             letter-spacing: 0.1em;
-            margin-bottom: 3px;
+            margin-bottom: 4px;
         }
 
         .cv-classic .cv-skill-items {
-            font-size: 7.5pt;
+            font-size: 8pt;
             color: #555;
-            line-height: 1.6;
+            line-height: 1.7;
         }
 
         .cv-classic .cv-lang-item {
-            font-size: 8pt;
+            font-size: 8.5pt;
             color: #444;
-            margin-bottom: 2px;
+            margin-bottom: 6px;
         }
 
         .cv-classic .cv-lang-item b {
@@ -398,9 +410,10 @@
         }
 
         .cv-classic .cv-cert-item {
-            font-size: 8pt;
+            font-size: 8.5pt;
             color: #444;
-            margin-bottom: 2px;
+            margin-bottom: 12px;
+            line-height: 1.5;
         }
 
         .cv-classic .cv-proj-item {
@@ -417,6 +430,51 @@
             font-size: 7.5pt;
             color: #555;
             line-height: 1.4;
+        }
+
+        /* ========================================
+           PRINT STYLES — Pixel-perfect PDF output
+           ======================================== */
+        @media print {
+            /* Hide everything except the CV */
+            body > *:not(#print-wrapper) { display: none !important; }
+            #print-wrapper { display: block !important; }
+
+            @page {
+                size: A4;
+                margin: 6mm 8mm;
+            }
+
+            html {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            body {
+                background: white !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            #print-wrapper {
+                background: white !important;
+                box-shadow: none !important;
+                border-radius: 0 !important;
+                padding: 8px 12px !important;
+                margin: 0 !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                min-height: auto !important;
+                overflow: visible !important;
+                transform: none !important;
+            }
+
+            /* Prevent browser from shrinking content to fit */
+            #print-wrapper * {
+                max-width: 100% !important;
+            }
         }
     </style>
 </head>
@@ -623,40 +681,32 @@
                 }).join('');
             }
 
-            // Setup PDF Download
+            // Setup PDF Download via native print (pixel-perfect)
             document.getElementById('btn-download').addEventListener('click', () => {
-                const element = document.getElementById('cv-preview');
-                const btn = document.getElementById('btn-download');
-                btn.innerHTML = '<div class="spinner" style="width:1.25rem;height:1.25rem;border-color:var(--color-primary);border-top-color:transparent;"></div> Gerando...';
-                btn.style.pointerEvents = 'none';
+                const cvContent = document.getElementById('cv-preview').innerHTML;
 
-                // Save original styles
-                const saved = { boxShadow: element.style.boxShadow, borderRadius: element.style.borderRadius, padding: element.style.padding, width: element.style.width, maxWidth: element.style.maxWidth, minHeight: element.style.minHeight, overflow: element.style.overflow };
-                // A4=8.27in, 0.3in margins each side => 7.67in content => 736px at 96dpi
-                const marginIn = 0.3;
-                const contentWidthPx = Math.round((8.27 - 2 * marginIn) * 96);
-                element.style.boxShadow = 'none';
-                element.style.borderRadius = '0';
-                element.style.padding = '0 24px 24px 24px';
-                element.style.width = contentWidthPx + 'px';
-                element.style.maxWidth = contentWidthPx + 'px';
-                element.style.minHeight = 'auto';
-                element.style.overflow = 'visible';
+                // Create a hidden wrapper for printing
+                let wrapper = document.getElementById('print-wrapper');
+                if (!wrapper) {
+                    wrapper = document.createElement('div');
+                    wrapper.id = 'print-wrapper';
+                    wrapper.style.display = 'none';
+                    document.body.appendChild(wrapper);
+                }
+                wrapper.innerHTML = cvContent;
 
-                const opt = {
-                    margin: [marginIn, marginIn, marginIn, marginIn],
-                    filename: `${(h.name || 'CV').replace(/\s+/g, '_')}_Otimizado.pdf`,
-                    image: { type: 'jpeg', quality: 0.98 },
-                    html2canvas: { scale: 2, useCORS: true, width: contentWidthPx },
-                    jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' },
-                    pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
-                };
+                // Set the document title for the PDF filename
+                const originalTitle = document.title;
+                document.title = `${(h.name || 'CV').replace(/\s+/g, '_')}_Otimizado`;
 
-                window.html2pdf().set(opt).from(element).save().then(() => {
-                    Object.assign(element.style, saved);
-                    btn.innerHTML = '<i class="pi pi-download" style="font-size:1rem;"></i> Download PDF Otimizado';
-                    btn.style.pointerEvents = 'auto';
-                });
+                window.print();
+
+                // Restore after print
+                setTimeout(() => {
+                    document.title = originalTitle;
+                    wrapper.style.display = 'none';
+                    wrapper.innerHTML = '';
+                }, 1000);
             });
         }
     </script>
