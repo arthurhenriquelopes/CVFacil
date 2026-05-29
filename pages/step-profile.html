@@ -17,7 +17,7 @@
         import { parseProfileFromText } from '/src/prompts/parse-profile.js';
         import { parseCertificateFiles, terminateOCR } from '/src/prompts/parse-certificates.js';
 
-        injectStepHeader({ step: 2, backHref: '/pages/step-goal.html' });
+        injectStepHeader({ step: 1, backHref: '/pages/dashboard.html' });
         injectStepFooter();
 
         // Load existing data
@@ -27,6 +27,8 @@
         if (p.email) document.getElementById('email').value = p.email;
         if (p.phone) document.getElementById('phone').value = p.phone;
         if (p.location) document.getElementById('location').value = p.location;
+        if (p.linkedin) document.getElementById('linkedin').value = p.linkedin;
+        if (p.portfolio) document.getElementById('portfolio').value = p.portfolio;
         if (p.summary) document.getElementById('summary').value = p.summary;
 
         // Utility: Render dynamic lists
@@ -317,6 +319,8 @@
                 email: document.getElementById('email').value,
                 phone: document.getElementById('phone').value,
                 location: document.getElementById('location').value,
+                linkedin: document.getElementById('linkedin').value,
+                portfolio: document.getElementById('portfolio').value,
                 summary: document.getElementById('summary').value
             });
             window.location.href = '/pages/step-job.html';
@@ -347,6 +351,8 @@
                 if (profileData.email) document.getElementById('email').value = profileData.email;
                 if (profileData.phone) document.getElementById('phone').value = profileData.phone;
                 if (profileData.location) document.getElementById('location').value = profileData.location;
+                if (profileData.linkedin) document.getElementById('linkedin').value = profileData.linkedin;
+                if (profileData.portfolio) document.getElementById('portfolio').value = profileData.portfolio;
                 if (profileData.summary) document.getElementById('summary').value = profileData.summary;
 
                 // Append any existing non-empty expanded properties properly
@@ -483,7 +489,7 @@
         style="max-width:var(--max-width);margin:0 auto;padding-left:1rem;padding-right:1rem;">
         <div style="text-align:center;margin-bottom:2.5rem;" class="animate-fade-in-up">
             <p style="font-size:0.6875rem;font-weight:600;text-transform:uppercase;letter-spacing:0.15em;color:var(--color-text-tertiary);margin-bottom:1rem;">
-                Passo 2 de 8
+                Passo 1 de 7
             </p>
             <h2 style="font-size:1.5rem;font-weight:700;letter-spacing:-0.02em;">Suas Informações</h2>
             <p style="color:var(--color-text-secondary);font-weight:400;font-size:0.9375rem;">Mantenha seu perfil atualizado para obter os
@@ -553,6 +559,14 @@
                     <div>
                         <label class="form-label" for="location">Localização</label>
                         <input class="form-input" id="location" placeholder="Cidade, Estado">
+                    </div>
+                    <div>
+                        <label class="form-label" for="linkedin">LinkedIn <span style="font-weight:400;color:var(--color-text-muted);">(opcional)</span></label>
+                        <input class="form-input" id="linkedin" placeholder="linkedin.com/in/seu-perfil">
+                    </div>
+                    <div>
+                        <label class="form-label" for="portfolio">Portfólio <span style="font-weight:400;color:var(--color-text-muted);">(opcional)</span></label>
+                        <input class="form-input" id="portfolio" placeholder="github.com/user ou portfolio.com">
                     </div>
                 </div>
                 <div style="margin-top:1rem;">

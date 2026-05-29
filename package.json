@@ -13,6 +13,7 @@
     "test:e2e:chromium": "playwright test --project=chromium"
   },
   "devDependencies": {
+    "@playwright/test": "^1.60.0",
     "pdfjs-dist": "^5.5.207",
     "vite": "^6.0.0",
     "vitest": "^4.1.3"

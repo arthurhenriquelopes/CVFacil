@@ -6,7 +6,6 @@
 const STORE_KEY = 'cvporvaga_data';
 
 const DEFAULT_STATE = {
-    goal: '',
     profile: {
         name: '',
         email: '',
@@ -19,6 +18,8 @@ const DEFAULT_STATE = {
         languages: [],
         projects: [],
         certifications: [],
+        linkedin: '',
+        portfolio: '',
     },
     cvText: '',
     professionalGoal: '',
@@ -28,6 +29,7 @@ const DEFAULT_STATE = {
     template: 'modern',
     analysisResult: null,
     selectedSuggestions: [],
+    selectedCertifications: null,
     generatedCV: null,
 };
 

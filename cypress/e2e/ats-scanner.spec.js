@@ -3,45 +3,53 @@ import { expect } from '@playwright/test';
 
 test.describe('ATS Scanner', () => {
     test('Scanner Flow - Valid analysis low score', async ({ page, mockProfileLow }) => {
-        await page.goto('/');
-        await page.click('text=ATS Scanner Pro');
-        await expect(page).toHaveURL(/step-ats-scanner/);
+        await page.goto('/pages/step-ats-scanner.html');
 
-        // Provide a dummy PDF
-        await page.setInputFiles('input[type="file"]', {
+        // Wait for file input to be ready
+        await page.waitForSelector('#pdf-upload', { state: 'attached' });
+        await page.setInputFiles('#pdf-upload', {
             name: 'sample.pdf',
             mimeType: 'application/pdf',
             buffer: Buffer.from('%PDF-1.4 mock pdf dummy buffer')
         });
 
         await page.click('#btn-continue'); // Extrair
-        await page.fill('#job-description', 'Vaga Senior Frontend');
-        await page.click('#btn-continue');
+        
+        // Em step-job.html
+        await page.waitForSelector('#professional-goal');
+        await page.fill('#professional-goal', 'Desenvolvedor Frontend Sênior');
+        await page.fill('#job-desc', 'Vaga Senior Frontend');
+        await page.click('#btn-next');
 
-        await page.waitForURL(/step-ats-result/, { timeout: 10000 });
+        await page.waitForURL(/step-ats-result/, { timeout: 15000 });
 
-        // Low score implies "Gerar currículo otimizado" or Red Badge
-        await expect(page.locator('text=REPROVAR')).toBeVisible();
-        await expect(page.locator('text=Testar outra vaga')).toBeVisible();
+        // Low score implies "Precisa de ajustes" classification label and "Novo teste" action button
+        await expect(page.locator('.score-gauge-label')).toContainText('Precisa de ajustes');
+        await expect(page.locator('.new-test-link')).toBeVisible();
     });
 
     test('Scanner Flow - Valid analysis high score', async ({ page, mockProfile }) => {
         // using mockProfile = high
         await page.goto('/pages/step-ats-scanner.html');
 
-        await page.setInputFiles('input[type="file"]', {
+        await page.waitForSelector('#pdf-upload', { state: 'attached' });
+        await page.setInputFiles('#pdf-upload', {
             name: 'sample2.pdf',
             mimeType: 'application/pdf',
             buffer: Buffer.from('%PDF-1.4 mock pdf dummy buffer')
         });
 
         await page.click('#btn-continue');
-        await page.fill('#job-description', 'Vaga Junior Frontend');
-        await page.click('#btn-continue');
+        
+        // Em step-job.html
+        await page.waitForSelector('#professional-goal');
+        await page.fill('#professional-goal', 'Desenvolvedor Frontend Júnior');
+        await page.fill('#job-desc', 'Vaga Junior Frontend');
+        await page.click('#btn-next');
 
-        await page.waitForURL(/step-ats-result/, { timeout: 10000 });
+        await page.waitForURL(/step-ats-result/, { timeout: 15000 });
 
-        await expect(page.locator('text=APROVAR')).toBeVisible();
-        await expect(page.locator('text=Seu currículo está forte!')).toBeVisible();
+        await expect(page.locator('.score-gauge-label')).toContainText('Excelente');
+        await expect(page.locator('text=Excelente aderência')).toBeVisible();
     });
 });

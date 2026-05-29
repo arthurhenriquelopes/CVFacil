@@ -15,7 +15,7 @@
         import { getState, setState } from '/src/lib/store.js';
         import { generateCV } from '/src/prompts/generate-cv.js';
 
-        injectStepHeader({ step: 7, backHref: '/pages/step-template.html' });
+        injectStepHeader({ step: 7, backHref: '/pages/step-cert-review.html' });
 
         const steps = [
             { id: 'step-0', text: 'Analisando seu perfil...' },
@@ -34,7 +34,6 @@
         const cvPromise = generateCV({
             profile: state.profile,
             jobDescription: state.jobDescription,
-            goal: state.goal,
             focus: state.focus || 'experiences',
             template: state.template || 'modern',
             analysis: state.analysisResult,

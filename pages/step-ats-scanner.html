@@ -11,13 +11,15 @@
 
 <body style=" padding-bottom: 6rem;">
     <!-- Basic minimal header -->
+    <!-- Basic minimal header -->
     <header
-        style=" border-bottom:1px solid var(--color-gray-100); padding:1rem 1.5rem; display:flex; align-items:center; gap:1rem;">
+        style="border-bottom:1px solid var(--color-border); padding:1rem 1.5rem; display:flex; align-items:center; justify-content:space-between; height: 3.75rem; background: rgba(10, 10, 10, 0.75); backdrop-filter: blur(20px) saturate(180%); -webkit-backdrop-filter: blur(20px) saturate(180%);">
         <a href="/pages/dashboard.html"
-            style="color:var(--color-gray-800); text-decoration:none; display:flex; align-items:center;">
-            <i class="pi pi-arrow-left" style="font-size:1rem;"></i>
+            style="color:var(--color-text-secondary); text-decoration:none; display:flex; align-items:center; width: 2.25rem;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
         </a>
-        <h1 style="font-size:0.875rem; font-weight:700; color:var(--color-gray-900); margin:0;">ATS Scanner Pro</h1>
+        <h1 style="font-size:0.875rem; font-weight:700; color:var(--color-text); margin:0;">ATS Scanner Pro</h1>
+        <span id="step-gear-mount" style="display:flex;align-items:center;justify-content:center;width:2.25rem;height:2.25rem;"></span>
     </header>
 
     <main class="page-content step-content" style="max-width:48rem; margin:0 auto; padding:4rem 1rem;">
@@ -94,6 +96,7 @@
     <script type="module">
         import { setState } from '/src/lib/store.js';
         import { extractTextFromPDF } from '/src/lib/pdf.js';
+        import { injectSettingsGear } from '/src/lib/settings.js';
 
         const input = document.getElementById('pdf-upload');
         const btn = document.getElementById('btn-continue');
@@ -171,6 +174,9 @@
                 btn.textContent = 'Continuar';
             }
         });
+
+        const mount = document.getElementById('step-gear-mount');
+        if (mount) injectSettingsGear(mount);
     </script>
 </body>
 

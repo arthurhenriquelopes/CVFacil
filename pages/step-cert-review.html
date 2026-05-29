@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Certificados Selecionados | CvPorVaga</title>
+    <link rel="stylesheet" href="/src/style.css">
+    <script type="module" src="/src/main.js"></script>
+    <style>
+        .cert-review-card {
+            background: var(--color-surface);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-lg);
+            padding: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.875rem;
+            position: relative;
+            transition: all 0.3s ease;
+            animation: certCardIn 0.4s ease both;
+        }
+
+        .cert-review-card:hover {
+            border-color: var(--color-border-hover);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        @keyframes certCardIn {
+            from {
+                opacity: 0;
+                transform: translateY(12px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .cert-reason-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.375rem;
+            font-size: 0.6875rem;
+            font-weight: 600;
+            color: #10b981;
+            background: rgba(16, 185, 129, 0.08);
+            border: 1px solid rgba(16, 185, 129, 0.15);
+            border-radius: 999px;
+            padding: 0.25rem 0.625rem;
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .cert-input-label {
+            font-size: 0.6875rem;
+            font-weight: 600;
+            color: var(--color-text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.25rem;
+            display: block;
+        }
+
+        .cert-input {
+            padding: 0.5rem 0.625rem;
+            font-size: 0.8125rem;
+            height: auto;
+            background: var(--color-bg);
+        }
+
+        .loading-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 40vh;
+            gap: 1.5rem;
+        }
+
+        .loading-container .spinner {
+            width: 2.5rem;
+            height: 2.5rem;
+            border-width: 3px;
+            border-top-color: #10b981;
+        }
+
+        .skip-link {
+            color: var(--color-text-tertiary);
+            font-size: 0.8125rem;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.375rem;
+            padding: 0.625rem 1.25rem;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--color-border);
+            transition: all 0.2s;
+            cursor: pointer;
+            background: transparent;
+        }
+
+        .skip-link:hover {
+            color: var(--color-text-secondary);
+            border-color: var(--color-border-hover);
+            background: var(--color-accent-dim);
+        }
+
+        .dropped-section {
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--color-border);
+        }
+
+        .dropped-cert {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.8125rem;
+            color: var(--color-text-tertiary);
+            padding: 0.375rem 0;
+        }
+
+        .dropped-cert svg {
+            flex-shrink: 0;
+            opacity: 0.5;
+        }
+    </style>
+</head>
+
+<body>
+    <script type="module">
+        import { injectStepHeader, injectStepFooter } from '/src/lib/layout.js';
+        import { getState, setState } from '/src/lib/store.js';
+        import { selectBestCertifications } from '/src/prompts/select-certifications.js';
+
+        injectStepHeader({ step: 6, total: 8, backHref: '/pages/step-template.html' });
+
+        const state = getState();
+        const allCerts = state.profile?.certifications || [];
+
+        // If no certificates at all, skip this step entirely
+        if (allCerts.length === 0) {
+            setState({ selectedCertifications: null });
+            window.location.href = '/pages/step-generating.html';
+        }
+
+        const contentEl = document.getElementById('cert-review-content');
+        const loadingEl = document.getElementById('cert-loading');
+        const resultsEl = document.getElementById('cert-results');
+
+        let selectedCerts = [];
+        let droppedCerts = [];
+
+        async function runSelection() {
+            try {
+                if (allCerts.length <= 12) {
+                    // Use all certs — no AI needed
+                    selectedCerts = allCerts.map((c, i) => ({
+                        ...c,
+                        _originalIndex: i,
+                        _reason: 'Incluída automaticamente',
+                    }));
+                    droppedCerts = [];
+                } else {
+                    // AI selects the best 5-12
+                    const result = await selectBestCertifications({
+                        certifications: allCerts,
+                        professionalGoal: state.professionalGoal || '',
+                        targetRole: state.targetRole || '',
+                        jobDescription: state.jobDescription || '',
+                    });
+
+                    const selectedIndices = new Set((result.selected || []).map(s => s.index));
+
+                    selectedCerts = (result.selected || []).map(s => ({
+                        ...allCerts[s.index],
+                        _originalIndex: s.index,
+                        _reason: s.reason || '',
+                    }));
+
+                    droppedCerts = (result.dropped || []).map(d => ({
+                        title: d.title || allCerts[d.index]?.title || '',
+                        reason: d.reason || '',
+                    }));
+                }
+
+                renderResults();
+            } catch (err) {
+                console.error('Cert selection error:', err);
+                // Fallback: use all certs
+                selectedCerts = allCerts.map((c, i) => ({
+                    ...c,
+                    _originalIndex: i,
+                    _reason: 'Seleção automática (fallback)',
+                }));
+                droppedCerts = [];
+                renderResults();
+            }
+        }
+
+        function renderResults() {
+            loadingEl.style.display = 'none';
+            resultsEl.style.display = 'block';
+
+            document.getElementById('selected-count').textContent = selectedCerts.length;
+            document.getElementById('total-count').textContent = allCerts.length;
+
+            const gridEl = document.getElementById('cert-grid');
+            gridEl.innerHTML = selectedCerts.map((cert, idx) => `
+                <div class="cert-review-card" style="animation-delay: ${idx * 0.06}s;">
+                    <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:0.75rem;">
+                        <div style="display:flex; align-items:center; gap:0.625rem; flex:1; min-width:0;">
+                            <div style="width:2rem; height:2rem; border-radius:0.5rem; background:rgba(16,185,129,0.1); color:#10b981; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="12" cy="8" r="6"></circle>
+                                    <path d="M15.477 12.89 17 21.5l-5-3.5-5 3.5 1.523-8.61"></path>
+                                </svg>
+                            </div>
+                            <h4 style="font-size:0.875rem; font-weight:700; color:var(--color-text); margin:0; line-height:1.3; overflow:hidden; text-overflow:ellipsis; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;">
+                                ${cert.title || 'Certificação'}
+                            </h4>
+                        </div>
+                    </div>
+
+                    ${cert._reason ? `<div class="cert-reason-badge" title="${cert._reason}">
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3L12 3Z"/></svg>
+                        ${cert._reason}
+                    </div>` : ''}
+
+                    <div style="display:flex; flex-direction:column; gap:0.625rem;">
+                        <div>
+                            <label class="cert-input-label">Título</label>
+                            <input class="form-input cert-input" data-cert-idx="${idx}" data-cert-field="title"
+                                value="${(cert.title || '').replace(/"/g, '&quot;')}"
+                                placeholder="Nome do certificado">
+                        </div>
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.625rem;">
+                            <div>
+                                <label class="cert-input-label">Instituição Emissora</label>
+                                <input class="form-input cert-input" data-cert-idx="${idx}" data-cert-field="issuer"
+                                    value="${(cert.issuer || '').replace(/"/g, '&quot;')}"
+                                    placeholder="Ex: Alura, Coursera">
+                            </div>
+                            <div>
+                                <label class="cert-input-label">Data</label>
+                                <input class="form-input cert-input" data-cert-idx="${idx}" data-cert-field="date"
+                                    value="${(cert.date || '').replace(/"/g, '&quot;')}"
+                                    placeholder="Ex: Jan/2024">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+
+            // Dropped certs section
+            if (droppedCerts.length > 0) {
+                const droppedEl = document.getElementById('dropped-section');
+                droppedEl.style.display = 'block';
+                document.getElementById('dropped-count').textContent = droppedCerts.length;
+                document.getElementById('dropped-list').innerHTML = droppedCerts.map(d => `
+                    <div class="dropped-cert">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="15" y1="9" x2="9" y2="15"></line>
+                            <line x1="9" y1="9" x2="15" y2="15"></line>
+                        </svg>
+                        <span>${d.title}</span>
+                        <span style="color:var(--color-text-muted); font-size:0.75rem; font-style:italic;">— ${d.reason}</span>
+                    </div>
+                `).join('');
+            }
+
+            // Show footer
+            document.getElementById('footer-wrap').style.display = 'block';
+        }
+
+        // Listen for input changes to keep selectedCerts in sync
+        document.addEventListener('input', (e) => {
+            if (e.target.dataset.certIdx !== undefined && e.target.dataset.certField) {
+                const idx = parseInt(e.target.dataset.certIdx);
+                const field = e.target.dataset.certField;
+                if (selectedCerts[idx]) {
+                    selectedCerts[idx][field] = e.target.value;
+                }
+            }
+        });
+
+        // Save and continue
+        function saveAndContinue() {
+            // Build clean cert objects (remove internal fields)
+            const cleaned = selectedCerts.map(c => ({
+                title: c.title || '',
+                issuer: c.issuer || '',
+                date: c.date || '',
+                name: c.title || '',
+                institution: c.issuer || '',
+            }));
+            setState({ selectedCertifications: cleaned });
+            window.location.href = '/pages/step-generating.html';
+        }
+
+        // Skip — don't save selected certs, let generateCV handle it
+        function skipStep() {
+            setState({ selectedCertifications: null });
+            window.location.href = '/pages/step-generating.html';
+        }
+
+        // Bind buttons
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('#btn-continue-certs')) {
+                saveAndContinue();
+            }
+            if (e.target.closest('#btn-skip-certs')) {
+                skipStep();
+            }
+        });
+
+        // Start
+        runSelection();
+    </script>
+
+    <main class="page-content step-content" style="max-width:var(--max-width);margin:0 auto;">
+
+        <!-- Loading State -->
+        <div id="cert-loading" class="loading-container">
+            <div class="spinner"></div>
+            <div style="text-align:center;">
+                <h3 style="font-size:1.125rem; font-weight:700; color:var(--color-text); margin-bottom:0.5rem;">
+                    Selecionando os melhores certificados…
+                </h3>
+                <p style="font-size:0.875rem; color:var(--color-text-tertiary); font-weight:500;">
+                    A IA está analisando seus certificados com base na vaga
+                </p>
+            </div>
+        </div>
+
+        <!-- Results -->
+        <div id="cert-review-content">
+            <div id="cert-results" style="display:none;">
+                <div style="text-align:center; margin-bottom:2.5rem;" class="animate-fade-in-up">
+                    <div style="display:inline-flex; align-items:center; justify-content:center; width:3.5rem; height:3.5rem; border-radius:1rem; background:rgba(16,185,129,0.1); color:#10b981; margin-bottom:1rem;">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="8" r="6"></circle>
+                            <path d="M15.477 12.89 17 21.5l-5-3.5-5 3.5 1.523-8.61"></path>
+                        </svg>
+                    </div>
+                    <h2 style="font-size:clamp(1.5rem,3.5vw,2rem); font-weight:700; letter-spacing:-0.025em; margin-bottom:0.5rem;">
+                        <span id="selected-count">0</span> Certificados Selecionados
+                    </h2>
+                    <p style="color:var(--color-text-secondary); font-weight:500; font-size:0.9375rem; max-width:32rem; margin:0 auto; line-height:1.6;">
+                        A IA escolheu os certificados mais relevantes dentre seus <span id="total-count">0</span>.
+                        Preencha os detalhes abaixo ou pule esta etapa.
+                    </p>
+                </div>
+
+                <!-- Cert Grid -->
+                <div id="cert-grid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr)); gap:1rem; margin-bottom:1.5rem;">
+                </div>
+
+                <!-- Dropped Certs (collapsed) -->
+                <div id="dropped-section" style="display:none;" class="dropped-section">
+                    <details>
+                        <summary style="cursor:pointer; font-size:0.8125rem; font-weight:600; color:var(--color-text-tertiary); display:flex; align-items:center; gap:0.5rem; user-select:none;">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <line x1="15" y1="9" x2="9" y2="15"></line>
+                                <line x1="9" y1="9" x2="15" y2="15"></line>
+                            </svg>
+                            <span id="dropped-count">0</span> certificados descartados
+                        </summary>
+                        <div id="dropped-list" style="padding:0.75rem 0 0 0.25rem;"></div>
+                    </details>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <div id="footer-wrap" style="display:none; position:fixed; bottom:0; left:0; right:0; z-index:50; padding:1.25rem 1rem 1.5rem; background:rgba(10,10,10,0.85); backdrop-filter:blur(20px); border-top:1px solid var(--color-border);">
+        <div style="max-width:var(--max-width); margin:0 auto; display:flex; align-items:center; justify-content:center; gap:1rem;">
+            <button id="btn-skip-certs" class="skip-link">
+                Pular
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="m9 18 6-6-6-6"></path>
+                </svg>
+            </button>
+            <button id="btn-continue-certs" class="btn-continue" style="flex:1; max-width:24rem;">
+                Continuar com Certificados
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-left:0.5rem;">
+                    <path d="m9 18 6-6-6-6"></path>
+                </svg>
+            </button>
+        </div>
+    </div>
+
+</body>
+
+</html>

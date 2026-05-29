@@ -7,7 +7,7 @@
  */
 import { chatCompletion } from '../api/sonar.js';
 
-const CERT_SELECTOR_PERSONA = `Você é um especialista em recrutamento e curadoria de certificações profissionais. Sua única tarefa é selecionar as 3 a 5 certificações MAIS RELEVANTES de uma lista completa de certificados do candidato, considerando:
+const CERT_SELECTOR_PERSONA = `Você é um especialista em recrutamento e curadoria de certificações profissionais. Sua única tarefa é selecionar as 5 a 12 certificações MAIS RELEVANTES de uma lista completa de certificados do candidato, considerando:
 
 1. O OBJETIVO PROFISSIONAL do candidato
 2. O CARGO ALVO (se informado)
@@ -15,7 +15,7 @@ const CERT_SELECTOR_PERSONA = `Você é um especialista em recrutamento e curado
 
 Regras obrigatórias:
 
-1. Selecione entre 3 e 5 certificações. Se o candidato tiver 5 ou menos, selecione todas.
+1. Selecione entre 5 e 12 certificações. Se o candidato tiver 12 ou menos, selecione todas.
 2. Priorize certificações que:
    - Têm relação DIRETA com a vaga/objetivo (ex: AWS para vaga de Cloud Engineer)
    - São reconhecidas pelo mercado (ex: PMP, Scrum Master, AWS, Azure, Google Cloud)
@@ -60,13 +60,13 @@ RESPONDA EXCLUSIVAMENTE em JSON válido com o seguinte schema:
  */
 export async function selectBestCertifications({ certifications, professionalGoal, targetRole, jobDescription }) {
   // If 5 or fewer certs, no filtering needed — use all
-  if (!certifications || certifications.length <= 5) {
+  if (!certifications || certifications.length <= 12) {
     return {
       selected: (certifications || []).map((c, i) => ({
         index: i,
         title: c.title || c.name || '',
         issuer: c.issuer || c.institution || '',
-        reason: 'Incluída automaticamente (≤5 certificações)'
+        reason: 'Incluída automaticamente (≤12 certificações)'
       })),
       dropped: [],
       filtered: certifications || [],
@@ -86,7 +86,7 @@ OBJETIVO PROFISSIONAL: ${professionalGoal}
 ${targetRole ? `CARGO ALVO: ${targetRole}` : ''}
 ${jobDescription ? `\nDESCRIÇÃO DA VAGA:\n${jobDescription}` : ''}
 
-Selecione as 3-5 certificações mais estratégicas para este objetivo. Responda SOMENTE em JSON válido.`;
+Selecione as 5-12 certificações mais estratégicas para este objetivo. Responda SOMENTE em JSON válido.`;
 
   const response = await chatCompletion([
     { role: 'system', content: CERT_SELECTOR_PERSONA },

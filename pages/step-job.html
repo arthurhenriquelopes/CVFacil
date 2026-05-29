@@ -18,8 +18,10 @@
 <body style="padding-bottom: 6rem;">
     <!-- Basic minimal header -->
     <header
-        style="border-bottom:1px solid var(--color-border); padding:1rem 1.5rem; display:flex; align-items:center; justify-content:center;">
+        style="border-bottom:1px solid var(--color-border); padding:1rem 1.5rem; display:flex; align-items:center; justify-content:space-between; height: 3.75rem; background: rgba(10, 10, 10, 0.75); backdrop-filter: blur(20px) saturate(180%); -webkit-backdrop-filter: blur(20px) saturate(180%);">
+        <div style="width: 2.25rem;"></div>
         <h1 style="font-size:0.875rem; font-weight:700; color:var(--color-text); margin:0;">ATS Scanner Pro</h1>
+        <span id="step-gear-mount" style="display:flex;align-items:center;justify-content:center;width:2.25rem;height:2.25rem;"></span>
     </header>
 
     <main class="page-content step-content" style="max-width:64rem;margin:0 auto;padding-top:3rem;">
@@ -129,6 +131,7 @@
 
     <script type="module">
         import { getState, setState } from '/src/lib/store.js';
+        import { injectSettingsGear } from '/src/lib/settings.js';
 
         const state = getState();
         const textarea = document.getElementById('job-desc');
@@ -176,6 +179,9 @@
 
         // Trigger check on load
         checkCanProceed();
+
+        const mount = document.getElementById('step-gear-mount');
+        if (mount) injectSettingsGear(mount);
 
         document.getElementById('btn-next').addEventListener('click', e => {
             e.preventDefault();

@@ -3,10 +3,10 @@
 export default async function handler(req, res) {
     if (req.method !== 'POST') return res.status(405).end();
 
-    const { messages, temperature, max_tokens, model } = req.body;
+    const { messages, temperature, max_tokens, model, userKeys } = req.body;
 
     try {
-        const data = await callGroq(messages, { temperature, max_tokens, model });
+        const data = await callGroq(messages, { temperature, max_tokens, model, userKeys });
         res.status(200).json(data);
     } catch (err) {
         console.error(`API Error (groq):`, err.message);
@@ -17,12 +17,14 @@ export default async function handler(req, res) {
 let currentKeyIndex = 0;
 
 // ─── Groq (OpenAI-compatible) ───────────────────────
-async function callGroq(messages, { temperature = 0.2, max_tokens = 4096, model = 'llama-3.3-70b-versatile' } = {}) {
-    const rawKeys = process.env.GROQ_API_KEY || '';
-    const keys = rawKeys.split(',').map(k => k.trim()).filter(Boolean);
+async function callGroq(messages, { temperature = 0.2, max_tokens = 4096, model = 'llama-3.3-70b-versatile', userKeys } = {}) {
+    // Prefer user-provided keys, then fall back to server env keys
+    const envKeys = (process.env.GROQ_API_KEY || '').split(',').map(k => k.trim()).filter(Boolean);
+    const clientKeys = Array.isArray(userKeys) ? userKeys.filter(Boolean) : [];
+    const keys = [...clientKeys, ...envKeys];
 
     if (keys.length === 0) {
-        throw new Error("GROQ_API_KEY não configurada.");
+        throw new Error("Nenhuma chave Groq configurada. Adicione sua chave nas Configurações (⚙️).");
     }
 
     let lastError = null;
@@ -65,3 +67,4 @@ async function callGroq(messages, { temperature = 0.2, max_tokens = 4096, model 
     // Se esgotar todas as chaves
     throw new Error(`Todas as chaves Groq falharam. Último erro: ${lastError.message}`);
 }
+

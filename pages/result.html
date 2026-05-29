@@ -15,425 +15,190 @@
     <script type="module" src="/src/main.js"></script>
     <style>
         /* ========================================
-           MODERN TEMPLATE — Compact 2-column, blue accents
+           PROFESSIONAL TEMPLATE — PDF-faithful, single-column
+           Based on the example CV (serif, centered header, letter-spaced sections)
            ======================================== */
-        .cv-modern {
-            font-family: 'Inter', system-ui, sans-serif;
+        .cv-professional {
+            font-family: 'Times New Roman', 'Georgia', 'Cambria', serif;
             color: #1a1a1a;
-            line-height: 1.55;
-            font-size: 9.5pt;
+            line-height: 1.35;
+            font-size: 10.5pt;
         }
 
-        .cv-modern * {
+        .cv-professional * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
 
-        .cv-modern .cv-header {
-            margin-bottom: 1.2rem;
+        /* — Header — */
+        .cv-professional .cv-header {
+            text-align: center;
+            padding-bottom: 6px;
+            border-bottom: 1.5px solid #1a1a1a;
+            margin-bottom: 10px;
         }
 
-        .cv-modern .cv-header-top {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-        }
-
-        .cv-modern .cv-name {
-            font-size: 20pt;
-            font-weight: 900;
-            text-transform: uppercase;
-            letter-spacing: -0.02em;
-            line-height: 1.1;
-        }
-
-        .cv-modern .cv-title {
-            font-size: 10pt;
-            color: #2563eb;
-            font-weight: 700;
-            margin-top: 4px;
-            line-height: 1.35;
-        }
-
-        .cv-modern .cv-contact {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.75rem;
-            font-size: 8pt;
-            color: #666;
-            margin-top: 8px;
-            font-weight: 500;
-        }
-
-        .cv-modern .cv-contact span {
-            display: flex;
-            align-items: center;
-            gap: 3px;
-        }
-
-        .cv-modern .cv-initials {
-            width: 3.2rem;
-            height: 3.2rem;
-            background: #2563eb;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 14pt;
-            font-weight: 800;
-            flex-shrink: 0;
-        }
-
-        .cv-modern .cv-body {
-            display: grid;
-            grid-template-columns: 1.7fr 1fr;
-        }
-
-        .cv-modern .cv-body > div:first-child {
-            padding-right: 1.5rem;
-        }
-
-        .cv-modern .cv-section-title {
-            font-size: 9pt;
-            font-weight: 900;
+        .cv-professional .cv-name {
+            font-family: 'Times New Roman', 'Georgia', serif;
+            font-size: 22pt;
+            font-weight: 400;
             text-transform: uppercase;
             letter-spacing: 0.08em;
-            color: #1a1a1a;
-            border-bottom: 3px solid #1a1a1a;
-            padding-bottom: 3px;
-            margin-top: 24px;
-            margin-bottom: 12px;
-        }
-
-        .cv-modern .cv-section-title:first-child {
-            margin-top: 0;
-        }
-
-        .cv-modern .cv-exp-item {
-            margin-bottom: 16px;
-        }
-
-        .cv-modern .cv-exp-title {
-            font-size: 10pt;
-            font-weight: 800;
-        }
-
-        .cv-modern .cv-exp-company {
-            font-size: 8.5pt;
-            color: #2563eb;
-            font-weight: 700;
-        }
-
-        .cv-modern .cv-exp-meta {
-            font-size: 7.5pt;
-            color: #888;
-            margin-top: 2px;
+            line-height: 1.15;
             margin-bottom: 4px;
         }
 
-        .cv-modern .cv-exp-bullets {
-            padding-left: 14px;
+        .cv-professional .cv-contact-line {
+            font-size: 9pt;
+            color: #333;
+            line-height: 1.4;
+        }
+
+        .cv-professional .cv-contact-line .sep {
+            margin: 0 6px;
+            color: #999;
+        }
+
+        /* — Section Titles — */
+        .cv-professional .cv-section-title {
+            font-size: 10.5pt;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.25em;
+            color: #1a1a1a;
+            border-bottom: 1.5px solid #1a1a1a;
+            padding-bottom: 2px;
+            margin-top: 14px;
+            margin-bottom: 8px;
+        }
+
+        /* — Summary — */
+        .cv-professional .cv-summary-text {
+            font-size: 10.5pt;
+            color: #1a1a1a;
+            line-height: 1.4;
+            text-align: justify;
+        }
+
+        /* — Experience — */
+        .cv-professional .cv-exp-item {
+            margin-bottom: 12px;
+        }
+
+        .cv-professional .cv-exp-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+        }
+
+        .cv-professional .cv-exp-company {
+            font-size: 10.5pt;
+            font-weight: 700;
+            color: #1a1a1a;
+        }
+
+        .cv-professional .cv-exp-period {
+            font-size: 10pt;
+            color: #1a1a1a;
+            white-space: nowrap;
+        }
+
+        .cv-professional .cv-exp-title {
+            font-size: 10.5pt;
+            font-style: italic;
+            color: #1a1a1a;
+            margin-bottom: 3px;
+        }
+
+        .cv-professional .cv-exp-bullets {
+            padding-left: 16px;
             list-style: disc;
         }
 
-        .cv-modern .cv-exp-bullets li {
-            font-size: 8.5pt;
-            color: #444;
-            margin-bottom: 4px;
-            line-height: 1.5;
-        }
-
-        .cv-modern .cv-edu-item {
-            margin-bottom: 10px;
-        }
-
-        .cv-modern .cv-edu-degree {
-            font-size: 9.5pt;
-            font-weight: 800;
-            color: #2563eb;
-        }
-
-        .cv-modern .cv-edu-inst {
-            font-size: 9pt;
-            font-weight: 700;
-        }
-
-        .cv-modern .cv-edu-meta {
-            font-size: 7pt;
-            color: #888;
-        }
-
-        .cv-modern .cv-summary-text {
-            font-size: 8.5pt;
-            color: #444;
-            line-height: 1.6;
-            text-align: justify;
-        }
-
-        .cv-modern .cv-skill-group {
-            margin-bottom: 10px;
-        }
-
-        .cv-modern .cv-skill-group-title {
-            font-size: 8.5pt;
-            font-weight: 800;
-            color: #1a1a1a;
-            margin-bottom: 4px;
-        }
-
-        .cv-modern .cv-skill-items {
-            font-size: 8pt;
-            color: #555;
-            line-height: 1.7;
-        }
-
-        .cv-modern .cv-lang-item {
-            font-size: 8.5pt;
-            color: #444;
-            margin-bottom: 6px;
-        }
-
-        .cv-modern .cv-lang-item b {
-            color: #2563eb;
-        }
-
-        .cv-modern .cv-cert-item {
-            font-size: 8.5pt;
-            color: #444;
-            margin-bottom: 12px;
-            line-height: 1.5;
-        }
-
-        .cv-modern .cv-proj-item {
-            margin-bottom: 5px;
-        }
-
-        .cv-modern .cv-proj-title {
-            font-size: 8.5pt;
-            font-weight: 800;
-        }
-
-        .cv-modern .cv-proj-desc {
-            font-size: 7.5pt;
-            color: #555;
-            line-height: 1.4;
-        }
-
-        /* ========================================
-           CLASSIC TEMPLATE — Elegant, minimal, Grok-inspired
-           ======================================== */
-        .cv-classic {
-            font-family: 'Space Grotesk', 'Inter', system-ui, sans-serif;
-            color: #1c1c1c;
-            line-height: 1.55;
-            font-size: 9.5pt;
-        }
-
-        .cv-classic * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        .cv-classic .cv-header {
-            border-bottom: 1px solid #d0d0d0;
-            padding-bottom: 12px;
-            margin-bottom: 18px;
-        }
-
-        .cv-classic .cv-name {
-            font-size: 20pt;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.12em;
-            line-height: 1.1;
-            color: #1c1c1c;
-        }
-
-        .cv-classic .cv-title {
+        .cv-professional .cv-exp-bullets li {
             font-size: 10pt;
-            color: #555;
-            font-weight: 400;
-            margin-top: 4px;
-            font-style: italic;
-            letter-spacing: 0.02em;
+            color: #1a1a1a;
+            margin-bottom: 2px;
             line-height: 1.35;
         }
 
-        .cv-classic .cv-contact {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 1rem;
-            font-size: 8pt;
-            color: #777;
-            margin-top: 8px;
-            font-weight: 400;
-            letter-spacing: 0.01em;
-        }
-
-        .cv-classic .cv-contact span {
-            display: flex;
-            align-items: center;
-            gap: 3px;
-        }
-
-        .cv-classic .cv-body {
-            display: grid;
-            grid-template-columns: 1.7fr 1fr;
-        }
-
-        .cv-classic .cv-body > div:first-child {
-            padding-right: 1.5rem;
-        }
-
-        .cv-classic .cv-section-title {
-            font-size: 8pt;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.18em;
-            color: #1c1c1c;
-            border-bottom: 1.5px solid #1c1c1c;
-            padding-bottom: 4px;
-            margin-top: 24px;
-            margin-bottom: 12px;
-        }
-
-        .cv-classic .cv-section-title:first-child {
-            margin-top: 0;
-        }
-
-        .cv-classic .cv-exp-item {
-            margin-bottom: 16px;
-        }
-
-        .cv-classic .cv-exp-title {
-            font-size: 10pt;
-            font-weight: 600;
-            color: #1c1c1c;
-        }
-
-        .cv-classic .cv-exp-company {
-            font-size: 9pt;
-            color: #444;
-            font-weight: 500;
-            font-style: italic;
-        }
-
-        .cv-classic .cv-exp-meta {
-            font-size: 7.5pt;
-            color: #999;
-            letter-spacing: 0.02em;
-            margin-top: 2px;
-            margin-bottom: 4px;
-        }
-
-        .cv-classic .cv-exp-bullets {
-            padding-left: 14px;
-            list-style: none;
-        }
-
-        .cv-classic .cv-exp-bullets li {
-            font-size: 8.5pt;
-            color: #444;
-            margin-bottom: 4px;
-            line-height: 1.5;
-            position: relative;
-            padding-left: 2px;
-        }
-
-        .cv-classic .cv-exp-bullets li::before {
-            content: "—";
-            position: absolute;
-            left: -14px;
-            color: #bbb;
-        }
-
-        .cv-classic .cv-edu-item {
-            margin-bottom: 10px;
-        }
-
-        .cv-classic .cv-edu-degree {
-            font-size: 9.5pt;
-            font-weight: 600;
-            color: #1c1c1c;
-        }
-
-        .cv-classic .cv-edu-inst {
-            font-size: 9pt;
-            font-weight: 400;
-            font-style: italic;
-            color: #555;
-        }
-
-        .cv-classic .cv-edu-meta {
-            font-size: 7pt;
-            color: #999;
-        }
-
-        .cv-classic .cv-summary-text {
-            font-size: 8.5pt;
-            color: #444;
-            line-height: 1.7;
-            text-align: justify;
-        }
-
-        .cv-classic .cv-skill-group {
-            margin-bottom: 10px;
-        }
-
-        .cv-classic .cv-skill-group-title {
-            font-size: 8pt;
-            font-weight: 700;
-            color: #1c1c1c;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            margin-bottom: 4px;
-        }
-
-        .cv-classic .cv-skill-items {
-            font-size: 8pt;
-            color: #555;
-            line-height: 1.7;
-        }
-
-        .cv-classic .cv-lang-item {
-            font-size: 8.5pt;
-            color: #444;
+        /* — Education — */
+        .cv-professional .cv-edu-item {
             margin-bottom: 6px;
         }
 
-        .cv-classic .cv-lang-item b {
-            color: #1c1c1c;
-            font-weight: 600;
+        .cv-professional .cv-edu-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
         }
 
-        .cv-classic .cv-cert-item {
-            font-size: 8.5pt;
-            color: #444;
-            margin-bottom: 12px;
+        .cv-professional .cv-edu-inst {
+            font-size: 10.5pt;
+            font-weight: 700;
+            color: #1a1a1a;
+        }
+
+        .cv-professional .cv-edu-period {
+            font-size: 10pt;
+            color: #1a1a1a;
+            white-space: nowrap;
+        }
+
+        .cv-professional .cv-edu-degree {
+            font-size: 10.5pt;
+            font-style: italic;
+            color: #1a1a1a;
+        }
+
+        /* — Skills (flat text) — */
+        .cv-professional .cv-skills-text {
+            font-size: 10pt;
+            color: #1a1a1a;
             line-height: 1.5;
         }
 
-        .cv-classic .cv-proj-item {
-            margin-bottom: 5px;
+        /* — Languages — */
+        .cv-professional .cv-lang-item {
+            font-size: 10.5pt;
+            color: #1a1a1a;
+            margin-bottom: 2px;
         }
 
-        .cv-classic .cv-proj-title {
-            font-size: 8.5pt;
-            font-weight: 600;
-            color: #1c1c1c;
+        /* — Portfolio — */
+        .cv-professional .cv-portfolio-text {
+            font-size: 10pt;
+            color: #1a1a1a;
         }
 
-        .cv-classic .cv-proj-desc {
-            font-size: 7.5pt;
-            color: #555;
+        /* — Certifications — */
+        .cv-professional .cv-cert-item {
+            font-size: 10pt;
+            color: #1a1a1a;
+            margin-bottom: 4px;
             line-height: 1.4;
         }
 
+        /* — Projects — */
+        .cv-professional .cv-proj-item {
+            margin-bottom: 6px;
+        }
+
+        .cv-professional .cv-proj-title {
+            font-size: 10.5pt;
+            font-weight: 700;
+        }
+
+        .cv-professional .cv-proj-desc {
+            font-size: 10pt;
+            color: #1a1a1a;
+            line-height: 1.35;
+        }
+
         /* ========================================
-           PRINT STYLES — Pixel-perfect PDF output
+           PRINT STYLES — Pixel-perfect A4 PDF output
+           Matching the example PDF margins & proportions
            ======================================== */
         @media print {
             /* Hide everything except the CV */
@@ -442,7 +207,7 @@
 
             @page {
                 size: A4;
-                margin: 6mm 8mm;
+                margin: 12mm 16mm;
             }
 
             html {
@@ -462,7 +227,7 @@
                 background: white !important;
                 box-shadow: none !important;
                 border-radius: 0 !important;
-                padding: 8px 12px !important;
+                padding: 0 !important;
                 margin: 0 !important;
                 width: 100% !important;
                 max-width: 100% !important;
@@ -474,6 +239,11 @@
             /* Prevent browser from shrinking content to fit */
             #print-wrapper * {
                 max-width: 100% !important;
+            }
+
+            /* Ensure proper page breaks */
+            .cv-exp-item, .cv-edu-item {
+                break-inside: avoid;
             }
         }
     </style>
@@ -489,152 +259,120 @@
         const cv = state.generatedCV;
 
         if (!cv) {
-            document.getElementById('cv-preview').innerHTML = '<p style="text-align:center;padding:4rem;color:var(--color-gray-400);">Nenhum CV gerado. <a href="/pages/step-goal.html" style="color:var(--color-primary);font-weight:700;">Comece aqui</a></p>';
+            document.getElementById('cv-preview').innerHTML = '<p style="text-align:center;padding:4rem;color:var(--color-gray-400);">Nenhum CV gerado. <a href="/pages/step-profile.html" style="color:var(--color-primary);font-weight:700;">Comece aqui</a></p>';
         } else {
-            function getInitials(name) {
-                if (!name) return 'CV';
-                const parts = name.split(' ').filter(Boolean);
-                if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
-                return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-            }
-
             const h = cv.header || {};
-            const templateType = state.template || 'modern';
             const container = document.getElementById('cv-preview');
-            const isClassic = templateType === 'classic';
-            const cls = isClassic ? 'cv-classic' : 'cv-modern';
 
-            // Helper: group skills into categories
-            function groupSkills(skills) {
-                const categories = {
-                    'Desenvolvimento': [], 'Linguagens': [], 'Ferramentas': [],
-                    'Metodologias': [], 'Outros': []
-                };
-                const devKw = ['react', 'angular', 'vue', 'next', 'nuxt', 'frontend', 'backend', 'fullstack', 'web', 'mobile', 'html', 'css', 'tailwind', 'bootstrap', 'rest', 'api', 'graphql', 'desenvolvimento'];
-                const langKw = ['java', 'python', 'javascript', 'typescript', 'c#', 'c++', 'ruby', 'php', 'go', 'rust', 'swift', 'kotlin', 'sql', 'node', 'spring', 'django', 'flask', 'fastapi', 'express', '.net', 'javafx'];
-                const toolKw = ['git', 'github', 'docker', 'kubernetes', 'aws', 'azure', 'gcp', 'ci', 'cd', 'jenkins', 'terraform', 'linux', 'nginx', 'vercel', 'heroku', 'devops', 'postgresql', 'mongodb', 'mysql', 'redis', 'firebase'];
-                const methKw = ['scrum', 'kanban', 'agile', 'ágil', 'tdd', 'bdd', 'solid', 'clean', 'code review', 'mentoria', 'testes', 'unitários', 'integração', 'manutenção'];
+            // Build contact line with pipe separators
+            const contactParts = [];
+            if (h.contact?.email) contactParts.push(h.contact.email);
+            if (h.contact?.phone) contactParts.push(h.contact.phone);
+            if (h.contact?.location) contactParts.push(h.contact.location);
+            if (h.contact?.linkedin) contactParts.push(h.contact.linkedin);
+            const contactLine = contactParts.join('<span class="sep">|</span>');
 
-                (skills || []).forEach(s => {
-                    const low = s.toLowerCase();
-                    if (devKw.some(k => low.includes(k))) categories['Desenvolvimento'].push(s);
-                    else if (langKw.some(k => low.includes(k))) categories['Linguagens'].push(s);
-                    else if (toolKw.some(k => low.includes(k))) categories['Ferramentas'].push(s);
-                    else if (methKw.some(k => low.includes(k))) categories['Metodologias'].push(s);
-                    else categories['Outros'].push(s);
-                });
-                return Object.entries(categories).filter(([, v]) => v.length > 0);
-            }
+            // Portfolio from CV data or from profile
+            const portfolio = h.contact?.portfolio || state.profile?.portfolio || '';
 
-            // Header section — differs between classic (no avatar) and modern (avatar)
-            const headerHTML = isClassic ? `
+            // Header
+            const headerHTML = `
                 <div class="cv-header">
                     <div class="cv-name">${h.name || state.profile?.name || ''}</div>
-                    <div class="cv-title">${h.title || ''}</div>
-                    <div class="cv-contact">
-                        ${h.contact?.phone ? `<span><svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:2px;"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg> ${h.contact.phone}</span>` : ''}
-                        ${h.contact?.email ? `<span><svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:2px;"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg> ${h.contact.email}</span>` : ''}
-                        ${h.contact?.location ? `<span><svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:2px;"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg> ${h.contact.location}</span>` : ''}
-                    </div>
-                </div>
-            ` : `
-                <div class="cv-header">
-                    <div style="display:flex;justify-content:space-between;align-items:flex-start;">
-                        <div>
-                            <div class="cv-name">${h.name || state.profile?.name || ''}</div>
-                            <div class="cv-title">${h.title || ''}</div>
-                            <div class="cv-contact">
-                                ${h.contact?.phone ? `<span><svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:2px;"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg> ${h.contact.phone}</span>` : ''}
-                                ${h.contact?.email ? `<span><svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:2px;"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg> ${h.contact.email}</span>` : ''}
-                                ${h.contact?.location ? `<span><svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:2px;"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg> ${h.contact.location}</span>` : ''}
-                            </div>
-                        </div>
-                        <div style="width:3.2rem;height:3.2rem;background:#2563eb;border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-size:14pt;font-weight:800;flex-shrink:0;">
-                            ${getInitials(h.name || state.profile?.name)}
-                        </div>
-                    </div>
+                    <div class="cv-contact-line">${contactLine}</div>
                 </div>
             `;
 
-            // Shared body content — same structure, styles differ via CSS class
-            const bodyHTML = `
-                <div class="cv-body">
-                    <!-- Left Column: Experience + Education -->
-                    <div>
-                        <div class="cv-section-title">EXPERIÊNCIA</div>
-                        ${(cv.experiences || []).map(exp => `
-                            <div class="cv-exp-item">
-                                <div class="cv-exp-title">${exp.title || ''}</div>
+            // Summary section
+            const summaryHTML = cv.summary ? `
+                <div class="cv-section-title">Resumo Profissional</div>
+                <p class="cv-summary-text">${cv.summary}</p>
+            ` : '';
+
+            // Experience section
+            const experienceHTML = (cv.experiences && cv.experiences.length) ? `
+                <div class="cv-section-title">Experiência Profissional</div>
+                ${cv.experiences.map(exp => {
+                    const bullets = (exp.bullets || []).map(b => {
+                        let text = b.replace(/^[•\s]+/, '');
+                        if (cv.resultFormat) {
+                            text = text.replace(/(\d+[.,]?\d*\s*%|R\$\s*[\d.,]+|\d+[.,]?\d*\+?\s*(?:mil|M|K|projetos|clientes|equipes|pessoas|meses|anos|dias|horas|cidades|unidades|entregas))/gi, '<b>$1</b>');
+                        }
+                        return `<li>${text}</li>`;
+                    }).join('');
+
+                    return `
+                        <div class="cv-exp-item">
+                            <div class="cv-exp-header">
                                 <div class="cv-exp-company">${exp.company || ''}</div>
-                                <div class="cv-exp-meta"><svg xmlns="http://www.w3.org/2000/svg" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> ${exp.period || ''}\u00A0\u00A0\u00A0<svg xmlns="http://www.w3.org/2000/svg" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg> Localização</div>
-                                <ul class="cv-exp-bullets">
-                                    ${(exp.bullets || []).map(b => {
-                                        let text = b.replace(/^[•\s]+/, '');
-                                        if (cv.resultFormat) {
-                                            // Highlight metrics: numbers, percentages, currency
-                                            text = text.replace(/(\d+[.,]?\d*\s*%|R\$\s*[\d.,]+|\d+[.,]?\d*\+?\s*(?:mil|M|K|projetos|clientes|equipes|pessoas|meses|anos|dias|horas|cidades|unidades|entregas))/gi, '<b style="color:#1c1c1c;">$1</b>');
-                                        }
-                                        return `<li>${text}</li>`;
-                                    }).join('')}
-                                </ul>
+                                <div class="cv-exp-period">${exp.period || ''}</div>
                             </div>
-                        `).join('')}
+                            <div class="cv-exp-title">${exp.title || ''}</div>
+                            <ul class="cv-exp-bullets">${bullets}</ul>
+                        </div>
+                    `;
+                }).join('')}
+            ` : '';
 
-                        <div class="cv-section-title">EDUCAÇÃO</div>
-                        ${(cv.education || []).map(edu => `
-                            <div class="cv-edu-item">
-                                <div class="cv-edu-degree">${edu.degree || ''}</div>
-                                <div class="cv-edu-inst">${edu.institution || ''}</div>
-                                ${edu.period ? `<div class="cv-edu-meta"><svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:2px;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> ${edu.period}</div>` : ''}
-                            </div>
-                        `).join('')}
-
-                        ${(cv.certifications && cv.certifications.length) ? `
-                        <div class="cv-section-title">CERTIFICAÇÕES</div>
-                        ${cv.certifications.map(c => `<div class="cv-cert-item"><b>${c.name}</b> — ${c.institution}</div>`).join('')}
-                        ` : ''}
-
-                        ${(cv.projects && cv.projects.length) ? `
-                        <div class="cv-section-title">PROJETOS</div>
-                        ${cv.projects.map(p => `
-                            <div class="cv-proj-item">
-                                <div class="cv-proj-title">${p.title}</div>
-                                <div class="cv-proj-desc">${p.description}</div>
-                            </div>
-                        `).join('')}
-                        ` : ''}
+            // Education section
+            const educationHTML = (cv.education && cv.education.length) ? `
+                <div class="cv-section-title">Formação Acadêmica</div>
+                ${cv.education.map(edu => `
+                    <div class="cv-edu-item">
+                        <div class="cv-edu-header">
+                            <div class="cv-edu-inst">${edu.institution || ''}</div>
+                            <div class="cv-edu-period">${edu.period || ''}</div>
+                        </div>
+                        <div class="cv-edu-degree">${edu.degree || ''}</div>
                     </div>
+                `).join('')}
+            ` : '';
 
-                    <!-- Right Column: Summary + Skills + Languages -->
-                    <div>
-                        <div class="cv-section-title">RESUMO</div>
-                        <p class="cv-summary-text" style="margin-bottom:12px;">${cv.summary || ''}</p>
+            // Skills section — flat comma-separated text (no categories)
+            const skillsHTML = (cv.skills && cv.skills.length) ? `
+                <div class="cv-section-title">Habilidades Técnicas</div>
+                <div class="cv-skills-text">${cv.skills.join(', ')}</div>
+            ` : '';
 
-                        <div class="cv-section-title">HABILIDADES</div>
-                        ${groupSkills(cv.skills).map(([cat, items]) => `
-                            <div class="cv-skill-group">
-                                <div class="cv-skill-group-title">${cat}</div>
-                                <div class="cv-skill-items">${items.map(s => '<span style="border-bottom:2px solid #ebebeb;padding-bottom:2px;margin-right:6px;display:inline-block;margin-bottom:4px;">' + s.charAt(0).toUpperCase() + s.slice(1) + '</span>').join('')}</div>
-                            </div>
-                        `).join('')}
+            // Languages section
+            const languagesHTML = (cv.languages && cv.languages.length) ? `
+                <div class="cv-section-title">Idiomas</div>
+                ${cv.languages.map(l => `<div class="cv-lang-item"><b>${l.name}</b> — ${l.level}</div>`).join('')}
+            ` : '';
 
-                        ${(cv.languages && cv.languages.length) ? `
-                        <div class="cv-section-title">IDIOMAS</div>
-                        ${cv.languages.map(l => `<div class="cv-lang-item"><b>${l.name}</b> — ${l.level}</div>`).join('')}
-                        ` : ''}
+            // Certifications section
+            const certificationsHTML = (cv.certifications && cv.certifications.length) ? `
+                <div class="cv-section-title">Certificações</div>
+                ${cv.certifications.map(c => `<div class="cv-cert-item"><b>${c.name}</b> — ${c.institution}</div>`).join('')}
+            ` : '';
+
+            // Projects section
+            const projectsHTML = (cv.projects && cv.projects.length) ? `
+                <div class="cv-section-title">Projetos</div>
+                ${cv.projects.map(p => `
+                    <div class="cv-proj-item">
+                        <div class="cv-proj-title">${p.title}</div>
+                        <div class="cv-proj-desc">${p.description}</div>
                     </div>
-                </div>
-            `;
+                `).join('')}
+            ` : '';
 
-            container.innerHTML = `<div class="${cls}" contenteditable="true" spellcheck="false" style="outline:none; cursor:text;" title="Clique para editar">${headerHTML}${bodyHTML}</div>`;
+            // Portfolio section (optional — only shows if filled)
+            const portfolioHTML = portfolio ? `
+                <div class="cv-section-title">Portfólio</div>
+                <div class="cv-portfolio-text">${portfolio}</div>
+            ` : '';
 
-            // ═══ KPI Dashboard — Post-optimization metrics ═══
+            // Assemble the full CV
+            const fullCV = headerHTML + summaryHTML + experienceHTML + educationHTML + skillsHTML + languagesHTML + certificationsHTML + projectsHTML + portfolioHTML;
+
+            container.innerHTML = `<div class="cv-professional" contenteditable="true" spellcheck="false" style="outline:none; cursor:text;" title="Clique para editar">${fullCV}</div>`;
+
             // ═══ KPI Dashboard — Post-optimization metrics ═══
             const analysisObj = state.analysisResult?.analysis || state.analysisResult || {};
             const scoreBefore = analysisObj.overallScore || analysisObj.score?.valor || analysisObj.ats?.score || state.analysisResult?.matchPercentage || 0;
 
             const kwUsed = cv.keywordsUsed || [];
-            // Se o pipeline novo for usado (sem extração direta de keywords), usamos as inseridas pela IA como base de sucesso
             const allKw = (state.analysisResult?.keywords && state.analysisResult.keywords.length > 0) 
                 ? state.analysisResult.keywords 
                 : kwUsed;
@@ -642,12 +380,11 @@
             const matchedBefore = state.analysisResult?.ats?.matchedKeywords || state.analysisResult?.matchedKeywords || [];
             const missingBefore = (state.analysisResult?.keywords && state.analysisResult.keywords.length > 0) 
                 ? allKw.filter(k => !matchedBefore.some(m => m.toLowerCase() === k.toLowerCase()))
-                : allKw; // Assumimos que as inseridas eram gaps preenchidos
+                : allKw;
                 
             const kwCoverage = allKw.length > 0 ? Math.round((kwUsed.length / allKw.length) * 100) : 100;
             const missingNowFixed = missingBefore.filter(m => kwUsed.some(k => k.toLowerCase().includes(m.toLowerCase()) || m.toLowerCase().includes(k.toLowerCase())));
             
-            // Calculamos o score de Depois baseando-se no ganho das sugestões aplicadas
             const appliedCount = state.selectedSuggestions ? state.selectedSuggestions.length : 0;
             let scoreAfter = scoreBefore;
             if (scoreBefore > 0) {

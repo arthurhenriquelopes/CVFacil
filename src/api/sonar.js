@@ -1,3 +1,5 @@
+import { getGroqKeys } from '../lib/settings.js';
+
 const API_URL = '/api/chat';
 
 /**
@@ -19,6 +21,7 @@ export async function chatCompletion(messages, {
 
     while (attempt < maxAttempts) {
         try {
+            const userKeys = getGroqKeys();
             const response = await fetch(API_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -27,6 +30,7 @@ export async function chatCompletion(messages, {
                     temperature,
                     max_tokens: maxTokens,
                     model,
+                    ...(userKeys.length > 0 ? { userKeys } : {}),
                 }),
             });
 

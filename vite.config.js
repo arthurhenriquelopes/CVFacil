@@ -72,8 +72,6 @@ export default defineConfig(({ mode }) => {
         input: {
           main: resolve(__dirname, 'index.html'),
           dashboard: resolve(__dirname, 'pages/dashboard.html'),
-          stepGoal: resolve(__dirname, 'pages/step-goal.html'),
-          stepFrequency: resolve(__dirname, 'pages/step-frequency.html'),
           stepProfile: resolve(__dirname, 'pages/step-profile.html'),
           stepJob: resolve(__dirname, 'pages/step-job.html'),
           stepAnalysis: resolve(__dirname, 'pages/step-analysis.html'),
@@ -84,6 +82,7 @@ export default defineConfig(({ mode }) => {
           stepAtsLoading: resolve(__dirname, 'pages/step-ats-loading.html'),
           stepAtsResult: resolve(__dirname, 'pages/step-ats-result.html'),
           certificates: resolve(__dirname, 'pages/certificates.html'),
+          stepCertReview: resolve(__dirname, 'pages/step-cert-review.html'),
         },
       },
     },

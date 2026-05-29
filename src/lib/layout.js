@@ -2,6 +2,7 @@
  * Shared layout components injected via JS.
  * Eliminates HTML duplication across step pages.
  */
+import { injectSettingsGear } from './settings.js';
 
 /**
  * Injects a step header with back button, title, counter, and progress bar.
@@ -22,13 +23,20 @@ export function injectStepHeader({ step, total = 8, backHref = '#' }) {
         </a>
         <span class="title">Gerar CV</span>
       </div>
-      <span class="step-counter">${step}/${total}</span>
+      <div style="display:flex;align-items:center;gap:0.75rem;">
+        <span class="step-counter">${step}/${total}</span>
+        <span id="step-gear-mount"></span>
+      </div>
     </div>
     <div class="progress-bar">
       <div class="progress-bar-fill" style="width: ${pct}%;"></div>
     </div>
   `;
   document.body.prepend(header);
+
+  // Mount settings gear
+  const mount = header.querySelector('#step-gear-mount');
+  if (mount) injectSettingsGear(mount);
 }
 
 /**
@@ -81,11 +89,17 @@ export function injectNavbar({ activePage = 'landing' } = {}) {
     </a>
     <div style="display:flex;gap:0.25rem;align-items:center;">
       <a href="/pages/dashboard.html" style="padding:0.5rem 0.875rem;font-weight:500;font-size:0.8125rem;color:var(--color-text-secondary);border-radius:var(--radius-md);transition:all 150ms ease;">Dashboard</a>
-      <a href="/pages/step-goal.html" style="padding:0.5rem 1rem;font-weight:600;font-size:0.8125rem;background:var(--color-text);color:var(--color-bg);border-radius:var(--radius-md);transition:all 150ms ease;display:flex;align-items:center;gap:0.375rem;">
+      <a href="/pages/step-profile.html" style="padding:0.5rem 1rem;font-weight:600;font-size:0.8125rem;background:var(--color-text);color:var(--color-bg);border-radius:var(--radius-md);transition:all 150ms ease;display:flex;align-items:center;gap:0.375rem;">
         Criar CV
         <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"></path></svg>
       </a>
+      <span id="navbar-gear-mount" style="margin-left:0.375rem;"></span>
     </div>
   `;
   document.body.prepend(nav);
+
+  // Mount settings gear
+  const mount = nav.querySelector('#navbar-gear-mount');
+  if (mount) injectSettingsGear(mount);
 }
+
