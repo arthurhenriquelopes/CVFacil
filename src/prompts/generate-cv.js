@@ -250,7 +250,7 @@ ${focusInstructions}
 
 RESTRIÇÕES DE TAMANHO:
 - Máximo 1 página A4 (guia para concisão, não regra absoluta).
-- Se o candidato tem muitas experiências, inclua APENAS as 3-4 mais relevantes para a vaga.
+- NUNCA REMOVA NENHUMA EXPERIÊNCIA DO CANDIDATO por conta própria, a menos que haja uma EDIÇÃO APROVADA mandando remover.
 - Resumo profissional: máximo 3 linhas impactantes.
 - Seja conciso, direto e orientado a resultados.
 
@@ -322,8 +322,21 @@ ${issues.length ? `PROBLEMAS IDENTIFICADOS:\n${issues.map(i => `  - [${i.severit
 
 ${recommendedActions.length ? `AÇÕES RECOMENDADAS:\n${recommendedActions.map(a => `  - ${a}`).join('\n')}` : ''}
 
-${selectedSuggestions.length ? `🔴 URGENTE E OBRIGATÓRIO: O USUÁRIO APROVOU AS SEGUINTES REESCRITAS. VOCÊ DEVE USAR O TEXTO EXATO DA "PROPOSTA" NO JSON FINAL (SUBSTITUINDO O TEXTO ORIGINAL):
-${selectedSuggestions.map(s => `  - SEÇÃO: ${s.section}\n    SUBSTITUIR: "${s.current || '...'}"\n    POR ESTE TEXTO EXATO: "${s.proposed || ''}"`).join('\n\n')}` : ''}
+${selectedSuggestions.length ? `🔴 URGENTE E OBRIGATÓRIO: O USUÁRIO APROVOU AS SEGUINTES EDIÇÕES. ELAS TÊM PRIORIDADE MÁXIMA E DEVEM SOBRESCREVER QUALQUER DADO ANTERIOR:
+${selectedSuggestions.map(s => {
+  if (s.action === 'QUESTION') {
+    return `  [NOVA INFORMAÇÃO] O usuário confirmou que possui a habilidade mencionada na pergunta: "${s.proposed}".\n  -> AÇÃO OBRIGATÓRIA: Adicione essa habilidade/tecnologia na seção ${s.section || 'Habilidades'} e/ou integre nas Experiências.`;
+  }
+  if (s.action === 'REMOVE') {
+    return `  [EDIÇÃO APROVADA - SEÇÃO: ${s.section}]\n  -> AÇÃO OBRIGATÓRIA: REMOVA COMPLETAMENTE O SEGUINTE TRECHO: "${s.current || '...'}"`;
+  }
+  if (s.action === 'ADD') {
+    return `  [EDIÇÃO APROVADA - SEÇÃO: ${s.section}]\n  -> AÇÃO OBRIGATÓRIA: ADICIONE O SEGUINTE TEXTO NOVO: "${s.proposed || ''}"`;
+  }
+  return `  [EDIÇÃO APROVADA - SEÇÃO: ${s.section}]\n  TEXTO ANTIGO: "${s.current || '...'}"\n  -> AÇÃO OBRIGATÓRIA: SUBSTITUA COMPLETAMENTE pelo NOVO TEXTO EXATO: "${s.proposed || ''}"`;
+}).join('\n\n')}
+
+⚠️ REGRA SOBRE PLACEHOLDERS NAS EDIÇÕES APROVADAS: Se as edições acima contiverem placeholders como "[X]%", "[ ]" ou "[nome da ferramenta]", VOCÊ DEVE PREENCHÊ-LOS. Estime métricas conservadoras e plausíveis para o contexto (ex: substitua "[X]%" por "~15%" ou "[X]" por "+5"). NUNCA gere um JSON contendo colchetes vazios ou [X].` : ''}
 
 ${certSelectionResult ? `🎯 CERTIFICAÇÕES CURADAS POR IA (use SOMENTE estas no CV):\n${certSelectionResult.selected?.map(s => `  ✓ ${s.title} — ${s.reason}`).join('\n') || 'Nenhuma selecionada'}\n${certSelectionResult.dropped?.length ? `  Descartadas: ${certSelectionResult.dropped.map(d => d.title).join(', ')}` : ''}` : ''}
 

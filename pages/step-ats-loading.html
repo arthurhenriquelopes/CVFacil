@@ -144,6 +144,8 @@
                     if (p.email) parts.push(`Email: ${p.email}`);
                     if (p.phone) parts.push(`Telefone: ${p.phone}`);
                     if (p.location) parts.push(`Localização: ${p.location}`);
+                    if (p.linkedin) parts.push(`LinkedIn: ${p.linkedin}`);
+                    if (p.portfolio) parts.push(`Portfólio: ${p.portfolio}`);
                     if (p.summary) parts.push(`\nResumo: ${p.summary}`);
                     if (p.experiences?.length) {
                         parts.push('\nExperiências:');
@@ -180,6 +182,7 @@
 
                 const result = await analyzeJob({
                     cvText,
+                    profile: state.profile,
                     professionalGoal: state.professionalGoal,
                     targetRole: state.targetRole,
                     jobDescription: state.jobDescription,

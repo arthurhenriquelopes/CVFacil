@@ -156,21 +156,27 @@ const centerPanel = `
 // ═══════════════════════════════════════
 // RIGHT PANEL — Improvement Suggestions
 // ═══════════════════════════════════════
-const actionLabels = { ADD: 'Adicionar', REMOVE: 'Remover', REWRITE: 'Reescrever', IMPROVE: 'Refinar' };
+const actionLabels = { ADD: 'Adicionar', REMOVE: 'Remover', REWRITE: 'Reescrever', IMPROVE: 'Refinar', QUESTION: 'Pergunta da IA' };
 
-const suggestionsHtml = suggestions.map((s, i) => {
+const standardSuggestions = suggestions.map((s, i) => ({ ...s, _originalIdx: i })).filter(s => s.action !== 'QUESTION');
+const questionSuggestions = suggestions.map((s, i) => ({ ...s, _originalIdx: i })).filter(s => s.action === 'QUESTION');
+
+const suggestionsHtml = standardSuggestions.map(s => {
+  const i = s._originalIdx;
   const actionClass = `action-${(s.action || 'improve').toLowerCase()}`;
+  const isQuestion = s.action === 'QUESTION';
+  
   return `
-  <div class="suggestion-card" data-idx="${i}" style="margin-bottom:0.75rem;">
-    <div class="check-indicator">✓</div>
+  <div class="suggestion-card" data-idx="${i}" style="margin-bottom:0.75rem; border-left: 3px solid ${isQuestion ? '#8b5cf6' : 'transparent'};">
+    <div class="check-indicator">${isQuestion ? 'Sim' : '✓'}</div>
     <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.625rem;flex-wrap:wrap;padding-right:2.5rem;">
-      <span class="action-badge ${actionClass}">${actionLabels[s.action] || s.action}</span>
+      <span class="action-badge ${actionClass}" style="${isQuestion ? 'background: rgba(139, 92, 246, 0.1); color: #8b5cf6; border-color: rgba(139, 92, 246, 0.2);' : ''}">${actionLabels[s.action] || s.action}</span>
       <span style="font-size:0.6875rem;color:var(--color-text-tertiary);">${s.section || ''}</span>
       <span class="severity-badge severity-${(s.impact || 'medium').toLowerCase()}" style="margin-left:auto;">${s.impact || 'MEDIUM'}</span>
     </div>
-    ${s.current ? `<div class="current-text" style="margin-bottom:0.5rem;">${s.current}</div>` : ''}
-    ${s.proposed ? `<div class="proposed-text" style="margin-bottom:0.5rem;">${s.proposed}</div>` : ''}
-    ${s.rationale ? `<p style="font-size:0.6875rem;color:var(--color-text-muted);margin-top:0.375rem;line-height:1.4;">${s.rationale}</p>` : ''}
+    ${s.current && !isQuestion ? `<div class="current-text" style="margin-bottom:0.5rem;">${s.current}</div>` : ''}
+    ${s.proposed ? `<div class="proposed-text" style="margin-bottom:0.5rem; ${isQuestion ? 'font-style: italic; color: #4b5563;' : ''}">${isQuestion ? '🤔 ' + s.proposed : s.proposed}</div>` : ''}
+    ${s.rationale ? `<p style="font-size:0.6875rem;color:var(--color-text-muted);margin-top:0.375rem;line-height:1.4;">${isQuestion ? 'Se você selecionar, adicionaremos isso ao seu CV. Motivo: ' : ''}${s.rationale}</p>` : ''}
   </div>`;
 }).join('');
 
@@ -179,7 +185,7 @@ const rightPanel = `
   <div class="result-panel">
     <div class="result-panel-title">
       <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-      Sugestões de Melhoria (${suggestions.length})
+      Sugestões de Melhoria (${standardSuggestions.length})
     </div>
 
     ${isGeneratorFlow ? `
@@ -274,4 +280,73 @@ if (btnGenerate) {
     setState({ selectedSuggestions: suggestions.filter((_, i) => selectedSet.has(i)) });
     window.location.href = '/pages/step-template.html';
   });
+}
+
+// ═══════════════════════════════════════
+// QUESTION MODAL LOGIC
+// ═══════════════════════════════════════
+if (questionSuggestions.length > 0) {
+  let currentQIdx = 0;
+  const modalWrap = document.createElement('div');
+  modalWrap.id = 'question-modal-wrap';
+  modalWrap.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.85);backdrop-filter:blur(8px);z-index:9999;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity 0.3s ease;';
+  
+  function renderCurrentQuestion() {
+    if (currentQIdx >= questionSuggestions.length) {
+      modalWrap.style.opacity = '0';
+      setTimeout(() => modalWrap.remove(), 300);
+      return;
+    }
+    const q = questionSuggestions[currentQIdx];
+    modalWrap.innerHTML = `
+      <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-xl);width:90%;max-width:480px;padding:2rem;box-shadow:0 20px 40px rgba(0,0,0,0.3);transform:translateY(20px);animation:slideUp 0.4s forwards;">
+        <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:1.5rem;">
+          <div style="background:rgba(139,92,246,0.1);color:#8b5cf6;width:2.5rem;height:2.5rem;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.25rem;">
+            🤔
+          </div>
+          <div>
+            <h3 style="font-size:1.125rem;font-weight:700;color:var(--color-text);margin:0;">Pergunta da IA</h3>
+            <span style="font-size:0.75rem;color:var(--color-text-tertiary);">${currentQIdx + 1} de ${questionSuggestions.length}</span>
+          </div>
+        </div>
+        <p style="font-size:1.0625rem;color:var(--color-text-secondary);line-height:1.6;margin-bottom:2rem;font-weight:500;">
+          ${q.proposed}
+        </p>
+        <div style="display:flex;gap:1rem;">
+          <button id="btn-q-no" style="flex:1;padding:0.875rem;border-radius:var(--radius-md);border:1px solid var(--color-border);background:transparent;color:var(--color-text-secondary);font-weight:600;cursor:pointer;transition:all 0.2s;">
+            Não possuo
+          </button>
+          <button id="btn-q-yes" style="flex:1;padding:0.875rem;border-radius:var(--radius-md);border:none;background:#8b5cf6;color:#fff;font-weight:600;cursor:pointer;transition:all 0.2s;">
+            Sim, eu possuo
+          </button>
+        </div>
+      </div>
+    `;
+
+    document.getElementById('btn-q-no').addEventListener('click', () => {
+      currentQIdx++;
+      renderCurrentQuestion();
+    });
+
+    document.getElementById('btn-q-yes').addEventListener('click', () => {
+      selectedSet.add(q._originalIdx);
+      updateSelectedCount();
+      setState({ selectedSuggestions: suggestions.filter((_, i) => selectedSet.has(i)) });
+      currentQIdx++;
+      renderCurrentQuestion();
+    });
+  }
+
+  document.body.appendChild(modalWrap);
+  if (!document.getElementById('modal-styles')) {
+    const s = document.createElement('style');
+    s.id = 'modal-styles';
+    s.textContent = '@keyframes slideUp { to { transform: translateY(0); } } #btn-q-no:hover{background:var(--color-accent-dim)} #btn-q-yes:hover{background:#7c3aed}';
+    document.head.appendChild(s);
+  }
+
+  setTimeout(() => {
+    modalWrap.style.opacity = '1';
+    renderCurrentQuestion();
+  }, 100);
 }

@@ -80,25 +80,26 @@ Cada sugestão é uma recomendação cirúrgica de uma das seguintes ações:
 - REMOVE: remover o que prejudica a leitura em 8 segundos ou suja o ATS.
 - REWRITE: aplicar o Método XYZ substituindo trechos passivos ou vagos por bullets de alto impacto.
 - IMPROVE: refinar um trecho.
+- QUESTION: perguntar ao candidato se ele tem experiência prática com uma tecnologia/habilidade exigida pela vaga que não está no CV. Use o campo 'proposed' para o texto da pergunta (ex: "Você tem experiência com Docker?").
 
 Diretrizes Estratégicas de Edição (Aplique rigorosamente):
 A. "Sobre mim": Reescreva resumos genéricos para serem diretos, declarando a senioridade, stack principal e foco de atuação logo na primeira linha. 
 B. Experiências: NUNCA aceite descrições como "dei manutenção" ou "criei telas". Sugira REWRITEs que forcem o formato bullet point e atrelem a ação à tecnologia e a um resultado/métrica.
-C. Otimização ATS e Eficiência: Sugira ADD ou IMPROVE para incluir palavras-chave que demonstrem visão do ciclo completo de software e fluência em IA.
-D. Limpeza: Sugira REMOVE para certificados ou experiências muito antigas sem relação com o objetivo atual.
+C. Otimização ATS e Eficiência: Em vez de apenas sugerir adicionar uma habilidade que não está no CV, use a ação QUESTION para perguntar se o usuário possui aquele conhecimento antes de adicioná-lo.
+D. Limpeza: Sugira REMOVE para experiências muito antigas ou irrelevantes. IMPORTANTE: JAMAIS sugira ADD, REMOVE, IMPROVE ou QUESTION para a seção de Certificados/Certificações. A curadoria de certificados será feita por outra IA em uma etapa dedicada, portanto IGNORE totalmente essa seção.
 
 Regras obrigatórias:
 1. Responda no MESMO idioma do CV original (informado em language).
 2. Gere entre 5 e 12 sugestões, priorizadas por impacto real no objetivo profissional do candidato.
 3. Cada sugestão deve ser específica e acionável. Aponte o trecho exato e forneça o texto sugerido.
 4. Preencha os campos estritamente assim:
-   - action: ADD, REMOVE, REWRITE ou IMPROVE.
+   - action: ADD, REMOVE, REWRITE, IMPROVE ou QUESTION.
    - section: a seção exata do CV.
-   - current: o trecho atual do CV que será alterado ou removido. Use null quando action=ADD.
-   - proposed: o texto concreto a adicionar ou que substitui o current. Use null quando action=REMOVE.
-   - rationale: frase curta e técnica explicando o ganho.
+   - current: o trecho atual do CV que será alterado ou removido. Use null quando action=ADD ou QUESTION.
+   - proposed: o texto concreto a adicionar/substituir, ou a pergunta direta para o candidato (se action=QUESTION). Use null quando action=REMOVE.
+   - rationale: frase curta e técnica explicando o ganho ou o motivo da pergunta.
    - impact: HIGH, MEDIUM ou LOW.
-5. NÃO invente empresas, cargos, datas, métricas ou tecnologias. Use proposed com placeholders '[ ]' para forçar o candidato a preencher.
+5. NÃO invente empresas, cargos, datas, métricas ou tecnologias. TOLERÂNCIA ZERO PARA ALUCINAÇÃO DE URLs: Nunca invente links de GitHub/LinkedIn/Portfólio com base no nome do candidato. Se for sugerir a adição de um link que o candidato não tem, use APENAS placeholders (ex: \`github.com/[seu-usuario]\`). Use \`proposed\` com placeholders '[ ]' para forçar o candidato a preencher o que faltar.
 6. Cada sugestão deve endereçar um problema real identificado no parecer OU uma oportunidade concreta de ganho competitivo.
 7. Priorize sugestões que apoiem o professionalGoal e, se informado, o targetRole.
 8. Não inclua emojis, meta-comentários, disclaimers ou introduções. Entregue apenas a lista estruturada.
@@ -112,6 +113,14 @@ RESPONDA EXCLUSIVAMENTE em JSON válido com o seguinte schema:
       "current": "Trecho atual do CV",
       "proposed": "Novo texto sugerido com [placeholders] para dados faltantes",
       "rationale": "Frase técnica explicando o ganho",
+      "impact": "HIGH"
+    },
+    {
+      "action": "QUESTION",
+      "section": "Habilidades Técnicas",
+      "current": null,
+      "proposed": "Você possui experiência prática com Docker? A vaga exige conhecimentos em containerização e isso agregaria muito valor ao seu perfil.",
+      "rationale": "Essencial para vagas de backend modernas.",
       "impact": "HIGH"
     }
   ]
@@ -226,7 +235,7 @@ function parseJsonSafe(response) {
  * @param {function} [params.onStageChange] - Callback for stage updates
  * @returns {Promise<{analysis: object, improvements: object}>}
  */
-export async function analyzeJob({ cvText, professionalGoal, targetRole, jobDescription, onStageChange }) {
+export async function analyzeJob({ cvText, profile, professionalGoal, targetRole, jobDescription, onStageChange }) {
   if (!cvText || !professionalGoal) {
     throw new Error('Texto do currículo e objetivo profissional são obrigatórios.');
   }

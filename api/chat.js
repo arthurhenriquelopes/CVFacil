@@ -1,20 +1,71 @@
-// api/chat.js — Groq AI proxy
+// api/chat.js — Groq / OpenAI AI proxy
 
 export default async function handler(req, res) {
     if (req.method !== 'POST') return res.status(405).end();
 
-    const { messages, temperature, max_tokens, model, userKeys } = req.body;
+    const { messages, temperature, max_tokens, model, userKeys, provider } = req.body;
 
     try {
-        const data = await callGroq(messages, { temperature, max_tokens, model, userKeys });
+        let data;
+        if (provider === 'openai' || (model && model.startsWith('gpt-'))) {
+            data = await callOpenAI(messages, { temperature, max_tokens, model });
+        } else {
+            data = await callGroq(messages, { temperature, max_tokens, model, userKeys });
+        }
         res.status(200).json(data);
     } catch (err) {
-        console.error(`API Error (groq):`, err.message);
+        console.error(`API Error:`, err.message);
         res.status(500).json({ error: err.message });
     }
 }
 
 let currentKeyIndex = 0;
+let currentOpenAIKeyIndex = 0;
+
+// ─── OpenAI Key Rotation ───────────────────────────
+async function callOpenAI(messages, { temperature = 0.2, max_tokens = 4096, model = 'gpt-4o' } = {}) {
+    const keys = [
+        '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',
+        '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'
+    ];
+
+    let lastError = null;
+
+    for (let i = 0; i < keys.length; i++) {
+        const key = keys[currentOpenAIKeyIndex % keys.length];
+        
+        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${key}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                model: model || 'gpt-4o',
+                messages,
+                temperature,
+                max_tokens,
+            }),
+        });
+
+        if (response.ok) {
+            return await response.json();
+        }
+
+        const errText = await response.text();
+        lastError = new Error(`OpenAI ${response.status}: ${errText}`);
+        
+        if (response.status === 429 || response.status === 401) {
+            console.warn(`OpenAI Key ${currentOpenAIKeyIndex % keys.length} failed with ${response.status}. Rotating...`);
+            currentOpenAIKeyIndex++;
+            continue;
+        }
+
+        throw lastError;
+    }
+
+    throw new Error(`Todas as chaves OpenAI falharam. Último erro: ${lastError.message}`);
+}
 
 // ─── Groq (OpenAI-compatible) ───────────────────────
 async function callGroq(messages, { temperature = 0.2, max_tokens = 4096, model = 'llama-3.3-70b-versatile', userKeys } = {}) {

@@ -173,11 +173,18 @@
         }
 
         /* — Certifications — */
+        .cv-professional .cv-cert-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            column-gap: 16px;
+        }
+
         .cv-professional .cv-cert-item {
             font-size: 10pt;
             color: #1a1a1a;
             margin-bottom: 4px;
             line-height: 1.4;
+            break-inside: avoid;
         }
 
         /* — Projects — */
@@ -343,7 +350,9 @@
             // Certifications section
             const certificationsHTML = (cv.certifications && cv.certifications.length) ? `
                 <div class="cv-section-title">Certificações</div>
-                ${cv.certifications.map(c => `<div class="cv-cert-item"><b>${c.name}</b> — ${c.institution}</div>`).join('')}
+                <div class="${cv.certifications.length > 5 ? 'cv-cert-grid' : ''}">
+                ${cv.certifications.map(c => `<div class="cv-cert-item"><b>${c.name}</b>${c.institution ? ' — ' + c.institution : ''}</div>`).join('')}
+                </div>
             ` : '';
 
             // Projects section
@@ -358,9 +367,15 @@
             ` : '';
 
             // Portfolio section (optional — only shows if filled)
+            let portfolioDisplay = portfolio;
+            if (portfolio.startsWith('http') || portfolio.startsWith('www')) {
+                const url = portfolio.startsWith('http') ? portfolio : 'https://' + portfolio;
+                portfolioDisplay = `<a href="${url}" target="_blank" style="color: inherit; text-decoration: underline;">${portfolio}</a>`;
+            }
+
             const portfolioHTML = portfolio ? `
                 <div class="cv-section-title">Portfólio</div>
-                <div class="cv-portfolio-text">${portfolio}</div>
+                <div class="cv-portfolio-text">${portfolioDisplay}</div>
             ` : '';
 
             // Assemble the full CV
@@ -418,32 +433,57 @@
                 }).join('');
             }
 
-            // Setup PDF Download via native print (pixel-perfect)
-            document.getElementById('btn-download').addEventListener('click', () => {
-                const cvContent = document.getElementById('cv-preview').innerHTML;
+            // Setup PDF Download via html2pdf.js (clean PDF, no browser metadata)
+            document.getElementById('btn-download').addEventListener('click', async () => {
+                const btn = document.getElementById('btn-download');
+                const originalText = btn.innerHTML;
+                btn.disabled = true;
+                btn.innerHTML = '<i class="pi pi-spin pi-spinner" style="font-size:1rem;"></i> Gerando PDF...';
 
-                // Create a hidden wrapper for printing
-                let wrapper = document.getElementById('print-wrapper');
-                if (!wrapper) {
-                    wrapper = document.createElement('div');
-                    wrapper.id = 'print-wrapper';
-                    wrapper.style.display = 'none';
-                    document.body.appendChild(wrapper);
+                try {
+                    const html2pdf = (await import('html2pdf.js')).default;
+
+                    // Clone the CV preview to avoid modifying the visible one
+                    const cvContent = document.getElementById('cv-preview');
+                    const clone = cvContent.cloneNode(true);
+
+                    // Remove contenteditable to avoid artifacts
+                    clone.querySelectorAll('[contenteditable]').forEach(el => el.removeAttribute('contenteditable'));
+
+                    // Remove any box-shadow/border-radius from the clone for clean PDF
+                    clone.style.boxShadow = 'none';
+                    clone.style.borderRadius = '0';
+                    clone.style.overflow = 'visible';
+
+                    const fileName = `${(h.name || 'CV').replace(/\s+/g, '_')}_Otimizado.pdf`;
+
+                    const opt = {
+                        margin: [5, 8, 5, 8], // top, right, bottom, left (mm)
+                        filename: fileName,
+                        image: { type: 'jpeg', quality: 0.98 },
+                        html2canvas: {
+                            scale: 2,
+                            useCORS: true,
+                            letterRendering: true,
+                            logging: false,
+                        },
+                        jsPDF: {
+                            unit: 'mm',
+                            format: 'a4',
+                            orientation: 'portrait',
+                            compress: true,
+                        },
+                        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] },
+                    };
+
+                    await html2pdf().set(opt).from(clone).save();
+                } catch (err) {
+                    console.error('PDF generation error:', err);
+                    alert('Erro ao gerar PDF. Tente novamente.');
+                } finally {
+                    btn.disabled = false;
+                    btn.innerHTML = originalText;
                 }
-                wrapper.innerHTML = cvContent;
-
-                // Set the document title for the PDF filename
-                const originalTitle = document.title;
-                document.title = `${(h.name || 'CV').replace(/\s+/g, '_')}_Otimizado`;
-
-                window.print();
-
-                // Restore after print
-                setTimeout(() => {
-                    document.title = originalTitle;
-                    wrapper.style.display = 'none';
-                    wrapper.innerHTML = '';
-                }, 1000);
             });
         }
     </script>
