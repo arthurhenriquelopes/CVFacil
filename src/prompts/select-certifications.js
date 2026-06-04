@@ -15,7 +15,7 @@ const CERT_SELECTOR_PERSONA = `Você é um especialista em recrutamento e curado
 
 Regras obrigatórias:
 
-1. Selecione entre 5 e 12 certificações. Se o candidato tiver 12 ou menos, selecione todas.
+1. Selecione TODAS as certificações que agreguem algum valor ao objetivo do candidato, descartando apenas as totalmente irrelevantes. Não há limite máximo de quantidade.
 2. Priorize certificações que:
    - Têm relação DIRETA com a vaga/objetivo (ex: AWS para vaga de Cloud Engineer)
    - São reconhecidas pelo mercado (ex: PMP, Scrum Master, AWS, Azure, Google Cloud)
@@ -59,14 +59,14 @@ RESPONDA EXCLUSIVAMENTE em JSON válido com o seguinte schema:
  * @returns {Promise<{selected: Array, dropped: Array}>}
  */
 export async function selectBestCertifications({ certifications, professionalGoal, targetRole, jobDescription }) {
-  // If 5 or fewer certs, no filtering needed — use all
-  if (!certifications || certifications.length <= 12) {
+  // We no longer strictly skip if <= 12. But if there are very few (e.g. <= 3), no point in filtering.
+  if (!certifications || certifications.length <= 3) {
     return {
       selected: (certifications || []).map((c, i) => ({
         index: i,
         title: c.title || c.name || '',
         issuer: c.issuer || c.institution || '',
-        reason: 'Incluída automaticamente (≤12 certificações)'
+        reason: 'Incluída automaticamente'
       })),
       dropped: [],
       filtered: certifications || [],
@@ -86,7 +86,7 @@ OBJETIVO PROFISSIONAL: ${professionalGoal}
 ${targetRole ? `CARGO ALVO: ${targetRole}` : ''}
 ${jobDescription ? `\nDESCRIÇÃO DA VAGA:\n${jobDescription}` : ''}
 
-Selecione as 5-12 certificações mais estratégicas para este objetivo. Responda SOMENTE em JSON válido.`;
+Selecione todas as certificações estratégicas e relevantes para este objetivo, descartando apenas as inúteis. Responda SOMENTE em JSON válido.`;
 
   const response = await chatCompletion([
     { role: 'system', content: CERT_SELECTOR_PERSONA },

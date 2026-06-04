@@ -1,4 +1,4 @@
-import { getGroqKeys } from '../lib/settings.js';
+import { getGroqKeys, getAiProvider } from '../lib/settings.js';
 
 const API_URL = '/api/chat';
 
@@ -9,19 +9,26 @@ const API_URL = '/api/chat';
  * @param {number} [opts.temperature=0.2]
  * @param {number} [opts.maxTokens=4096]
  * @param {string} [opts.model] - Override default model
+ * @param {string} [opts.provider] - AI provider selection
  * @returns {Promise<string>} The assistant's response content
  */
 export async function chatCompletion(messages, {
     temperature = 0.2,
     maxTokens = 4096,
     model,
+    provider,
 } = {}) {
     const maxAttempts = 2;
     let attempt = 0;
 
+    const selectedProvider = getAiProvider();
+
     while (attempt < maxAttempts) {
         try {
             const userKeys = getGroqKeys();
+            const finalProvider = selectedProvider;
+            const finalModel = finalProvider === 'openai' ? 'gpt-4o' : (model || 'llama-3.3-70b-versatile');
+
             const response = await fetch(API_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -29,7 +36,8 @@ export async function chatCompletion(messages, {
                     messages,
                     temperature,
                     max_tokens: maxTokens,
-                    model,
+                    model: finalModel,
+                    provider: finalProvider,
                     ...(userKeys.length > 0 ? { userKeys } : {}),
                 }),
             });

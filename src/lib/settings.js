@@ -6,8 +6,17 @@
  */
 
 const STORAGE_KEY = 'cvporvaga_groq_keys';
+const PROVIDER_KEY = 'cvporvaga_ai_provider';
 
 // ─── Key Management ───────────────────────────────
+
+export function getAiProvider() {
+    return localStorage.getItem(PROVIDER_KEY) || 'groq';
+}
+
+export function saveAiProvider(provider) {
+    localStorage.setItem(PROVIDER_KEY, provider);
+}
 
 export function getGroqKeys() {
     try {
@@ -58,6 +67,9 @@ function updateGearIndicator(btn) {
     const existing = btn.querySelector('.gear-indicator');
     if (existing) existing.remove();
 
+    const provider = getAiProvider();
+    if (provider === 'openai') return; // OpenAI uses embedded keys, no need for warning dot
+
     const keys = getGroqKeys();
     if (keys.length === 0) {
         const dot = document.createElement('span');
@@ -79,7 +91,7 @@ function openSettingsModal() {
             <div class="settings-modal-header">
                 <div>
                     <h2 id="settings-title" class="settings-modal-title">Configurações</h2>
-                    <p class="settings-modal-subtitle">Gerencie suas chaves de API Groq</p>
+                    <p class="settings-modal-subtitle">Escolha o provedor de IA e gerencie suas chaves</p>
                 </div>
                 <button id="settings-close-btn" class="settings-close-btn" aria-label="Fechar">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -89,7 +101,37 @@ function openSettingsModal() {
             </div>
 
             <div class="settings-modal-body">
-                <div class="settings-section">
+                <div class="settings-section" style="margin-bottom: 24px;">
+                    <label class="settings-label">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                        </svg>
+                        Provedor de IA
+                    </label>
+                    <p class="settings-hint">
+                        Selecione qual inteligência artificial processará seu currículo.
+                    </p>
+                    
+                    <div class="provider-select-group" style="display: flex; gap: 12px; margin-top: 10px; flex-wrap: wrap;">
+                        <div class="provider-radio-card card" id="card-groq" style="flex: 1; min-width: 220px; display: flex; flex-direction: column; padding: 1rem; position: relative;">
+                            <div style="display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 0.95rem;">
+                                <input type="radio" name="ai-provider" value="groq" id="provider-groq" style="accent-color: var(--color-accent);" />
+                                <span>Groq / Llama (Chave Própria)</span>
+                            </div>
+                            <span style="font-size: 0.8rem; color: var(--color-text-secondary); margin-top: 0.5rem; margin-left: 1.5rem; line-height: 1.3;">Use seus limites de requisições inserindo suas chaves próprias do Groq abaixo.</span>
+                        </div>
+                        
+                        <div class="provider-radio-card card" id="card-openai" style="flex: 1; min-width: 220px; display: flex; flex-direction: column; padding: 1rem; position: relative;">
+                            <div style="display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 0.95rem;">
+                                <input type="radio" name="ai-provider" value="openai" id="provider-openai" style="accent-color: var(--color-accent);" />
+                                <span>OpenAI GPT-4o (Cortesia)</span>
+                            </div>
+                            <span style="font-size: 0.8rem; color: var(--color-text-secondary); margin-top: 0.5rem; margin-left: 1.5rem; line-height: 1.3;">Use chaves integradas gratuitamente sem precisar preencher chaves de API.</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="groq-keys-section" class="settings-section">
                     <label class="settings-label">
                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="m21 2-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0 3 3L22 7l-3-3m-3.5 3.5L19 4"/>
@@ -131,6 +173,49 @@ function openSettingsModal() {
         </div>
     `;
     document.body.appendChild(overlay);
+
+    // Setup Provider state UI
+    const provider = getAiProvider();
+    const groqRadio = overlay.querySelector('#provider-groq');
+    const openaiRadio = overlay.querySelector('#provider-openai');
+    const groqSection = overlay.querySelector('#groq-keys-section');
+    const cardGroq = overlay.querySelector('#card-groq');
+    const cardOpenai = overlay.querySelector('#card-openai');
+
+    if (provider === 'openai') {
+        openaiRadio.checked = true;
+        cardOpenai.classList.add('selected');
+        groqSection.style.display = 'none';
+    } else {
+        groqRadio.checked = true;
+        cardGroq.classList.add('selected');
+    }
+
+    const handleProviderChange = (newProvider) => {
+        saveAiProvider(newProvider);
+        if (newProvider === 'openai') {
+            cardOpenai.classList.add('selected');
+            cardGroq.classList.remove('selected');
+            groqSection.style.display = 'none';
+        } else {
+            cardGroq.classList.add('selected');
+            cardOpenai.classList.remove('selected');
+            groqSection.style.display = 'block';
+        }
+    };
+
+    cardGroq.addEventListener('click', () => {
+        groqRadio.checked = true;
+        handleProviderChange('groq');
+    });
+
+    cardOpenai.addEventListener('click', () => {
+        openaiRadio.checked = true;
+        handleProviderChange('openai');
+    });
+
+    groqRadio.addEventListener('change', () => handleProviderChange('groq'));
+    openaiRadio.addEventListener('change', () => handleProviderChange('openai'));
 
     // Render existing keys
     renderKeysList();
