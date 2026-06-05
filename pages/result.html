@@ -347,12 +347,12 @@
                 ${cv.languages.map(l => `<div class="cv-lang-item"><b>${l.name}</b> — ${l.level}</div>`).join('')}
             ` : '';
 
-            // Certifications section
+            // Certifications section — bullet points, no bold
             const certificationsHTML = (cv.certifications && cv.certifications.length) ? `
                 <div class="cv-section-title">Certificações</div>
-                <div class="${cv.certifications.length > 5 ? 'cv-cert-grid' : ''}">
-                ${cv.certifications.map(c => `<div class="cv-cert-item"><b>${c.name}</b>${c.institution ? ' — ' + c.institution : ''}</div>`).join('')}
-                </div>
+                <ul class="cv-cert-list" style="padding-left:16px;list-style:disc;">
+                ${cv.certifications.map(c => `<li class="cv-cert-item">${c.name}${c.institution ? ' — ' + c.institution : ''}</li>`).join('')}
+                </ul>
             ` : '';
 
             // Projects section

@@ -201,7 +201,8 @@ REGRAS CRÍTICAS:
 1. Use EXATAMENTE as palavras-chave da vaga no currículo (não use sinônimos — ATS faz match literal).
 2. Coloque as palavras-chave mais importantes nas primeiras linhas de cada seção (recrutadores escaneiam em F-pattern).
 3. Formato cronológico reverso OBRIGATÓRIO nas experiências.
-4. Cada bullet point DEVE iniciar com VERBO DE AÇÃO forte no passado (Desenvolveu, Implementou, Liderou, Reduziu, Automatizou).
+4. Cada bullet point DEVE iniciar com VERBO DE AÇÃO forte no PRETÉRITO, TERCEIRA PESSOA (Desenvolveu, Implementou, Liderou, Reduziu, Automatizou, Atuou, Auxiliou).
+   NUNCA use primeira pessoa (Desenvolvi, Implementei, Liderei). O CV é escrito em terceira pessoa.
 5. Quantifique resultados SEMPRE que possível (%, R$, números, prazos, escala de equipe).
 6. Se o candidato não forneceu métricas, ESTIME métricas conservadoras e plausíveis (ex: "equipe de 5+", "redução de ~15%").
 7. NÃO altere os cargos das experiências — copie EXATAMENTE do perfil (veja seção DADOS IMUTÁVEIS).
@@ -212,7 +213,9 @@ Você receberá uma lista de KEYWORDS FALTANTES. Regras para inserção:
 
 a) RESUMO PROFISSIONAL: Máximo 5 termos técnicos. Escreva como narrativa fluida e impactante.
    NÃO como lista disfarçada de parágrafo. Conecte com a experiência real.
+   Use verbos no PRETÉRITO e TERCEIRA PESSOA (Atuou, Desenvolveu, Contribuiu). NUNCA primeira pessoa.
    RUIM: "Proficiente em Java 17+, Spring MVC, Spring Security e Spring Data JPA..."
+   RUIM: "Tenho experiência em..." / "Desenvolvi sistemas..." (primeira pessoa = PROIBIDO)
    BOM: "Desenvolvedor Full Stack com experiência sólida em ecossistema Spring e React, atuando em APIs RESTful com autenticação segura."
 
 b) BULLETS DAS EXPERIÊNCIAS: Só adicione keywords que tenham CONEXÃO REAL com a atividade.
@@ -247,6 +250,13 @@ nome dos cursos e instituições de ensino são FATOS VERIFICÁVEIS. Copie-os LI
 Esta regra se aplica a: nome completo, CARGOS, empresas, cursos, instituições, datas.
 
 ${focusInstructions}
+
+RESPEITO ABSOLUTO ÀS SELEÇÕES DO USUÁRIO:
+- O usuário recebeu sugestões de melhoria e ESCOLHEU quais aplicar. As sugestões aprovadas aparecerão abaixo em "EDIÇÕES APROVADAS".
+- Qualquer sugestão que o usuário NÃO selecionou deve ser COMPLETAMENTE IGNORADA. NÃO aplique melhorias que o usuário rejeitou.
+- Se NÃO há edições aprovadas para uma seção (ex: Resumo), copie o conteúdo ORIGINAL do perfil para essa seção. NÃO reescreva, NÃO "melhore" por conta própria.
+- Os "PROBLEMAS IDENTIFICADOS" e "AÇÕES RECOMENDADAS" são apenas contexto informativo. Eles NÃO autorizam edições — somente as EDIÇÕES APROVADAS autorizam alterações.
+- RESUMO PROFISSIONAL: Se nenhuma edição aprovada menciona o resumo, use o resumo original do perfil como base. Você pode ajustar levemente para ATS/keywords, mas NÃO mude o sentido, o tom, nem a estrutura.
 
 RESTRIÇÕES DE TAMANHO:
 - Máximo 1 página A4 (guia para concisão, não regra absoluta).
