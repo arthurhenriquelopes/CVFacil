@@ -366,9 +366,9 @@ nome dos cursos e instituições de ensino são FATOS VERIFICÁVEIS. Copie-os LI
 ✗ ALUCINAÇÃO (proibido): Candidato tem "Sistemas de Informação" → output diz "Ciência da Computação"
 ✗ ALUCINAÇÃO (proibido): Candidato tem "IFMA" → output diz "Universidade Federal do Maranhão"
 ✗ ALUCINAÇÃO (proibido): Cargo é "Estagiário de Desenvolvimento Full Stack" → output diz "Desenvolvedor Java Estagiário"
-✓ CORRETO: Copie EXATAMENTE o cargo, curso, instituição e empresa como estão no perfil.
+✓ CORRETO: Copie EXATAMENTE o cargo, curso, instituição, empresa e informações de projetos como estão no perfil.
 
-Esta regra se aplica a: nome completo, CARGOS, empresas, cursos, instituições, datas.
+Esta regra se aplica a: nome completo, CARGOS, empresas, cursos, instituições, datas, e título/papel/descrição de projetos.
 
 ${focusInstructions}
 
@@ -410,7 +410,8 @@ FORMATO DE RESPOSTA (JSON):
   "projects": [
     {
       "title": "Nome do Projeto",
-      "description": "Descrição do projeto e suas contribuições com palavras-chave"
+      "role": "Papel/Cargo (copie EXATAMENTE do perfil)",
+      "description": "Descrição do projeto (copie EXATAMENTE do perfil, não altere ou resuma)"
     }
   ],
   "education": [

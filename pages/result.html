@@ -433,7 +433,7 @@
                 <div class="cv-section-title">Projetos</div>
                 ${cv.projects.map(p => `
                     <div class="cv-proj-item">
-                        <div class="cv-proj-title">${p.title}</div>
+                        <div class="cv-proj-title">${p.title} ${p.role ? `<span style="font-weight: 400; color: var(--color-gray-600); font-style: italic;">— ${p.role}</span>` : ''}</div>
                         <div class="cv-proj-desc">${p.description}</div>
                     </div>
                 `).join('')}
