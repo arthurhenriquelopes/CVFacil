@@ -407,6 +407,12 @@ FORMATO DE RESPOSTA (JSON):
       "bullets": ["Verbo de ação + o que fez + resultado quantificado + keyword integrada"]
     }
   ],
+  "projects": [
+    {
+      "title": "Nome do Projeto",
+      "description": "Descrição do projeto e suas contribuições com palavras-chave"
+    }
+  ],
   "education": [
     {
       "institution": "Instituição (SIGLA)",
