@@ -80,12 +80,20 @@ Cada sugestão é uma recomendação cirúrgica de uma das seguintes ações:
 - REMOVE: remover o que prejudica a leitura em 8 segundos ou suja o ATS.
 - REWRITE: aplicar o Método XYZ substituindo trechos passivos ou vagos por bullets de alto impacto.
 - IMPROVE: refinar um trecho.
-- QUESTION: perguntar ao candidato se ele tem experiência prática com uma tecnologia/habilidade exigida pela vaga que não está no CV. Use o campo 'proposed' para o texto da pergunta (ex: "Você tem experiência com Docker?").
+- QUESTION: perguntar ao candidato se ele tem experiência prática com uma tecnologia/habilidade que está EXPLICITAMENTE ESCRITA na descrição da vaga mas que NÃO aparece no CV. Use o campo 'proposed' para o texto da pergunta (ex: "Você tem experiência com Docker?").
+
+REGRA ABSOLUTA SOBRE QUESTION:
+⛔ A ação QUESTION só pode ser usada quando TODAS as condições abaixo forem verdadeiras:
+  1. O usuário forneceu uma DESCRIÇÃO DA VAGA (campo jobDescription NÃO está vazio).
+  2. A tecnologia/habilidade mencionada na pergunta aparece LITERALMENTE no texto da descrição da vaga.
+  3. Essa tecnologia NÃO aparece no currículo do candidato.
+⛔ Se NÃO houver descrição da vaga (apenas objetivo profissional), NÃO gere NENHUMA ação QUESTION. Zero. Nenhuma.
+⛔ NUNCA invente ou suponha tecnologias que "poderiam ser pedidas". Só pergunte sobre o que está ESCRITO na vaga.
 
 Diretrizes Estratégicas de Edição (Aplique rigorosamente):
 A. "Sobre mim": Reescreva resumos genéricos para serem diretos, declarando a senioridade, stack principal e foco de atuação logo na primeira linha. 
 B. Experiências: NUNCA aceite descrições como "dei manutenção" ou "criei telas". Sugira REWRITEs que forcem o formato bullet point e atrelem a ação à tecnologia e a um resultado/métrica.
-C. Otimização ATS e Eficiência: Em vez de apenas sugerir adicionar uma habilidade que não está no CV, use a ação QUESTION para perguntar se o usuário possui aquele conhecimento antes de adicioná-lo.
+C. Otimização ATS e Eficiência: Se houver uma descrição de vaga com tecnologias que o candidato NÃO tem no CV, use QUESTION para perguntar (respeitando a REGRA ABSOLUTA acima). Se NÃO houver descrição de vaga, use apenas ADD/REWRITE/IMPROVE baseados no que o candidato JÁ tem.
 D. Limpeza: Sugira REMOVE para experiências muito antigas ou irrelevantes. IMPORTANTE: JAMAIS sugira ADD, REMOVE, IMPROVE ou QUESTION para a seção de Certificados/Certificações. A curadoria de certificados será feita por outra IA em uma etapa dedicada, portanto IGNORE totalmente essa seção.
 
 Regras obrigatórias:
@@ -99,10 +107,11 @@ Regras obrigatórias:
    - proposed: o texto concreto a adicionar/substituir, ou a pergunta direta para o candidato (se action=QUESTION). Use null quando action=REMOVE.
    - rationale: frase curta e técnica explicando o ganho ou o motivo da pergunta.
    - impact: HIGH, MEDIUM ou LOW.
-5. NÃO invente empresas, cargos, datas, métricas ou tecnologias. TOLERÂNCIA ZERO PARA ALUCINAÇÃO DE URLs: Nunca invente links de GitHub/LinkedIn/Portfólio com base no nome do candidato. Se for sugerir a adição de um link que o candidato não tem, use APENAS placeholders (ex: \`github.com/[seu-usuario]\`). Use \`proposed\` com placeholders '[ ]' para forçar o candidato a preencher o que faltar.
+5. NÃO invente empresas, cargos, datas, métricas ou tecnologias. TOLERÂNCIA ZERO PARA ALUCINAÇÃO DE URLs: Nunca invente links de GitHub/LinkedIn/Portfólio com base no nome do candidato.
 6. Cada sugestão deve endereçar um problema real identificado no parecer OU uma oportunidade concreta de ganho competitivo.
 7. Priorize sugestões que apoiem o professionalGoal e, se informado, o targetRole.
 8. Não inclua emojis, meta-comentários, disclaimers ou introduções. Entregue apenas a lista estruturada.
+9. PROIBIDO SUGESTÕES GENÉRICAS: Toda sugestão DEVE ser concreta e específica ao candidato. NUNCA gere sugestões com textos vagos como "[Nova experiência relevante]", "[Projeto que demonstre habilidades]", "[Adicione algo aqui]" ou qualquer texto entre colchetes que seja um placeholder genérico. Se você não consegue dar uma sugestão concreta baseada nos dados reais do CV, NÃO gere a sugestão. O campo "proposed" deve conter SEMPRE texto final e aplicável, nunca templates.
 
 RESPONDA EXCLUSIVAMENTE em JSON válido com o seguinte schema:
 {
@@ -247,6 +256,34 @@ export async function analyzeJob({ cvText, profile, professionalGoal, targetRole
   // Stage 2: Improvement Suggestions
   if (onStageChange) onStageChange('improvements');
   const improvements = await improvementSuggestions(cvText, analysis, professionalGoal, targetRole, jobDescription);
+
+  // DETERMINISTIC GUARD: If no job description was provided, strip ALL QUESTION actions.
+  // The AI sometimes hallucinates technologies "that could be useful" even without a real job posting.
+  // This code-level filter ensures questions ONLY appear when there's an actual job description to base them on.
+  if (!jobDescription || !jobDescription.trim()) {
+    if (improvements?.suggestions) {
+      const before = improvements.suggestions.length;
+      improvements.suggestions = improvements.suggestions.filter(s => s.action !== 'QUESTION');
+      if (improvements.suggestions.length < before) {
+        console.log(`🛡️ Filtro determinístico: removidas ${before - improvements.suggestions.length} QUESTIONs (sem descrição de vaga)`);
+      }
+    }
+  }
+
+  // DETERMINISTIC GUARD 2: Strip generic placeholder suggestions
+  // The AI sometimes generates lazy suggestions like "[Nova experiência relevante]"
+  if (improvements?.suggestions) {
+    const before2 = improvements.suggestions.length;
+    improvements.suggestions = improvements.suggestions.filter(s => {
+      const proposed = s.proposed || '';
+      // Reject if proposed text is mostly a placeholder template
+      const hasGenericBrackets = /\[.*(?:experiência|projeto|habilidade|adicione|relevante|demonstre|novo|nova).*\]/i.test(proposed);
+      return !hasGenericBrackets;
+    });
+    if (improvements.suggestions.length < before2) {
+      console.log(`🛡️ Filtro determinístico: removidas ${before2 - improvements.suggestions.length} sugestões genéricas com placeholders`);
+    }
+  }
 
   if (onStageChange) onStageChange('done');
 

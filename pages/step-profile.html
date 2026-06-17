@@ -28,6 +28,7 @@
         if (p.phone) document.getElementById('phone').value = p.phone;
         if (p.location) document.getElementById('location').value = p.location;
         if (p.linkedin) document.getElementById('linkedin').value = p.linkedin;
+        if (p.github) document.getElementById('github').value = p.github;
         if (p.portfolio) document.getElementById('portfolio').value = p.portfolio;
         if (p.summary) document.getElementById('summary').value = p.summary;
 
@@ -146,7 +147,7 @@
                         <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1rem;">
                             <input class="form-input ds-input" style="grid-column: 1 / -1;" data-type="cert" data-field="title" data-index="${idx}" value="${cert.title || ''}" placeholder="Nome da Certificação">
                             <input class="form-input ds-input" data-type="cert" data-field="issuer" data-index="${idx}" value="${cert.issuer || ''}" placeholder="Instituição emissora">
-                            <input class="form-input ds-input" data-type="cert" data-field="date" data-index="${idx}" value="${cert.date || ''}" placeholder="Data (Mês/Ano)">
+                            <input class="form-input ds-input" data-type="cert" data-field="date" data-index="${idx}" value="${cert.date || ''}" placeholder="Ano">
                         </div>
                         ${renderRemoveBtn('cert', idx)}
                     </div>
@@ -320,6 +321,7 @@
                 phone: document.getElementById('phone').value,
                 location: document.getElementById('location').value,
                 linkedin: document.getElementById('linkedin').value,
+                github: document.getElementById('github').value,
                 portfolio: document.getElementById('portfolio').value,
                 summary: document.getElementById('summary').value
             });
@@ -352,6 +354,7 @@
                 if (profileData.phone) document.getElementById('phone').value = profileData.phone;
                 if (profileData.location) document.getElementById('location').value = profileData.location;
                 if (profileData.linkedin) document.getElementById('linkedin').value = profileData.linkedin;
+                if (profileData.github) document.getElementById('github').value = profileData.github;
                 if (profileData.portfolio) document.getElementById('portfolio').value = profileData.portfolio;
                 if (profileData.summary) document.getElementById('summary').value = profileData.summary;
 
@@ -565,8 +568,12 @@
                         <input class="form-input" id="linkedin" placeholder="linkedin.com/in/seu-perfil">
                     </div>
                     <div>
+                        <label class="form-label" for="github">GitHub <span style="font-weight:400;color:var(--color-text-muted);">(opcional)</span></label>
+                        <input class="form-input" id="github" placeholder="github.com/seu-usuario">
+                    </div>
+                    <div>
                         <label class="form-label" for="portfolio">Portfólio <span style="font-weight:400;color:var(--color-text-muted);">(opcional)</span></label>
-                        <input class="form-input" id="portfolio" placeholder="github.com/user ou portfolio.com">
+                        <input class="form-input" id="portfolio" placeholder="seusite.com">
                     </div>
                 </div>
                 <div style="margin-top:1rem;">

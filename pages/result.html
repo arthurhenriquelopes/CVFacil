@@ -19,7 +19,8 @@
            Based on the example CV (serif, centered header, letter-spaced sections)
            ======================================== */
         .cv-professional {
-            font-family: 'Times New Roman', 'Georgia', 'Cambria', serif;
+            --cv-font: 'Arial', 'Helvetica', sans-serif;
+            font-family: var(--cv-font);
             color: #1a1a1a;
             line-height: 1.35;
             font-size: 10.5pt;
@@ -33,26 +34,30 @@
 
         /* — Header — */
         .cv-professional .cv-header {
-            text-align: center;
-            padding-bottom: 6px;
-            border-bottom: 1.5px solid #1a1a1a;
+            text-align: left;
+            padding-bottom: 8px;
             margin-bottom: 10px;
         }
 
         .cv-professional .cv-name {
-            font-family: 'Times New Roman', 'Georgia', serif;
             font-size: 22pt;
-            font-weight: 400;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
+            font-weight: 700;
+            letter-spacing: -0.01em;
             line-height: 1.15;
+            margin-bottom: 2px;
+        }
+
+        .cv-professional .cv-title {
+            font-size: 11pt;
+            font-weight: 700;
+            color: #1a1a1a;
             margin-bottom: 4px;
         }
 
         .cv-professional .cv-contact-line {
             font-size: 9pt;
             color: #333;
-            line-height: 1.4;
+            line-height: 1.5;
         }
 
         .cv-professional .cv-contact-line .sep {
@@ -152,11 +157,18 @@
             color: #1a1a1a;
         }
 
-        /* — Skills (flat text) — */
+        /* — Skills — */
         .cv-professional .cv-skills-text {
             font-size: 10pt;
             color: #1a1a1a;
             line-height: 1.5;
+        }
+
+        .cv-professional .cv-skills-category {
+            font-size: 10pt;
+            color: #1a1a1a;
+            line-height: 1.5;
+            margin-bottom: 1px;
         }
 
         /* — Languages — */
@@ -173,18 +185,16 @@
         }
 
         /* — Certifications — */
-        .cv-professional .cv-cert-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            column-gap: 16px;
+        .cv-professional .cv-cert-bullets {
+            padding-left: 16px;
+            list-style: disc;
         }
 
-        .cv-professional .cv-cert-item {
+        .cv-professional .cv-cert-bullets li {
             font-size: 10pt;
             color: #1a1a1a;
-            margin-bottom: 4px;
-            line-height: 1.4;
-            break-inside: avoid;
+            margin-bottom: 3px;
+            line-height: 1.35;
         }
 
         /* — Projects — */
@@ -205,24 +215,25 @@
 
         /* ========================================
            PRINT STYLES — Pixel-perfect A4 PDF output
-           Matching the example PDF margins & proportions
            ======================================== */
         @media print {
-            /* Hide everything except the CV */
-            body > *:not(#print-wrapper) { display: none !important; }
-            #print-wrapper { display: block !important; }
+            /* Hide everything except the CV container tree */
+            body > *:not(main) { display: none !important; }
+            main > *:not(#cv-preview) { display: none !important; }
+
+            #cv-preview, #cv-preview *:not(a) {
+                color: #000 !important;
+            }
+            #cv-preview a {
+                color: #0066cc !important;
+            }
 
             @page {
                 size: A4;
-                margin: 12mm 16mm;
+                margin: 10mm 14mm;
             }
 
-            html {
-                -webkit-print-color-adjust: exact !important;
-                print-color-adjust: exact !important;
-            }
-
-            body {
+            html, body {
                 background: white !important;
                 margin: 0 !important;
                 padding: 0 !important;
@@ -230,7 +241,13 @@
                 print-color-adjust: exact !important;
             }
 
-            #print-wrapper {
+            main {
+                display: block !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+
+            #cv-preview {
                 background: white !important;
                 box-shadow: none !important;
                 border-radius: 0 !important;
@@ -244,7 +261,7 @@
             }
 
             /* Prevent browser from shrinking content to fit */
-            #print-wrapper * {
+            #cv-preview * {
                 max-width: 100% !important;
             }
 
@@ -271,22 +288,40 @@
             const h = cv.header || {};
             const container = document.getElementById('cv-preview');
 
-            // Build contact line with pipe separators
-            const contactParts = [];
-            if (h.contact?.email) contactParts.push(h.contact.email);
-            if (h.contact?.phone) contactParts.push(h.contact.phone);
-            if (h.contact?.location) contactParts.push(h.contact.location);
-            if (h.contact?.linkedin) contactParts.push(h.contact.linkedin);
-            const contactLine = contactParts.join('<span class="sep">|</span>');
+            // Build contact lines (stacked, left-aligned like reference)
+            const contactLine1Parts = [];
+            if (h.contact?.location) contactLine1Parts.push(h.contact.location);
+            const contactLine1 = contactLine1Parts.join('');
 
-            // Portfolio from CV data or from profile
-            const portfolio = h.contact?.portfolio || state.profile?.portfolio || '';
+            const contactLine2Parts = [];
+            if (h.contact?.phone) contactLine2Parts.push(h.contact.phone);
+            if (h.contact?.email) contactLine2Parts.push(h.contact.email);
+            const contactLine2 = contactLine2Parts.join('<span class="sep">|</span>');
+
+            // Helper: make a clickable blue link from a URL
+            function makeLink(label, url) {
+                if (!url) return '';
+                const href = url.startsWith('http') ? url : 'https://' + url;
+                return `<a href="${href}" target="_blank" style="color: #0066cc; text-decoration: none;">${label}</a>`;
+            }
+
+            const contactLine3Parts = [];
+            const linkedinUrl = h.contact?.linkedin || state.profile?.linkedin || '';
+            const githubUrl = h.contact?.github || state.profile?.github || '';
+            const portfolioUrl = h.contact?.portfolio || state.profile?.portfolio || '';
+            if (linkedinUrl) contactLine3Parts.push(makeLink('LinkedIn', linkedinUrl));
+            if (githubUrl) contactLine3Parts.push(makeLink('GitHub', githubUrl));
+            if (portfolioUrl) contactLine3Parts.push(makeLink('Portfólio', portfolioUrl));
+            const contactLine3 = contactLine3Parts.join('<span class="sep">|</span>');
 
             // Header
             const headerHTML = `
                 <div class="cv-header">
                     <div class="cv-name">${h.name || state.profile?.name || ''}</div>
-                    <div class="cv-contact-line">${contactLine}</div>
+                    ${h.title ? `<div class="cv-title">${h.title}</div>` : ''}
+                    ${contactLine1 ? `<div class="cv-contact-line">${contactLine1}</div>` : ''}
+                    ${contactLine2 ? `<div class="cv-contact-line">${contactLine2}</div>` : ''}
+                    ${contactLine3 ? `<div class="cv-contact-line">${contactLine3}</div>` : ''}
                 </div>
             `;
 
@@ -335,11 +370,29 @@
                 `).join('')}
             ` : '';
 
-            // Skills section — flat comma-separated text (no categories)
-            const skillsHTML = (cv.skills && cv.skills.length) ? `
-                <div class="cv-section-title">Habilidades Técnicas</div>
-                <div class="cv-skills-text">${cv.skills.join(', ')}</div>
-            ` : '';
+            // Skills section — categorized for IT, flat for non-IT
+            let skillsHTML = '';
+            if (cv.skills) {
+                // New categorized format: { categorized: bool, categories: [{label, items}] }
+                if (cv.skills.categories && Array.isArray(cv.skills.categories)) {
+                    const sectionTitle = cv.skills.categorized ? 'Habilidades' : 'Competências';
+                    const categoriesHtml = cv.skills.categories
+                        .filter(cat => cat.items && cat.items.length)
+                        .map(cat => `<div class="cv-skills-category"><b>${cat.label}:</b> ${cat.items.join(', ')}.</div>`)
+                        .join('');
+                    skillsHTML = categoriesHtml ? `
+                        <div class="cv-section-title">${sectionTitle}</div>
+                        ${categoriesHtml}
+                    ` : '';
+                }
+                // Legacy flat array format: ["skill1", "skill2"]
+                else if (Array.isArray(cv.skills) && cv.skills.length) {
+                    skillsHTML = `
+                        <div class="cv-section-title">Habilidades Técnicas</div>
+                        <div class="cv-skills-text">${cv.skills.join(', ')}</div>
+                    `;
+                }
+            }
 
             // Languages section
             const languagesHTML = (cv.languages && cv.languages.length) ? `
@@ -350,9 +403,29 @@
             // Certifications section
             const certificationsHTML = (cv.certifications && cv.certifications.length) ? `
                 <div class="cv-section-title">Certificações</div>
-                <div class="${cv.certifications.length > 5 ? 'cv-cert-grid' : ''}">
-                ${cv.certifications.map(c => `<div class="cv-cert-item"><b>${c.name}</b>${c.institution ? ' — ' + c.institution : ''}</div>`).join('')}
-                </div>
+                <ul class="cv-cert-bullets">
+                ${cv.certifications.map(c => {
+                    const inst = (c.institution || '').trim().toUpperCase();
+                    let cleanYear = (c.year || c.date || '').trim();
+                    if (cleanYear) {
+                        const yearMatch = cleanYear.match(/\b(19|20)\d{2}\b/);
+                        if (yearMatch) {
+                            cleanYear = yearMatch[0];
+                        }
+                    }
+                    
+                    let suffix = '';
+                    if (inst && cleanYear) {
+                        suffix = ` (${inst}, ${cleanYear})`;
+                    } else if (inst) {
+                        suffix = ` (${inst})`;
+                    } else if (cleanYear) {
+                        suffix = ` (${cleanYear})`;
+                    }
+                    
+                    return `<li>${c.name}${suffix}</li>`;
+                }).join('')}
+                </ul>
             ` : '';
 
             // Projects section
@@ -366,20 +439,8 @@
                 `).join('')}
             ` : '';
 
-            // Portfolio section (optional — only shows if filled)
-            let portfolioDisplay = portfolio;
-            if (portfolio.startsWith('http') || portfolio.startsWith('www')) {
-                const url = portfolio.startsWith('http') ? portfolio : 'https://' + portfolio;
-                portfolioDisplay = `<a href="${url}" target="_blank" style="color: inherit; text-decoration: underline;">${portfolio}</a>`;
-            }
-
-            const portfolioHTML = portfolio ? `
-                <div class="cv-section-title">Portfólio</div>
-                <div class="cv-portfolio-text">${portfolioDisplay}</div>
-            ` : '';
-
             // Assemble the full CV
-            const fullCV = headerHTML + summaryHTML + experienceHTML + educationHTML + skillsHTML + languagesHTML + certificationsHTML + projectsHTML + portfolioHTML;
+            const fullCV = headerHTML + summaryHTML + experienceHTML + educationHTML + skillsHTML + languagesHTML + certificationsHTML + projectsHTML;
 
             container.innerHTML = `<div class="cv-professional" contenteditable="true" spellcheck="false" style="outline:none; cursor:text;" title="Clique para editar">${fullCV}</div>`;
 
@@ -433,57 +494,21 @@
                 }).join('');
             }
 
-            // Setup PDF Download via html2pdf.js (clean PDF, no browser metadata)
-            document.getElementById('btn-download').addEventListener('click', async () => {
-                const btn = document.getElementById('btn-download');
-                const originalText = btn.innerHTML;
-                btn.disabled = true;
-                btn.innerHTML = '<i class="pi pi-spin pi-spinner" style="font-size:1rem;"></i> Gerando PDF...';
-
-                try {
-                    const html2pdf = (await import('html2pdf.js')).default;
-
-                    // Clone the CV preview to avoid modifying the visible one
-                    const cvContent = document.getElementById('cv-preview');
-                    const clone = cvContent.cloneNode(true);
-
-                    // Remove contenteditable to avoid artifacts
-                    clone.querySelectorAll('[contenteditable]').forEach(el => el.removeAttribute('contenteditable'));
-
-                    // Remove any box-shadow/border-radius from the clone for clean PDF
-                    clone.style.boxShadow = 'none';
-                    clone.style.borderRadius = '0';
-                    clone.style.overflow = 'visible';
-
-                    const fileName = `${(h.name || 'CV').replace(/\s+/g, '_')}_Otimizado.pdf`;
-
-                    const opt = {
-                        margin: [5, 8, 5, 8], // top, right, bottom, left (mm)
-                        filename: fileName,
-                        image: { type: 'jpeg', quality: 0.98 },
-                        html2canvas: {
-                            scale: 2,
-                            useCORS: true,
-                            letterRendering: true,
-                            logging: false,
-                        },
-                        jsPDF: {
-                            unit: 'mm',
-                            format: 'a4',
-                            orientation: 'portrait',
-                            compress: true,
-                        },
-                        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] },
-                    };
-
-                    await html2pdf().set(opt).from(clone).save();
-                } catch (err) {
-                    console.error('PDF generation error:', err);
-                    alert('Erro ao gerar PDF. Tente novamente.');
-                } finally {
-                    btn.disabled = false;
-                    btn.innerHTML = originalText;
-                }
+            // Setup PDF Download via native print (Guarantees selectable text for ATS)
+            document.getElementById('btn-download').addEventListener('click', () => {
+                const fileName = `${(h.name || 'CV').replace(/\s+/g, '_')}_Otimizado`;
+                const originalTitle = document.title;
+                
+                // Set title so the "Save as PDF" dialog suggests the right filename
+                document.title = fileName;
+                
+                // Trigger native print (which generates perfect selectable text)
+                window.print();
+                
+                // Restore title after a short delay (gives the print dialog time to grab it)
+                setTimeout(() => {
+                    document.title = originalTitle;
+                }, 1000);
             });
         }
     </script>
@@ -517,6 +542,17 @@
                 <div style="background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.2);padding:0.75rem;border-radius:var(--radius-md);margin-bottom:2rem;display:flex;gap:0.75rem;align-items:flex-start;">
                     <i class="pi pi-pencil" style="color:#3b82f6;margin-top:0.15rem;"></i>
                     <p style="font-size:0.8125rem;color:rgba(255,255,255,0.85);line-height:1.5;margin:0;">O currículo ao lado é <b>totalmente editável</b>! Clique em qualquer texto para fazer ajustes manuais antes de baixar.</p>
+                </div>
+
+                <div style="margin-bottom: 1.5rem;">
+                    <label style="display:block;font-size:0.875rem;font-weight:700;color:var(--color-gray-900);margin-bottom:0.5rem;">Fonte do Currículo</label>
+                    <select id="font-selector" onchange="document.querySelector('.cv-professional').style.setProperty('--cv-font', this.value);" style="width:100%;height:3rem;padding:0 1rem;border-radius:var(--radius-md);border:1px solid var(--color-gray-300);background:white;color:black;font-family:inherit;font-size:0.875rem;cursor:pointer;">
+                        <option value="'Arial', 'Helvetica', sans-serif">Arial (Sugerido)</option>
+                        <option value="'Times New Roman', Times, serif">Times New Roman</option>
+                        <option value="'Calibri', 'Segoe UI', sans-serif">Calibri</option>
+                        <option value="'Georgia', serif">Georgia</option>
+                        <option value="'Verdana', sans-serif">Verdana</option>
+                    </select>
                 </div>
 
                 <button id="btn-download"

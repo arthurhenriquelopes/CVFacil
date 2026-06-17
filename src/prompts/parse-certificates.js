@@ -98,25 +98,25 @@ function detectDate(text) {
   // Pattern 1: "Janeiro 2024", "Jan 2024", "January 2024", "jan/2024"
   const monthYear = new RegExp(`\\b(${allMonths})[\\s./\\-,]*(\\d{4})\\b`, 'gi');
   for (const m of text.matchAll(monthYear)) {
-    dates.push({ text: `${capitalize(m[1])} ${m[2]}`, pos: m.index });
+    dates.push({ text: m[2], pos: m.index });
   }
 
   // Pattern 2: "01/2024", "01-2024", "01.2024" (MM/YYYY)
   const mmYYYY = /\b(0[1-9]|1[0-2])[\/\-\.](20\d{2}|19\d{2})\b/g;
   for (const m of text.matchAll(mmYYYY)) {
-    dates.push({ text: `${m[1]}/${m[2]}`, pos: m.index });
+    dates.push({ text: m[2], pos: m.index });
   }
 
   // Pattern 3: "01/01/2024", "01-01-2024" (DD/MM/YYYY)
   const ddMMYYYY = /\b(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](20\d{2}|19\d{2})\b/g;
   for (const m of text.matchAll(ddMMYYYY)) {
-    dates.push({ text: `${m[1]}/${m[2]}/${m[3]}`, pos: m.index });
+    dates.push({ text: m[3], pos: m.index });
   }
 
   // Pattern 4: "2024-01-15" (ISO)
   const iso = /\b(20\d{2})[\/\-\.](\d{1,2})[\/\-\.](\d{1,2})\b/g;
   for (const m of text.matchAll(iso)) {
-    dates.push({ text: `${m[3]}/${m[2]}/${m[1]}`, pos: m.index });
+    dates.push({ text: m[1], pos: m.index });
   }
 
   // Pattern 5: standalone year "2023", "2024" (only 2015+)

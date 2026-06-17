@@ -6,6 +6,130 @@ import { chatCompletion } from '../api/sonar.js';
 
 import { selectBestCertifications } from './select-certifications.js';
 
+// ═══════════════════════════════════════
+// DETERMINISTIC SUGGESTION APPLICATOR
+// ═══════════════════════════════════════
+/**
+ * Applies user-selected suggestions directly to the profile object.
+ * This is DETERMINISTIC — no AI involved. The profile is mutated in-place
+ * so the AI only sees the final, already-modified data.
+ */
+function applySuggestionsDeterministically(profile, suggestions) {
+  for (const s of suggestions) {
+    const section = (s.section || '').toLowerCase();
+
+    switch (s.action) {
+      case 'REWRITE':
+      case 'IMPROVE': {
+        if (!s.proposed) break;
+
+        // Rewrite summary
+        if (section.includes('resumo') || section.includes('summary') || section.includes('sobre')) {
+          profile.summary = s.proposed;
+          console.log(`  ✅ REWRITE Resumo aplicado`);
+          break;
+        }
+
+        // Rewrite experience bullet/description
+        if (section.includes('experiência') || section.includes('experiencia') || section.includes('experience')) {
+          if (s.current && profile.experiences?.length) {
+            for (const exp of profile.experiences) {
+              if (exp.description && exp.description.includes(s.current)) {
+                exp.description = exp.description.replace(s.current, s.proposed);
+                console.log(`  ✅ REWRITE Experiência "${exp.company}" aplicado`);
+                break;
+              }
+            }
+          }
+        }
+        break;
+      }
+
+      case 'ADD': {
+        if (!s.proposed) break;
+
+        // Add skills
+        if (section.includes('habilidade') || section.includes('skill') || section.includes('técnic')) {
+          const newSkills = s.proposed.split(',').map(sk => sk.trim()).filter(Boolean);
+          if (!profile.skills) profile.skills = [];
+          for (const sk of newSkills) {
+            if (!profile.skills.includes(sk)) {
+              profile.skills.push(sk);
+            }
+          }
+          console.log(`  ✅ ADD Skills: ${newSkills.join(', ')}`);
+          break;
+        }
+
+        // Add to experience description
+        if (section.includes('experiência') || section.includes('experiencia')) {
+          if (profile.experiences?.length) {
+            // Try to match experience by company name in section string
+            const exp = profile.experiences.find(e =>
+              section.includes((e.company || '').toLowerCase())
+            ) || profile.experiences[0];
+            if (exp) {
+              exp.description = (exp.description || '') + '\n' + s.proposed;
+              console.log(`  ✅ ADD Experiência "${exp.company}" aplicado`);
+            }
+          }
+        }
+        break;
+      }
+
+      case 'REMOVE': {
+        // Remove certifications
+        if (section.includes('certificat') || section.includes('certificaç')) {
+          if (s.current && profile.certifications?.length) {
+            const before = profile.certifications.length;
+            profile.certifications = profile.certifications.filter(c => {
+              const certName = (c.name || c.title || '').toLowerCase();
+              const targetName = s.current.toLowerCase().trim();
+              return !certName.includes(targetName) && !targetName.includes(certName);
+            });
+            console.log(`  ✅ REMOVE Certificação: "${s.current}" (${before} → ${profile.certifications.length})`);
+          }
+          break;
+        }
+
+        // Remove from experience
+        if (s.current && (section.includes('experiência') || section.includes('experiencia'))) {
+          if (profile.experiences?.length) {
+            for (const exp of profile.experiences) {
+              if (exp.description && exp.description.includes(s.current)) {
+                exp.description = exp.description.replace(s.current, '').trim();
+                console.log(`  ✅ REMOVE de Experiência "${exp.company}" aplicado`);
+                break;
+              }
+            }
+          }
+        }
+        break;
+      }
+
+      case 'QUESTION': {
+        // User confirmed "Sim, eu possuo" — extract skill from question and add
+        if (s.proposed) {
+          // Extract technology name from question like "Você possui experiência com Docker?"
+          const match = s.proposed.match(/(?:com|em|de)\s+([^?]+)/i);
+          if (match) {
+            const skillName = match[1].replace(/[?.!]/g, '').trim();
+            if (!profile.skills) profile.skills = [];
+            if (!profile.skills.includes(skillName)) {
+              profile.skills.push(skillName);
+              console.log(`  ✅ QUESTION → Skill adicionada: "${skillName}"`);
+            }
+          }
+        }
+        break;
+      }
+
+      default:
+        console.warn(`  ⚠️ Ação desconhecida: ${s.action}`);
+    }
+  }
+}
+
 /**
  * Build a clean, readable profile summary for the AI (no raw JSON).
  */
@@ -16,6 +140,7 @@ function buildProfileSummary(profile) {
   if (profile.phone) parts.push(`Telefone: ${profile.phone}`);
   if (profile.location) parts.push(`Localização: ${profile.location}`);
   if (profile.linkedin) parts.push(`LinkedIn: ${profile.linkedin}`);
+  if (profile.github) parts.push(`GitHub: ${profile.github}`);
   if (profile.portfolio) parts.push(`Portfólio: ${profile.portfolio}`);
   if (profile.summary) parts.push(`Resumo atual: ${profile.summary}`);
 
@@ -59,7 +184,8 @@ function buildProfileSummary(profile) {
   if (profile.certifications?.length) {
     parts.push('\nCertificações:');
     profile.certifications.forEach(cert => {
-      parts.push(`  - ${cert.name || cert.title || 'Certificação'} (${cert.issuer || cert.institution || ''})`);
+      const year = cert.date ? ` (Ano: ${cert.date})` : '';
+      parts.push(`  - ${cert.name || cert.title || 'Certificação'} - Emissor: ${cert.issuer || cert.institution || ''}${year}`);
     });
   }
 
@@ -179,6 +305,14 @@ export async function generateCV({ profile, jobDescription, focus, template, ana
     }
   }
 
+  // ═══ DETERMINISTIC SUGGESTION APPLICATION ═══
+  // Apply user-selected suggestions directly to the profile data.
+  // The AI never sees the suggestions — it only sees the already-modified profile.
+  if (selectedSuggestions.length > 0) {
+    console.log(`🔧 Aplicando ${selectedSuggestions.length} sugestões deterministicamente no perfil...`);
+    applySuggestionsDeterministically(workingProfile, selectedSuggestions);
+  }
+
   // Extract intelligence from the new Evolui-CV analysis format
   const recruiterAnalysis = analysis?.analysis || {};
   const overallScore = recruiterAnalysis.overallScore || 0;
@@ -206,24 +340,14 @@ REGRAS CRÍTICAS:
 6. Se o candidato não forneceu métricas, ESTIME métricas conservadoras e plausíveis (ex: "equipe de 5+", "redução de ~15%").
 7. NÃO altere os cargos das experiências — copie EXATAMENTE do perfil (veja seção DADOS IMUTÁVEIS).
 8. NÃO use formatação markdown (**, *, #, etc.) em NENHUM campo. O output é texto puro renderizado em HTML.
+9. Para as certificações, preencha o campo "year" com apenas o ano de conclusão (4 dígitos). NUNCA inclua o mês, dia ou texto descritivo.
 
-INJEÇÃO DE KEYWORDS (COM HONESTIDADE):
-Você receberá uma lista de KEYWORDS FALTANTES. Regras para inserção:
-
-a) RESUMO PROFISSIONAL: Máximo 5 termos técnicos. Escreva como narrativa fluida e impactante.
-   NÃO como lista disfarçada de parágrafo. Conecte com a experiência real.
-   RUIM: "Proficiente em Java 17+, Spring MVC, Spring Security e Spring Data JPA..."
-   BOM: "Desenvolvedor Full Stack com experiência sólida em ecossistema Spring e React, atuando em APIs RESTful com autenticação segura."
-
-b) BULLETS DAS EXPERIÊNCIAS: Só adicione keywords que tenham CONEXÃO REAL com a atividade.
-   Se o candidato usou JWT → pode mencionar "autenticação JWT/OAuth2".
-   Se o candidato usou Docker → pode mencionar "deploy em containers Docker (AWS ECS)".
-   NÃO invente experiências. Se não há conexão possível, NÃO force a keyword no bullet.
-
-c) LISTA DE SKILLS: Keywords faltantes que NÃO puderam ser conectadas a experiências reais
-   devem ir aqui e SOMENTE aqui. Marque-as no campo "injectedSkills" do JSON.
-
-REGRA DE COERÊNCIA: Nunca invente experiências. O candidato será perguntado sobre tudo na entrevista.
+REGRAS DE KEYWORDS E HABILIDADES (HALUCINAÇÃO ZERO):
+1. RESUMO PROFISSIONAL E EXPERIÊNCIAS: Otimize os textos usando as keywords da vaga, MAS APENAS se houver conexão real e lógica com o que o candidato já fez. NÃO invente que o candidato usou ferramentas não citadas.
+2. LISTA DE SKILLS (HABILIDADES): VOCÊ É ESTRITAMENTE PROIBIDO de adicionar habilidades, ferramentas ou tecnologias que NÃO estejam explicitamente no "PERFIL DO CANDIDATO" ou nas "EDIÇÕES APROVADAS".
+3. Se a vaga pede certas tecnologias (ex: AWS, Grafana, Quarkus), mas o candidato NÃO as possui no perfil e elas não aparecem nas "EDIÇÕES APROVADAS", você NÃO DEVE incluir essas palavras no currículo. O usuário já passou por uma triagem e NEGOU ter essas habilidades. Inventá-las é uma VIOLAÇÃO GRAVE.
+4. O array "injectedSkills" só deve conter itens se eles vieram das "EDIÇÕES APROVADAS". Caso contrário, deixe-o vazio.
+5. REGRA DE COERÊNCIA: Nunca invente experiências ou conhecimentos. O candidato será testado na entrevista.
 
 ESTRATÉGIA DE MÁXIMA EMPREGABILIDADE:
 - Enfatize prontidão, impacto imediato e competência demonstrada para a vaga.
@@ -272,7 +396,7 @@ FORMATO DE RESPOSTA (JSON):
   "header": {
     "name": "Nome Completo",
     "title": "Título profissional calibrado ao nível real + keywords da vaga",
-    "contact": { "email": "", "phone": "", "location": "", "linkedin": "", "portfolio": "" }
+    "contact": { "email": "", "phone": "", "location": "", "linkedin": "", "github": "", "portfolio": "" }
   },
   "summary": "Resumo profissional otimizado com palavras-chave da vaga (máx. 3 linhas)",
   "experiences": [
@@ -290,15 +414,25 @@ FORMATO DE RESPOSTA (JSON):
       "period": "Mês Ano — Mês Ano"
     }
   ],
-  "skills": ["skill1", "skill2", "skill3"],
-  "injectedSkills": ["skills que NÃO estavam no perfil original mas foram adicionadas para ATS"],
+  "skills": {
+    "categorized": true,
+    "categories": [
+      { "label": "Nome da Categoria (ex: Back-End)", "items": ["Habilidade Real do Perfil 1", "Habilidade Real do Perfil 2"] },
+      { "label": "Nome da Categoria (ex: Ferramentas)", "items": ["Outra Habilidade Real 1", "Outra Habilidade Real 2"] }
+    ]
+  },
+  "injectedSkills": ["apenas skills aprovadas pelo usuario em edicoes"],
   "languages": [{ "name": "Português", "level": "Nativo" }],
-  "certifications": [{ "name": "Cert", "institution": "Org" }],
+  "certifications": [{ "name": "Nome do Certificado", "institution": "Instituição Emissora", "year": "Ano de conclusão" }],
   "keywordsUsed": ["lista de todas as keywords da vaga usadas no CV"],
   "resultFormat": false
 }
 
-IMPORTANTE SOBRE SKILLS: Retorne TODAS as habilidades técnicas como uma lista FLAT simples, sem categorias ou agrupamentos. O frontend renderiza como texto corrido separado por vírgulas.`;
+IMPORTANTE SOBRE SKILLS:
+- ATENÇÃO: As categorias e skills no JSON acima são APENAS EXEMPLOS. Você DEVE extrair as habilidades REAIS do perfil do candidato e criar categorias lógicas. NUNCA copie habilidades do exemplo para o output final a menos que o candidato as possua.
+- Se a vaga for de TI/Desenvolvimento/Engenharia de Software, retorne skills.categorized = true e agrupe as habilidades reais em categorias lógicas.
+- Se a vaga NÃO for de TI, retorne skills.categorized = false e coloque tudo em uma única categoria com label "Competências".
+- Cada categoria deve ter um "label" (nome) e "items" (array de strings).`;
 
   const profileSummary = buildProfileSummary(workingProfile);
 
@@ -318,26 +452,6 @@ PARECER DO RECRUTADOR: ${executiveSummary}
 PONTOS FORTES IDENTIFICADOS: ${JSON.stringify(strengths)}
 → Mantenha e destaque estes pontos no CV.
 
-${issues.length ? `PROBLEMAS IDENTIFICADOS:\n${issues.map(i => `  - [${i.severity}] ${i.section}: ${i.problem} → ${i.suggestion || ''}`).join('\n')}` : ''}
-
-${recommendedActions.length ? `AÇÕES RECOMENDADAS:\n${recommendedActions.map(a => `  - ${a}`).join('\n')}` : ''}
-
-${selectedSuggestions.length ? `🔴 URGENTE E OBRIGATÓRIO: O USUÁRIO APROVOU AS SEGUINTES EDIÇÕES. ELAS TÊM PRIORIDADE MÁXIMA E DEVEM SOBRESCREVER QUALQUER DADO ANTERIOR:
-${selectedSuggestions.map(s => {
-  if (s.action === 'QUESTION') {
-    return `  [NOVA INFORMAÇÃO] O usuário confirmou que possui a habilidade mencionada na pergunta: "${s.proposed}".\n  -> AÇÃO OBRIGATÓRIA: Adicione essa habilidade/tecnologia na seção ${s.section || 'Habilidades'} e/ou integre nas Experiências.`;
-  }
-  if (s.action === 'REMOVE') {
-    return `  [EDIÇÃO APROVADA - SEÇÃO: ${s.section}]\n  -> AÇÃO OBRIGATÓRIA: REMOVA COMPLETAMENTE O SEGUINTE TRECHO: "${s.current || '...'}"`;
-  }
-  if (s.action === 'ADD') {
-    return `  [EDIÇÃO APROVADA - SEÇÃO: ${s.section}]\n  -> AÇÃO OBRIGATÓRIA: ADICIONE O SEGUINTE TEXTO NOVO: "${s.proposed || ''}"`;
-  }
-  return `  [EDIÇÃO APROVADA - SEÇÃO: ${s.section}]\n  TEXTO ANTIGO: "${s.current || '...'}"\n  -> AÇÃO OBRIGATÓRIA: SUBSTITUA COMPLETAMENTE pelo NOVO TEXTO EXATO: "${s.proposed || ''}"`;
-}).join('\n\n')}
-
-⚠️ REGRA SOBRE PLACEHOLDERS NAS EDIÇÕES APROVADAS: Se as edições acima contiverem placeholders como "[X]%", "[ ]" ou "[nome da ferramenta]", VOCÊ DEVE PREENCHÊ-LOS. Estime métricas conservadoras e plausíveis para o contexto (ex: substitua "[X]%" por "~15%" ou "[X]" por "+5"). NUNCA gere um JSON contendo colchetes vazios ou [X].` : ''}
-
 ${certSelectionResult ? `🎯 CERTIFICAÇÕES CURADAS POR IA (use SOMENTE estas no CV):\n${certSelectionResult.selected?.map(s => `  ✓ ${s.title} — ${s.reason}`).join('\n') || 'Nenhuma selecionada'}\n${certSelectionResult.dropped?.length ? `  Descartadas: ${certSelectionResult.dropped.map(d => d.title).join(', ')}` : ''}` : ''}
 
 Meta: Elevar o score para 85%+ após a otimização.
@@ -348,9 +462,11 @@ Email: ${profile.email || ''}
 Telefone: ${profile.phone || ''}
 Localização: ${profile.location || ''}
 LinkedIn: ${profile.linkedin || ''}
+GitHub: ${profile.github || ''}
 Portfólio: ${profile.portfolio || ''}
 ${(profile.education || []).length ? `Formação (copie degree e institution EXATAMENTE assim):\n${(profile.education || []).map(e => `  degree="${e.degree}" | institution="${e.institution}" | period="${e.startDate || ''}–${e.endDate || ''}"`).join('\n')}` : ''}
 ${(profile.experiences || []).length ? `Empresas (copie company e title EXATAMENTE assim):\n${(profile.experiences || []).map(e => `  company="${e.company}" | title="${e.title}"`).join('\n')}` : ''}
+${(workingProfile.certifications || []).length ? `\n🔒 CERTIFICAÇÕES OBRIGATÓRIAS — COPIE TODAS, SEM EXCEÇÃO:\nO usuário já passou por uma curadoria de certificados. A lista abaixo é FINAL e IMUTÁVEL. Você DEVE incluir TODAS no JSON de saída, sem adicionar nem remover nenhuma:\n${workingProfile.certifications.map((c, i) => `  ${i + 1}. name="${c.name || c.title}" | institution="${c.issuer || c.institution || ''}" | year="${c.date || c.year || ''}"`).join('\n')}` : ''}
 
 Gere o currículo otimizado em formato JSON. Respeite as restrições de tamanho.`;
 
@@ -391,6 +507,19 @@ Gere o currículo otimizado em formato JSON. Respeite as restrições de tamanho
   if (!parsed) {
     console.error('Failed to parse CV response after retry:', response);
     throw new Error('Erro ao gerar currículo: a IA não retornou um JSON válido após 2 tentativas.');
+  }
+
+  // DETERMINISTIC GUARD: Force exact text to prevent AI hallucination or unapproved rewrites
+  if (workingProfile.summary) {
+    parsed.summary = workingProfile.summary;
+  }
+
+  if (workingProfile.certifications && workingProfile.certifications.length > 0) {
+    parsed.certifications = workingProfile.certifications.map(c => ({
+      name: c.name || c.title || '',
+      institution: c.issuer || c.institution || '',
+      year: c.date ? c.date.substring(0, 4) : (c.year || '')
+    }));
   }
 
   return parsed;

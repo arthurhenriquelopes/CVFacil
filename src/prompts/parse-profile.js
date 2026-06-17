@@ -24,6 +24,9 @@ export async function parseProfileFromText(rawText) {
     "email": "",
     "phone": "",
     "location": "",
+    "linkedin": "",
+    "github": "",
+    "portfolio": "",
     "summary": "",
     "skills": [],
     "experiences": [
