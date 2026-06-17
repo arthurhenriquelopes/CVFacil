@@ -4,10 +4,17 @@
  * Center: Recruiter analysis (issues, strengths, actions)
  * Right: Improvement suggestions (selectable for CV generation)
  */
-import { getState, setState } from '/src/lib/store.js';
+import { getState, setState, resetJobState } from '/src/lib/store.js';
 
 const state = getState();
 const res = state.analysisResult;
+
+// Handle Novo Teste link
+document.getElementById('btn-new-test')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    resetJobState();
+    window.location.href = '/pages/step-ats-scanner.html';
+});
 
 if (!res || !res.analysis) {
   window.location.href = '/pages/dashboard.html';

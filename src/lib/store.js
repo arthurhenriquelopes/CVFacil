@@ -19,6 +19,7 @@ const DEFAULT_STATE = {
         projects: [],
         certifications: [],
         linkedin: '',
+        github: '',
         portfolio: '',
     },
     cvText: '',
@@ -63,4 +64,16 @@ export function resetState() {
 
 export function resetFlow() {
     setState({ flow: null });
+}
+
+export function resetJobState() {
+    setState({
+        professionalGoal: '',
+        targetRole: '',
+        jobDescription: '',
+        analysisResult: null,
+        selectedSuggestions: [],
+        selectedCertifications: null,
+        generatedCV: null,
+    });
 }

@@ -205,7 +205,7 @@
 <body>
     <script type="module">
         import { injectNavbar } from '/src/lib/layout.js';
-        import { getState, resetFlow } from '/src/lib/store.js';
+        import { getState, resetFlow, resetJobState } from '/src/lib/store.js';
         injectNavbar({ activePage: 'dashboard' });
         const state = getState();
         const name = state.profile?.name || 'Usuário';
@@ -220,8 +220,11 @@
         document.getElementById('greeting-time').textContent = timeGreeting;
 
         document.querySelectorAll('a[href="/pages/step-profile.html"]').forEach(btn => {
-            btn.addEventListener('click', () => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
                 resetFlow();
+                resetJobState();
+                window.location.href = '/pages/step-profile.html';
             });
         });
     </script>
