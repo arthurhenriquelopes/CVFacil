@@ -542,6 +542,33 @@
                     <i class="pi pi-pencil" style="color:#3b82f6;margin-top:0.15rem;"></i>
                     <p style="font-size:0.8125rem;color:rgba(255,255,255,0.85);line-height:1.5;margin:0;">O currículo ao lado é <b>totalmente editável</b>! Clique em qualquer texto para fazer ajustes manuais antes de baixar.</p>
                 </div>
+                <div style="margin-bottom: 1.5rem;">
+                    <label style="display:block;font-size:0.875rem;font-weight:700;color:var(--color-gray-900);margin-bottom:0.5rem;">Traduzir Currículo (Automático)</label>
+                    <div id="google_translate_element"></div>
+                    <script type="text/javascript">
+                        function googleTranslateElementInit() {
+                            new google.translate.TranslateElement({ pageLanguage: 'pt', includedLanguages: 'en,es', layout: google.translate.TranslateElement.InlineLayout.SIMPLE }, 'google_translate_element');
+                        }
+                    </script>
+                    <script type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+                    <style>
+                        /* Hide Google Translate top banner */
+                        .goog-te-banner-frame.skiptranslate { display: none !important; }
+                        body { top: 0px !important; }
+                        /* Style the translate widget to blend in */
+                        .goog-te-gadget-simple {
+                            background-color: white !important;
+                            border: 1px solid var(--color-gray-300) !important;
+                            border-radius: var(--radius-md) !important;
+                            padding: 0.5rem 1rem !important;
+                            font-size: 0.875rem !important;
+                            height: 3rem !important;
+                            display: flex !important;
+                            align-items: center !important;
+                            width: 100% !important;
+                        }
+                    </style>
+                </div>
 
                 <div style="margin-bottom: 1.5rem;">
                     <label style="display:block;font-size:0.875rem;font-weight:700;color:var(--color-gray-900);margin-bottom:0.5rem;">Fonte do Currículo</label>
