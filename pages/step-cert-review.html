@@ -206,6 +206,9 @@
             loadingEl.style.display = 'none';
             resultsEl.style.display = 'block';
 
+            // Sort selected certs alphabetically by title
+            selectedCerts.sort((a, b) => (a.title || '').localeCompare(b.title || ''));
+
             document.getElementById('selected-count').textContent = selectedCerts.length;
             document.getElementById('total-count').textContent = allCerts.length;
 
@@ -343,6 +346,15 @@
                 selectedCerts.push(restored);
                 renderResults();
             }
+            if (e.target.closest('#btn-add-cert-manual')) {
+                selectedCerts.push({
+                    title: "",
+                    issuer: "",
+                    date: "",
+                    _reason: "Adicionado manualmente"
+                });
+                renderResults();
+            }
         });
 
         // Start
@@ -378,9 +390,13 @@
                         <span id="selected-count">0</span> Certificados Selecionados
                     </h2>
                     <p style="color:var(--color-text-secondary); font-weight:500; font-size:0.9375rem; max-width:32rem; margin:0 auto; line-height:1.6;">
-                        A IA escolheu os certificados mais relevantes dentre seus <span id="total-count">0</span>.
-                        Preencha os detalhes abaixo ou pule esta etapa.
+                        De um total de <span id="total-count">0</span>, a IA priorizou os mais estratégicos para a sua vaga.
                     </p>
+                    <div style="margin-top: 1rem;">
+                        <button id="btn-add-cert-manual" style="background:var(--color-gray-800); border:1px solid var(--color-gray-600); color:var(--color-text); padding:0.5rem 1rem; border-radius:0.5rem; font-size:0.875rem; font-weight:600; cursor:pointer; transition:0.2s;" onmouseover="this.style.background='var(--color-gray-700)'" onmouseout="this.style.background='var(--color-gray-800)'">
+                            + Adicionar Certificado
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Cert Grid -->
