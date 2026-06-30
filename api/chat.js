@@ -1,4 +1,4 @@
-// api/chat.js — Gemini / Groq AI proxy
+// api/chat.js — Gemini / OpenRouter / Groq AI proxy
 
 export default async function handler(req, res) {
     if (req.method !== 'POST') return res.status(405).end();
@@ -7,7 +7,9 @@ export default async function handler(req, res) {
 
     try {
         let data;
-        if (provider === 'groq') {
+        if (provider === 'openrouter') {
+            data = await callOpenRouter(messages, { temperature, max_tokens, model, userKeys });
+        } else if (provider === 'groq') {
             data = await callGroq(messages, { temperature, max_tokens, model, userKeys });
         } else {
             // Default: Gemini (Google AI Studio)
@@ -126,6 +128,59 @@ async function callGemini(messages, { temperature = 0.2, max_tokens = 4096, mode
     }
 
     throw new Error(`Todas as chaves Gemini falharam. Último erro: ${lastError?.message || 'Erro desconhecido'}`);
+}
+
+// ─── OpenRouter (OpenAI-compatible) ──────────────────
+let currentOpenRouterKeyIndex = 0;
+
+async function callOpenRouter(messages, { temperature = 0.2, max_tokens = 4096, model = 'google/gemini-2.5-flash-preview-05-20:free', userKeys } = {}) {
+    // Prefer user-provided keys, then fall back to server env keys
+    const envKeys = (process.env.OPENROUTER_API_KEY || '').split(',').map(k => k.trim()).filter(Boolean);
+    const clientKeys = Array.isArray(userKeys) ? userKeys.filter(Boolean) : [];
+    const keys = [...clientKeys, ...envKeys];
+
+    if (keys.length === 0) {
+        throw new Error("Nenhuma chave OpenRouter configurada. Adicione sua chave nas Configurações (⚙️).");
+    }
+
+    let lastError = null;
+
+    for (let i = 0; i < keys.length; i++) {
+        const key = keys[currentOpenRouterKeyIndex % keys.length];
+
+        const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${key}`,
+                'Content-Type': 'application/json',
+                'HTTP-Referer': 'https://cvfacil.vercel.app',
+                'X-Title': 'CVFacil - Gerador de Currículo ATS',
+            },
+            body: JSON.stringify({
+                model,
+                messages,
+                temperature,
+                max_tokens,
+            }),
+        });
+
+        if (response.ok) {
+            return await response.json();
+        }
+
+        const errText = await response.text();
+        lastError = new Error(`OpenRouter ${response.status}: ${errText}`);
+
+        if (response.status === 429 || response.status === 401 || response.status === 403) {
+            console.warn(`OpenRouter Key ${currentOpenRouterKeyIndex % keys.length} failed with ${response.status}. Rotating...`);
+            currentOpenRouterKeyIndex++;
+            continue;
+        }
+
+        throw lastError;
+    }
+
+    throw new Error(`Todas as chaves OpenRouter falharam. Último erro: ${lastError?.message || 'Erro desconhecido'}`);
 }
 
 // ─── Groq (OpenAI-compatible) — Legacy ───────────────

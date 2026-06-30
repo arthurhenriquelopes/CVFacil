@@ -4,7 +4,7 @@
  * Injects a gear icon button and a premium modal for managing
  * AI provider selection and API keys stored in localStorage.
  * 
- * Supports: Google AI Studio (Gemini) and Groq (Legacy).
+ * Supports: Google AI Studio (Gemini) and OpenRouter.
  */
 
 const STORAGE_KEY = 'cvporvaga_api_keys';
@@ -80,17 +80,15 @@ const PROVIDERS = {
         keyPlaceholder: 'AIzaSy...',
         keyUrl: 'https://aistudio.google.com/apikey',
         keyUrlLabel: 'aistudio.google.com/apikey',
-        icon: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>`,
         badge: 'Recomendado',
     },
-    groq: {
-        name: 'Groq (Legado)',
-        description: 'Inferência ultra-rápida. Requer chave própria do Groq.',
-        keyPrefix: 'gsk_',
-        keyPlaceholder: 'gsk_xxxxxxxxxxxxxxxx',
-        keyUrl: 'https://console.groq.com/keys',
-        keyUrlLabel: 'console.groq.com/keys',
-        icon: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>`,
+    openrouter: {
+        name: 'OpenRouter',
+        description: 'Acesso a 500+ modelos. Muitos gratuitos.',
+        keyPrefix: 'sk-or-',
+        keyPlaceholder: 'sk-or-v1-xxxxxxxxxxxx',
+        keyUrl: 'https://openrouter.ai/keys',
+        keyUrlLabel: 'openrouter.ai/keys',
         badge: null,
     },
 };
@@ -178,12 +176,12 @@ function openSettingsModal() {
                             <span style="font-size: 0.8rem; color: var(--color-text-secondary); margin-top: 0.5rem; margin-left: 1.5rem; line-height: 1.3;">Free tier generoso. Melhor qualidade em Português para currículos ATS.</span>
                         </div>
                         
-                        <div class="provider-radio-card card" id="card-groq" style="flex: 1; min-width: 220px; display: flex; flex-direction: column; padding: 1rem; position: relative;">
+                        <div class="provider-radio-card card" id="card-openrouter" style="flex: 1; min-width: 220px; display: flex; flex-direction: column; padding: 1rem; position: relative;">
                             <div style="display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 0.95rem;">
-                                <input type="radio" name="ai-provider" value="groq" id="provider-groq" style="accent-color: var(--color-accent);" />
-                                <span>Groq (Legado)</span>
+                                <input type="radio" name="ai-provider" value="openrouter" id="provider-openrouter" style="accent-color: var(--color-accent);" />
+                                <span>OpenRouter</span>
                             </div>
-                            <span style="font-size: 0.8rem; color: var(--color-text-secondary); margin-top: 0.5rem; margin-left: 1.5rem; line-height: 1.3;">Inferência ultra-rápida. Requer chave própria do Groq.</span>
+                            <span style="font-size: 0.8rem; color: var(--color-text-secondary); margin-top: 0.5rem; margin-left: 1.5rem; line-height: 1.3;">Acesso a 500+ modelos de IA. Muitos gratuitos, sem créditos que expiram.</span>
                         </div>
                     </div>
                 </div>
@@ -233,13 +231,13 @@ function openSettingsModal() {
 
     // Setup Provider state UI
     const geminiRadio = overlay.querySelector('#provider-gemini');
-    const groqRadio = overlay.querySelector('#provider-groq');
+    const openrouterRadio = overlay.querySelector('#provider-openrouter');
     const cardGemini = overlay.querySelector('#card-gemini');
-    const cardGroq = overlay.querySelector('#card-groq');
+    const cardOpenRouter = overlay.querySelector('#card-openrouter');
 
-    if (currentProvider === 'groq') {
-        groqRadio.checked = true;
-        cardGroq.classList.add('selected');
+    if (currentProvider === 'openrouter') {
+        openrouterRadio.checked = true;
+        cardOpenRouter.classList.add('selected');
     } else {
         geminiRadio.checked = true;
         cardGemini.classList.add('selected');
@@ -247,12 +245,14 @@ function openSettingsModal() {
 
     const handleProviderChange = (newProvider) => {
         saveAiProvider(newProvider);
-        if (newProvider === 'groq') {
-            cardGroq.classList.add('selected');
-            cardGemini.classList.remove('selected');
+        // Reset all cards
+        cardGemini.classList.remove('selected');
+        cardOpenRouter.classList.remove('selected');
+        // Highlight selected
+        if (newProvider === 'openrouter') {
+            cardOpenRouter.classList.add('selected');
         } else {
             cardGemini.classList.add('selected');
-            cardGroq.classList.remove('selected');
         }
         updateKeysSection(overlay, newProvider);
         renderKeysList(newProvider);
@@ -263,13 +263,13 @@ function openSettingsModal() {
         handleProviderChange('gemini');
     });
 
-    cardGroq.addEventListener('click', () => {
-        groqRadio.checked = true;
-        handleProviderChange('groq');
+    cardOpenRouter.addEventListener('click', () => {
+        openrouterRadio.checked = true;
+        handleProviderChange('openrouter');
     });
 
     geminiRadio.addEventListener('change', () => handleProviderChange('gemini'));
-    groqRadio.addEventListener('change', () => handleProviderChange('groq'));
+    openrouterRadio.addEventListener('change', () => handleProviderChange('openrouter'));
 
     // Initialize keys section for current provider
     updateKeysSection(overlay, currentProvider);

@@ -3,6 +3,17 @@ import { getApiKeys, getAiProvider } from '../lib/settings.js';
 const API_URL = '/api/chat';
 
 /**
+ * Get the default model for a given provider.
+ */
+function getDefaultModel(provider) {
+    switch (provider) {
+        case 'openrouter': return 'google/gemini-2.5-flash-preview-05-20:free';
+        case 'groq': return 'llama-3.3-70b-versatile';
+        default: return 'gemini-2.5-flash';
+    }
+}
+
+/**
  * Send a chat completion request.
  * @param {Array<{role: string, content: string}>} messages
  * @param {object} [opts]
@@ -27,7 +38,7 @@ export async function chatCompletion(messages, {
         try {
             const userKeys = getApiKeys(selectedProvider);
             const finalProvider = selectedProvider;
-            const finalModel = model || (finalProvider === 'groq' ? 'llama-3.3-70b-versatile' : 'gemini-2.5-flash');
+            const finalModel = model || getDefaultModel(finalProvider);
 
             const response = await fetch(API_URL, {
                 method: 'POST',
