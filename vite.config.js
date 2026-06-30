@@ -64,6 +64,8 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
   // Expose env vars to the API handler when running locally
   process.env.GROQ_API_KEY = env.GROQ_API_KEY;
+  process.env.GEMINI_API_KEY = env.GEMINI_API_KEY;
+  process.env.OPENROUTER_API_KEY = env.OPENROUTER_API_KEY;
 
   return {
     plugins: [vercelApiPlugin()],

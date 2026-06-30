@@ -160,8 +160,6 @@ Analise o currículo acima seguindo rigorosamente suas diretrizes. Responda SOME
   ], {
     temperature: 0.3,
     maxTokens: 4096,
-    provider: 'gemini',
-    model: 'gemini-2.5-flash',
   });
 
   return parseJsonSafe(response);
@@ -191,8 +189,6 @@ Com base no parecer do recrutador e no currículo original, gere as sugestões p
   ], {
     temperature: 0.3,
     maxTokens: 4096,
-    provider: 'gemini',
-    model: 'gemini-2.5-flash',
   });
 
   return parseJsonSafe(response);

@@ -487,7 +487,7 @@ Gere o currículo otimizado em formato JSON. Respeite as restrições de tamanho
 
   // Attempt 1: Gemini 2.5 Flash
   try {
-    response = await chatCompletion(messages, { temperature: 0.4, maxTokens: 4000, provider: 'gemini', model: 'gemini-2.5-flash' });
+    response = await chatCompletion(messages, { temperature: 0.4, maxTokens: 4000 });
     parsed = parseJsonResponse(response);
   } catch (err) {
     console.warn('Gemini 2.5 Flash failed:', err.message);
@@ -497,7 +497,7 @@ Gere o currículo otimizado em formato JSON. Respeite as restrições de tamanho
   if (!parsed) {
     try {
       console.warn('Trying Gemini 2.0 Flash...');
-      response = await chatCompletion(messages, { temperature: 0.4, maxTokens: 4000, provider: 'gemini', model: 'gemini-2.0-flash' });
+      response = await chatCompletion(messages, { temperature: 0.4, maxTokens: 4000 });
       parsed = parseJsonResponse(response);
     } catch (err) {
       console.warn('Gemini 2.0 Flash failed:', err.message);
