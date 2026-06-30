@@ -76,7 +76,7 @@ export async function parseProfileFromText(rawText) {
   const response = await chatCompletion([
     { role: 'system', content: systemPrompt },
     { role: 'user', content: userMessage },
-  ], { temperature: 0.1, provider: 'groq', model: 'llama-3.1-8b-instant' });
+  ], { temperature: 0.1, provider: 'gemini', model: 'gemini-2.0-flash' });
 
   try {
     const jsonMatch = response.match(/\{[\s\S]*\}/);

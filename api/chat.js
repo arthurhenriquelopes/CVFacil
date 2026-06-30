@@ -1,4 +1,4 @@
-// api/chat.js — Groq / OpenAI AI proxy
+// api/chat.js — Gemini / Groq AI proxy
 
 export default async function handler(req, res) {
     if (req.method !== 'POST') return res.status(405).end();
@@ -7,10 +7,11 @@ export default async function handler(req, res) {
 
     try {
         let data;
-        if (provider === 'openai' || (model && model.startsWith('gpt-'))) {
-            data = await callOpenAI(messages, { temperature, max_tokens, model });
-        } else {
+        if (provider === 'groq') {
             data = await callGroq(messages, { temperature, max_tokens, model, userKeys });
+        } else {
+            // Default: Gemini (Google AI Studio)
+            data = await callGemini(messages, { temperature, max_tokens, model, userKeys });
         }
         res.status(200).json(data);
     } catch (err) {
@@ -19,55 +20,117 @@ export default async function handler(req, res) {
     }
 }
 
-let currentKeyIndex = 0;
-let currentOpenAIKeyIndex = 0;
+// ─── Gemini (Google AI Studio) ───────────────────────
+let currentGeminiKeyIndex = 0;
 
-// ─── OpenAI Key Rotation ───────────────────────────
-async function callOpenAI(messages, { temperature = 0.2, max_tokens = 4096, model = 'gpt-4o' } = {}) {
-    const keys = [
-        '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',
-        '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'
-    ];
+/**
+ * Convert OpenAI-style messages to Gemini API format.
+ * Gemini uses `contents[]` with `parts[]` and a separate `systemInstruction`.
+ */
+function convertToGeminiFormat(messages) {
+    let systemInstruction = null;
+    const contents = [];
+
+    for (const msg of messages) {
+        if (msg.role === 'system') {
+            // Gemini uses a separate systemInstruction field
+            systemInstruction = {
+                parts: [{ text: msg.content }]
+            };
+        } else {
+            contents.push({
+                role: msg.role === 'assistant' ? 'model' : 'user',
+                parts: [{ text: msg.content }]
+            });
+        }
+    }
+
+    return { systemInstruction, contents };
+}
+
+/**
+ * Convert Gemini response to OpenAI-compatible format.
+ */
+function geminiToOpenAIFormat(geminiResponse) {
+    const content = geminiResponse?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    return {
+        choices: [{
+            message: {
+                role: 'assistant',
+                content,
+            }
+        }]
+    };
+}
+
+async function callGemini(messages, { temperature = 0.2, max_tokens = 4096, model = 'gemini-2.5-flash', userKeys } = {}) {
+    // Prefer user-provided keys, then fall back to server env keys
+    const envKeys = (process.env.GEMINI_API_KEY || '').split(',').map(k => k.trim()).filter(Boolean);
+    const clientKeys = Array.isArray(userKeys) ? userKeys.filter(Boolean) : [];
+    const keys = [...clientKeys, ...envKeys];
+
+    if (keys.length === 0) {
+        throw new Error("Nenhuma chave Google AI Studio configurada. Adicione sua chave nas Configurações (⚙️).");
+    }
+
+    const { systemInstruction, contents } = convertToGeminiFormat(messages);
 
     let lastError = null;
 
     for (let i = 0; i < keys.length; i++) {
-        const key = keys[currentOpenAIKeyIndex % keys.length];
-        
-        const response = await fetch('https://api.openai.com/v1/chat/completions', {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${key}`,
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                model: model || 'gpt-4o',
-                messages,
+        const key = keys[currentGeminiKeyIndex % keys.length];
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
+
+        const body = {
+            contents,
+            generationConfig: {
                 temperature,
-                max_tokens,
-            }),
-        });
+                maxOutputTokens: max_tokens,
+                responseMimeType: 'application/json',
+            },
+        };
 
-        if (response.ok) {
-            return await response.json();
+        // Only add systemInstruction if present
+        if (systemInstruction) {
+            body.systemInstruction = systemInstruction;
         }
 
-        const errText = await response.text();
-        lastError = new Error(`OpenAI ${response.status}: ${errText}`);
-        
-        if (response.status === 429 || response.status === 401) {
-            console.warn(`OpenAI Key ${currentOpenAIKeyIndex % keys.length} failed with ${response.status}. Rotating...`);
-            currentOpenAIKeyIndex++;
-            continue;
-        }
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body),
+            });
 
-        throw lastError;
+            if (response.ok) {
+                const geminiData = await response.json();
+                return geminiToOpenAIFormat(geminiData);
+            }
+
+            const errText = await response.text();
+            lastError = new Error(`Gemini ${response.status}: ${errText}`);
+
+            // If Rate Limit (429) or Unauthorized (401/403), try the next key
+            if (response.status === 429 || response.status === 401 || response.status === 403) {
+                console.warn(`Gemini Key ${currentGeminiKeyIndex % keys.length} failed with ${response.status}. Rotating...`);
+                currentGeminiKeyIndex++;
+                continue;
+            }
+
+            throw lastError;
+        } catch (fetchError) {
+            if (fetchError === lastError) throw fetchError;
+            lastError = fetchError;
+            currentGeminiKeyIndex++;
+        }
     }
 
-    throw new Error(`Todas as chaves OpenAI falharam. Último erro: ${lastError.message}`);
+    throw new Error(`Todas as chaves Gemini falharam. Último erro: ${lastError?.message || 'Erro desconhecido'}`);
 }
 
-// ─── Groq (OpenAI-compatible) ───────────────────────
+// ─── Groq (OpenAI-compatible) — Legacy ───────────────
+let currentKeyIndex = 0;
+
 async function callGroq(messages, { temperature = 0.2, max_tokens = 4096, model = 'llama-3.3-70b-versatile', userKeys } = {}) {
     // Prefer user-provided keys, then fall back to server env keys
     const envKeys = (process.env.GROQ_API_KEY || '').split(',').map(k => k.trim()).filter(Boolean);
@@ -75,7 +138,7 @@ async function callGroq(messages, { temperature = 0.2, max_tokens = 4096, model 
     const keys = [...clientKeys, ...envKeys];
 
     if (keys.length === 0) {
-        throw new Error("Nenhuma chave Groq configurada. Adicione sua chave nas Configurações (⚙️).");
+        throw new Error("Nenhuma chave Groq configurada. Adicione sua chave nas Configurações (⚙️) ou use o Google AI Studio.");
     }
 
     let lastError = null;
@@ -118,4 +181,3 @@ async function callGroq(messages, { temperature = 0.2, max_tokens = 4096, model 
     // Se esgotar todas as chaves
     throw new Error(`Todas as chaves Groq falharam. Último erro: ${lastError.message}`);
 }
-

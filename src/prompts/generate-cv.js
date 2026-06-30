@@ -504,12 +504,6 @@ Gere o currículo otimizado em formato JSON. Respeite as restrições de tamanho
     }
   }
 
-  // Attempt 3: Groq llama-3.3-70b
-  if (!parsed) {
-    console.warn('Falling back to Groq llama-3.3-70b...');
-    response = await chatCompletion(messages, { temperature: 0.3, maxTokens: 4000, provider: 'groq', model: 'llama-3.3-70b-versatile' });
-    parsed = parseJsonResponse(response);
-  }
 
   if (!parsed) {
     console.error('Failed to parse CV response after retry:', response);

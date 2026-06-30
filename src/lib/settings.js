@@ -1,27 +1,48 @@
 /**
- * Settings Modal — Groq API Key Manager
+ * Settings Modal — AI Provider & Key Manager
  * 
  * Injects a gear icon button and a premium modal for managing
- * multiple Groq API keys stored in localStorage.
+ * AI provider selection and API keys stored in localStorage.
+ * 
+ * Supports: Google AI Studio (Gemini) and Groq (Legacy).
  */
 
-const STORAGE_KEY = 'cvporvaga_groq_keys';
+const STORAGE_KEY = 'cvporvaga_api_keys';
 const PROVIDER_KEY = 'cvporvaga_ai_provider';
 
 // ─── Key Management ───────────────────────────────
 
 export function getAiProvider() {
-    return localStorage.getItem(PROVIDER_KEY) || 'groq';
+    return localStorage.getItem(PROVIDER_KEY) || 'gemini';
 }
 
 export function saveAiProvider(provider) {
     localStorage.setItem(PROVIDER_KEY, provider);
 }
 
-export function getGroqKeys() {
+/**
+ * Get API keys for the current (or specified) provider.
+ * Legacy alias: getGroqKeys() still works for backward compatibility.
+ */
+export function getApiKeys(provider) {
+    const p = provider || getAiProvider();
+    const key = `${STORAGE_KEY}_${p}`;
     try {
-        const raw = localStorage.getItem(STORAGE_KEY);
-        if (!raw) return [];
+        const raw = localStorage.getItem(key);
+        if (!raw) {
+            // Migration: check old key format for groq
+            if (p === 'groq') {
+                const oldRaw = localStorage.getItem('cvporvaga_groq_keys');
+                if (oldRaw) {
+                    const oldKeys = JSON.parse(oldRaw);
+                    if (Array.isArray(oldKeys) && oldKeys.length > 0) {
+                        saveApiKeys(oldKeys, 'groq');
+                        return oldKeys.filter(Boolean);
+                    }
+                }
+            }
+            return [];
+        }
         const keys = JSON.parse(raw);
         return Array.isArray(keys) ? keys.filter(Boolean) : [];
     } catch {
@@ -29,14 +50,50 @@ export function getGroqKeys() {
     }
 }
 
+export function saveApiKeys(keys, provider) {
+    const p = provider || getAiProvider();
+    const key = `${STORAGE_KEY}_${p}`;
+    localStorage.setItem(key, JSON.stringify(keys.filter(Boolean)));
+}
+
+// Backward-compatible aliases
+export function getGroqKeys() {
+    return getApiKeys(getAiProvider());
+}
+
 export function saveGroqKeys(keys) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(keys.filter(Boolean)));
+    saveApiKeys(keys, getAiProvider());
 }
 
 export function getActiveGroqKey() {
-    const keys = getGroqKeys();
+    const keys = getApiKeys();
     return keys.length > 0 ? keys[0] : null;
 }
+
+// ─── Provider Config ──────────────────────────────
+
+const PROVIDERS = {
+    gemini: {
+        name: 'Google AI Studio (Gemini)',
+        description: 'Free tier generoso. Melhor qualidade em Português.',
+        keyPrefix: 'AIza',
+        keyPlaceholder: 'AIzaSy...',
+        keyUrl: 'https://aistudio.google.com/apikey',
+        keyUrlLabel: 'aistudio.google.com/apikey',
+        icon: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>`,
+        badge: 'Recomendado',
+    },
+    groq: {
+        name: 'Groq (Legado)',
+        description: 'Inferência ultra-rápida. Requer chave própria do Groq.',
+        keyPrefix: 'gsk_',
+        keyPlaceholder: 'gsk_xxxxxxxxxxxxxxxx',
+        keyUrl: 'https://console.groq.com/keys',
+        keyUrlLabel: 'console.groq.com/keys',
+        icon: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>`,
+        badge: null,
+    },
+};
 
 // ─── UI Injection ─────────────────────────────────
 
@@ -67,10 +124,7 @@ function updateGearIndicator(btn) {
     const existing = btn.querySelector('.gear-indicator');
     if (existing) existing.remove();
 
-    const provider = getAiProvider();
-    if (provider === 'openai') return; // OpenAI uses embedded keys, no need for warning dot
-
-    const keys = getGroqKeys();
+    const keys = getApiKeys();
     if (keys.length === 0) {
         const dot = document.createElement('span');
         dot.className = 'gear-indicator';
@@ -84,6 +138,8 @@ function openSettingsModal() {
     // Prevent duplicates
     if (document.getElementById('settings-modal-overlay')) return;
 
+    const currentProvider = getAiProvider();
+
     const overlay = document.createElement('div');
     overlay.id = 'settings-modal-overlay';
     overlay.innerHTML = `
@@ -91,7 +147,7 @@ function openSettingsModal() {
             <div class="settings-modal-header">
                 <div>
                     <h2 id="settings-title" class="settings-modal-title">Configurações</h2>
-                    <p class="settings-modal-subtitle">Escolha o provedor de IA e gerencie suas chaves</p>
+                    <p class="settings-modal-subtitle">Escolha o provedor de IA e insira sua chave de API</p>
                 </div>
                 <button id="settings-close-btn" class="settings-close-btn" aria-label="Fechar">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -113,33 +169,34 @@ function openSettingsModal() {
                     </p>
                     
                     <div class="provider-select-group" style="display: flex; gap: 12px; margin-top: 10px; flex-wrap: wrap;">
+                        <div class="provider-radio-card card" id="card-gemini" style="flex: 1; min-width: 220px; display: flex; flex-direction: column; padding: 1rem; position: relative;">
+                            <div style="display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 0.95rem;">
+                                <input type="radio" name="ai-provider" value="gemini" id="provider-gemini" style="accent-color: var(--color-accent);" />
+                                <span>Google AI Studio (Gemini)</span>
+                            </div>
+                            <span class="provider-badge" style="position: absolute; top: 8px; right: 8px; font-size: 0.65rem; padding: 2px 8px; border-radius: 99px; background: var(--color-accent); color: #fff; font-weight: 600; letter-spacing: 0.3px;">RECOMENDADO</span>
+                            <span style="font-size: 0.8rem; color: var(--color-text-secondary); margin-top: 0.5rem; margin-left: 1.5rem; line-height: 1.3;">Free tier generoso. Melhor qualidade em Português para currículos ATS.</span>
+                        </div>
+                        
                         <div class="provider-radio-card card" id="card-groq" style="flex: 1; min-width: 220px; display: flex; flex-direction: column; padding: 1rem; position: relative;">
                             <div style="display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 0.95rem;">
                                 <input type="radio" name="ai-provider" value="groq" id="provider-groq" style="accent-color: var(--color-accent);" />
-                                <span>Groq / Llama (Chave Própria)</span>
+                                <span>Groq (Legado)</span>
                             </div>
-                            <span style="font-size: 0.8rem; color: var(--color-text-secondary); margin-top: 0.5rem; margin-left: 1.5rem; line-height: 1.3;">Use seus limites de requisições inserindo suas chaves próprias do Groq abaixo.</span>
-                        </div>
-                        
-                        <div class="provider-radio-card card" id="card-openai" style="flex: 1; min-width: 220px; display: flex; flex-direction: column; padding: 1rem; position: relative;">
-                            <div style="display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 0.95rem;">
-                                <input type="radio" name="ai-provider" value="openai" id="provider-openai" style="accent-color: var(--color-accent);" />
-                                <span>OpenAI GPT-4o (Cortesia)</span>
-                            </div>
-                            <span style="font-size: 0.8rem; color: var(--color-text-secondary); margin-top: 0.5rem; margin-left: 1.5rem; line-height: 1.3;">Use chaves integradas gratuitamente sem precisar preencher chaves de API.</span>
+                            <span style="font-size: 0.8rem; color: var(--color-text-secondary); margin-top: 0.5rem; margin-left: 1.5rem; line-height: 1.3;">Inferência ultra-rápida. Requer chave própria do Groq.</span>
                         </div>
                     </div>
                 </div>
 
-                <div id="groq-keys-section" class="settings-section">
+                <div id="api-keys-section" class="settings-section">
                     <label class="settings-label">
                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="m21 2-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0 3 3L22 7l-3-3m-3.5 3.5L19 4"/>
                         </svg>
-                        Chaves API Groq
+                        <span id="keys-section-title">Chave API</span>
                     </label>
-                    <p class="settings-hint">
-                        Obtenha sua chave em <a href="https://console.groq.com/keys" target="_blank" rel="noopener">console.groq.com/keys</a>. 
+                    <p class="settings-hint" id="keys-section-hint">
+                        Obtenha sua chave em <a id="keys-url-link" href="#" target="_blank" rel="noopener"></a>. 
                         Adicione múltiplas chaves para rotação automática.
                     </p>
 
@@ -150,7 +207,7 @@ function openSettingsModal() {
                             type="password" 
                             id="new-key-input" 
                             class="form-input settings-input" 
-                            placeholder="gsk_xxxxxxxxxxxxxxxx"
+                            placeholder=""
                             autocomplete="off"
                             spellcheck="false"
                         />
@@ -175,50 +232,48 @@ function openSettingsModal() {
     document.body.appendChild(overlay);
 
     // Setup Provider state UI
-    const provider = getAiProvider();
+    const geminiRadio = overlay.querySelector('#provider-gemini');
     const groqRadio = overlay.querySelector('#provider-groq');
-    const openaiRadio = overlay.querySelector('#provider-openai');
-    const groqSection = overlay.querySelector('#groq-keys-section');
+    const cardGemini = overlay.querySelector('#card-gemini');
     const cardGroq = overlay.querySelector('#card-groq');
-    const cardOpenai = overlay.querySelector('#card-openai');
 
-    if (provider === 'openai') {
-        openaiRadio.checked = true;
-        cardOpenai.classList.add('selected');
-        groqSection.style.display = 'none';
-    } else {
+    if (currentProvider === 'groq') {
         groqRadio.checked = true;
         cardGroq.classList.add('selected');
+    } else {
+        geminiRadio.checked = true;
+        cardGemini.classList.add('selected');
     }
 
     const handleProviderChange = (newProvider) => {
         saveAiProvider(newProvider);
-        if (newProvider === 'openai') {
-            cardOpenai.classList.add('selected');
-            cardGroq.classList.remove('selected');
-            groqSection.style.display = 'none';
-        } else {
+        if (newProvider === 'groq') {
             cardGroq.classList.add('selected');
-            cardOpenai.classList.remove('selected');
-            groqSection.style.display = 'block';
+            cardGemini.classList.remove('selected');
+        } else {
+            cardGemini.classList.add('selected');
+            cardGroq.classList.remove('selected');
         }
+        updateKeysSection(overlay, newProvider);
+        renderKeysList(newProvider);
     };
+
+    cardGemini.addEventListener('click', () => {
+        geminiRadio.checked = true;
+        handleProviderChange('gemini');
+    });
 
     cardGroq.addEventListener('click', () => {
         groqRadio.checked = true;
         handleProviderChange('groq');
     });
 
-    cardOpenai.addEventListener('click', () => {
-        openaiRadio.checked = true;
-        handleProviderChange('openai');
-    });
-
+    geminiRadio.addEventListener('change', () => handleProviderChange('gemini'));
     groqRadio.addEventListener('change', () => handleProviderChange('groq'));
-    openaiRadio.addEventListener('change', () => handleProviderChange('openai'));
 
-    // Render existing keys
-    renderKeysList();
+    // Initialize keys section for current provider
+    updateKeysSection(overlay, currentProvider);
+    renderKeysList(currentProvider);
 
     // Wire events
     const closeBtn = overlay.querySelector('#settings-close-btn');
@@ -240,6 +295,23 @@ function openSettingsModal() {
     requestAnimationFrame(() => {
         overlay.classList.add('active');
     });
+}
+
+/**
+ * Update the keys section UI based on the selected provider.
+ */
+function updateKeysSection(overlay, provider) {
+    const config = PROVIDERS[provider] || PROVIDERS.gemini;
+    const title = overlay.querySelector('#keys-section-title');
+    const link = overlay.querySelector('#keys-url-link');
+    const input = overlay.querySelector('#new-key-input');
+
+    if (title) title.textContent = `Chaves API ${config.name.split('(')[0].trim()}`;
+    if (link) {
+        link.href = config.keyUrl;
+        link.textContent = config.keyUrlLabel;
+    }
+    if (input) input.placeholder = config.keyPlaceholder;
 }
 
 function closeSettingsModal() {
@@ -265,8 +337,11 @@ function addKey(input) {
     const value = input.value.trim();
     if (!value) return;
 
+    const provider = getAiProvider();
+    const config = PROVIDERS[provider];
+
     // Basic validation
-    if (!value.startsWith('gsk_') && value.length < 20) {
+    if (config && config.keyPrefix && !value.startsWith(config.keyPrefix) && value.length < 20) {
         input.style.borderColor = 'var(--color-error)';
         input.style.boxShadow = '0 0 0 3px rgba(239, 68, 68, 0.15)';
         setTimeout(() => {
@@ -276,16 +351,16 @@ function addKey(input) {
         return;
     }
 
-    const keys = getGroqKeys();
+    const keys = getApiKeys(provider);
     if (keys.includes(value)) {
         input.value = '';
         return; // Already exists
     }
 
     keys.push(value);
-    saveGroqKeys(keys);
+    saveApiKeys(keys, provider);
     input.value = '';
-    renderKeysList();
+    renderKeysList(provider);
 
     // Flash success
     input.style.borderColor = 'var(--color-success)';
@@ -296,11 +371,11 @@ function addKey(input) {
     }, 1000);
 }
 
-function removeKey(index) {
-    const keys = getGroqKeys();
+function removeKey(index, provider) {
+    const keys = getApiKeys(provider);
     keys.splice(index, 1);
-    saveGroqKeys(keys);
-    renderKeysList();
+    saveApiKeys(keys, provider);
+    renderKeysList(provider);
 }
 
 function maskKey(key) {
@@ -308,11 +383,12 @@ function maskKey(key) {
     return key.slice(0, 4) + '•'.repeat(Math.min(key.length - 8, 24)) + key.slice(-4);
 }
 
-function renderKeysList() {
+function renderKeysList(provider) {
     const container = document.getElementById('keys-list');
     if (!container) return;
 
-    const keys = getGroqKeys();
+    const p = provider || getAiProvider();
+    const keys = getApiKeys(p);
 
     if (keys.length === 0) {
         container.innerHTML = `
@@ -345,7 +421,7 @@ function renderKeysList() {
     container.querySelectorAll('.key-remove-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             const idx = parseInt(btn.dataset.index, 10);
-            removeKey(idx);
+            removeKey(idx, p);
         });
     });
 }

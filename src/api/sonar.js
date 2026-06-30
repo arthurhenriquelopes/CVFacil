@@ -1,4 +1,4 @@
-import { getGroqKeys, getAiProvider } from '../lib/settings.js';
+import { getApiKeys, getAiProvider } from '../lib/settings.js';
 
 const API_URL = '/api/chat';
 
@@ -21,13 +21,13 @@ export async function chatCompletion(messages, {
     const maxAttempts = 2;
     let attempt = 0;
 
-    const selectedProvider = getAiProvider();
+    const selectedProvider = provider || getAiProvider();
 
     while (attempt < maxAttempts) {
         try {
-            const userKeys = getGroqKeys();
+            const userKeys = getApiKeys(selectedProvider);
             const finalProvider = selectedProvider;
-            const finalModel = finalProvider === 'openai' ? 'gpt-4o' : (model || 'llama-3.3-70b-versatile');
+            const finalModel = model || (finalProvider === 'groq' ? 'llama-3.3-70b-versatile' : 'gemini-2.5-flash');
 
             const response = await fetch(API_URL, {
                 method: 'POST',

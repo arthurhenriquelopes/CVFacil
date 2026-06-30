@@ -10,7 +10,7 @@ import { PROFILE_FULLSTACK_JR, JOB_FINTECH_FULLSTACK } from '../fixtures/mocks.j
 // Instead, test the API proxy directly.
 const API_BASE = process.env.API_BASE || 'http://localhost:5173/api/chat';
 
-async function callAPI(messages, { provider = 'groq', model, temperature = 0.2, maxTokens = 2048 } = {}) {
+async function callAPI(messages, { provider = 'gemini', model, temperature = 0.2, maxTokens = 2048 } = {}) {
   const res = await fetch(API_BASE, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -21,7 +21,7 @@ async function callAPI(messages, { provider = 'groq', model, temperature = 0.2, 
   return data.choices?.[0]?.message?.content ?? '';
 }
 
-describe('Groq llama-3.1-8b-instant (parse-profile)', () => {
+describe('Gemini 2.0 Flash (parse-profile)', () => {
   it('should parse a raw CV text into structured JSON', async () => {
     const rawText = `Arthur Henrique Lopes Feitosa
 arthurhenriquelopesf@gmail.com | 98 99161-2062 | São José de Ribamar, MA
@@ -38,7 +38,7 @@ Inglês: C1 Avançado`;
     const response = await callAPI([
       { role: 'system', content: 'Extraia os dados do currículo em JSON com campos: name, email, phone, skills (array), experiences (array). Retorne APENAS JSON.' },
       { role: 'user', content: rawText },
-    ], { provider: 'groq', model: 'llama-3.1-8b-instant', temperature: 0.1 });
+    ], { provider: 'gemini', model: 'gemini-2.0-flash', temperature: 0.1 });
 
     const jsonMatch = response.match(/\{[\s\S]*\}/);
     expect(jsonMatch).not.toBeNull();
@@ -51,7 +51,7 @@ Inglês: C1 Avançado`;
   }, 15000);
 });
 
-describe('Groq llama-3.3-70b (analyze-job AI enrichment)', () => {
+describe('Gemini 2.5 Flash (analyze-job AI enrichment)', () => {
   it('should generate narrative summary and tips from pre-computed data', async () => {
     const response = await callAPI([
       { role: 'system', content: 'Você é um consultor de carreira. Gere APENAS JSON com campos: summary (string), strengths (array de strings), tips (array de objetos {text, impact}).' },
@@ -60,7 +60,7 @@ SCORE: 55/100 (Aprovado com ressalvas)
 KEYWORDS MATCHED: Spring Boot, React, Docker, PostgreSQL, JWT, Scrum
 KEYWORDS FALTANTES: TypeScript, JUnit, Mockito, Spring Security, AWS ECS
 Gere summary, strengths e tips narrativos em JSON.` },
-    ], { provider: 'groq', model: 'llama-3.3-70b-versatile', temperature: 0.3 });
+    ], { provider: 'gemini', model: 'gemini-2.5-flash', temperature: 0.3 });
 
     const jsonMatch = response.match(/\{[\s\S]*\}/);
     expect(jsonMatch).not.toBeNull();
@@ -89,16 +89,11 @@ KEYWORDS FALTANTES: TypeScript, JUnit, Mockito
 Gere o currículo otimizado em JSON.` },
     ];
 
-    // Try Gemini models first, fall back to Groq if all Gemini endpoints are unavailable
+    // Try Gemini 2.5 Flash first, fall back to 2.0 Flash
     try {
       response = await callAPI(prompt, { provider: 'gemini', model: 'gemini-2.5-flash', temperature: 0.4, maxTokens: 3000 });
     } catch {
-      try {
-        response = await callAPI(prompt, { provider: 'gemini', model: 'gemini-2.0-flash', temperature: 0.4, maxTokens: 3000 });
-      } catch {
-        // Final fallback: Groq (ensures test passes even if Gemini is down)
-        response = await callAPI(prompt, { provider: 'groq', model: 'llama-3.3-70b-versatile', temperature: 0.3, maxTokens: 3000 });
-      }
+      response = await callAPI(prompt, { provider: 'gemini', model: 'gemini-2.0-flash', temperature: 0.4, maxTokens: 3000 });
     }
 
     const jsonMatch = response.match(/\{[\s\S]*\}/);

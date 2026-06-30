@@ -94,8 +94,8 @@ Selecione todas as certificações estratégicas e relevantes para este objetivo
   ], {
     temperature: 0.2,
     maxTokens: 1024,
-    provider: 'groq',
-    model: 'llama-3.3-70b-versatile',
+    provider: 'gemini',
+    model: 'gemini-2.5-flash',
   });
 
   const result = parseJson(response);
