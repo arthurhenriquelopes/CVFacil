@@ -234,6 +234,13 @@ REGRAS ESTRUTURAIS PARA ESTE FOCO:
  * more permissive strategies.
  */
 function parseJsonResponse(response) {
+  if (typeof response !== 'string') return null;
+  // Strip thinking blocks from reasoning models
+  response = response
+    .replace(/<think>[\s\S]*?<\/think>/gi, '')
+    .replace(/<reasoning>[\s\S]*?<\/reasoning>/gi, '')
+    .trim();
+
   // Strategy 1: Match the outermost { ... }
   const match1 = response.match(/\{[\s\S]*\}/);
   if (match1) {
@@ -485,22 +492,22 @@ Gere o currículo otimizado em formato JSON. Respeite as restrições de tamanho
 
   let response, parsed;
 
-  // Attempt 1: Gemini 2.5 Flash
+  // Attempt 1: Default configuration
   try {
-    response = await chatCompletion(messages, { temperature: 0.4, maxTokens: 4000 });
+    response = await chatCompletion(messages, { temperature: 0.4, maxTokens: 6000 });
     parsed = parseJsonResponse(response);
   } catch (err) {
-    console.warn('Gemini 2.5 Flash failed:', err.message);
+    console.warn('Attempt 1 failed:', err.message);
   }
 
-  // Attempt 2: Gemini 2.0 Flash
+  // Attempt 2: Higher temperature and more tokens for fallback
   if (!parsed) {
     try {
-      console.warn('Trying Gemini 2.0 Flash...');
-      response = await chatCompletion(messages, { temperature: 0.4, maxTokens: 4000 });
+      console.warn('Trying Attempt 2 with different settings...');
+      response = await chatCompletion(messages, { temperature: 0.6, maxTokens: 8000 });
       parsed = parseJsonResponse(response);
     } catch (err) {
-      console.warn('Gemini 2.0 Flash failed:', err.message);
+      console.warn('Attempt 2 failed:', err.message);
     }
   }
 
@@ -511,7 +518,10 @@ Gere o currículo otimizado em formato JSON. Respeite as restrições de tamanho
   }
 
   // DETERMINISTIC GUARD: Force exact text to prevent AI hallucination or unapproved rewrites
-  if (workingProfile.summary) {
+  const hasSummaryEdit = selectedSuggestions.some(s => 
+    (s.section || '').toLowerCase().includes('resumo') && s.action === 'REWRITE'
+  );
+  if (workingProfile.summary && !hasSummaryEdit) {
     parsed.summary = workingProfile.summary;
   }
 

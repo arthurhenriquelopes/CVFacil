@@ -1,4 +1,4 @@
-// api/chat.js — Gemini / OpenRouter / Groq AI proxy
+// api/chat.js — Gemini / OpenRouter / Groq / Cerebras / NVIDIA AI proxy
 
 export default async function handler(req, res) {
     if (req.method !== 'POST') return res.status(405).end();
@@ -11,6 +11,10 @@ export default async function handler(req, res) {
             data = await callOpenRouter(messages, { temperature, max_tokens, model, userKeys });
         } else if (provider === 'groq') {
             data = await callGroq(messages, { temperature, max_tokens, model, userKeys });
+        } else if (provider === 'cerebras') {
+            data = await callCerebras(messages, { temperature, max_tokens, model, userKeys });
+        } else if (provider === 'nvidia') {
+            data = await callNvidia(messages, { temperature, max_tokens, model, userKeys });
         } else {
             // Default: Gemini (Google AI Studio)
             data = await callGemini(messages, { temperature, max_tokens, model, userKeys });
@@ -181,6 +185,118 @@ async function callOpenRouter(messages, { temperature = 0.2, max_tokens = 4096, 
     }
 
     throw new Error(`Todas as chaves OpenRouter falharam. Último erro: ${lastError?.message || 'Erro desconhecido'}`);
+}
+
+// ─── Cerebras (OpenAI-compatible) ────────────────────
+let currentCerebrasKeyIndex = 0;
+
+async function callCerebras(messages, { temperature = 0.2, max_tokens = 4096, model = 'gpt-oss-120b', userKeys } = {}) {
+    const envKeys = (process.env.CEREBRAS_API_KEY || '').split(',').map(k => k.trim()).filter(Boolean);
+    const clientKeys = Array.isArray(userKeys) ? userKeys.filter(Boolean) : [];
+    const keys = [...clientKeys, ...envKeys];
+
+    if (keys.length === 0) {
+        throw new Error("Nenhuma chave Cerebras configurada. Adicione sua chave nas Configurações (⚙️).");
+    }
+
+    let lastError = null;
+
+    for (let i = 0; i < keys.length; i++) {
+        const key = keys[currentCerebrasKeyIndex % keys.length];
+
+        try {
+            const response = await fetch('https://api.cerebras.ai/v1/chat/completions', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${key}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    model,
+                    messages,
+                    temperature,
+                    max_tokens,
+                }),
+            });
+
+            if (response.ok) {
+                return await response.json();
+            }
+
+            const errText = await response.text();
+            lastError = new Error(`Cerebras ${response.status}: ${errText}`);
+
+            if (response.status === 429 || response.status === 401 || response.status === 403) {
+                console.warn(`Cerebras Key ${currentCerebrasKeyIndex % keys.length} failed with ${response.status}. Rotating...`);
+                currentCerebrasKeyIndex++;
+                continue;
+            }
+
+            throw lastError;
+        } catch (fetchError) {
+            if (fetchError === lastError) throw fetchError;
+            lastError = fetchError;
+            currentCerebrasKeyIndex++;
+        }
+    }
+
+    throw new Error(`Todas as chaves Cerebras falharam. Último erro: ${lastError?.message || 'Erro desconhecido'}`);
+}
+
+// ─── NVIDIA Build / NIM API (OpenAI-compatible) ──────
+let currentNvidiaKeyIndex = 0;
+
+async function callNvidia(messages, { temperature = 0.2, max_tokens = 4096, model = 'meta/llama-3.3-70b-instruct', userKeys } = {}) {
+    const envKeys = (process.env.NVIDIA_API_KEY || '').split(',').map(k => k.trim()).filter(Boolean);
+    const clientKeys = Array.isArray(userKeys) ? userKeys.filter(Boolean) : [];
+    const keys = [...clientKeys, ...envKeys];
+
+    if (keys.length === 0) {
+        throw new Error("Nenhuma chave NVIDIA Build configurada. Adicione sua chave nas Configurações (⚙️).");
+    }
+
+    let lastError = null;
+
+    for (let i = 0; i < keys.length; i++) {
+        const key = keys[currentNvidiaKeyIndex % keys.length];
+
+        try {
+            const response = await fetch('https://integrate.api.nvidia.com/v1/chat/completions', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${key}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    model,
+                    messages,
+                    temperature,
+                    max_tokens,
+                }),
+            });
+
+            if (response.ok) {
+                return await response.json();
+            }
+
+            const errText = await response.text();
+            lastError = new Error(`NVIDIA ${response.status}: ${errText}`);
+
+            if (response.status === 429 || response.status === 401 || response.status === 403) {
+                console.warn(`NVIDIA Key ${currentNvidiaKeyIndex % keys.length} failed with ${response.status}. Rotating...`);
+                currentNvidiaKeyIndex++;
+                continue;
+            }
+
+            throw lastError;
+        } catch (fetchError) {
+            if (fetchError === lastError) throw fetchError;
+            lastError = fetchError;
+            currentNvidiaKeyIndex++;
+        }
+    }
+
+    throw new Error(`Todas as chaves NVIDIA falharam. Último erro: ${lastError?.message || 'Erro desconhecido'}`);
 }
 
 // ─── Groq (OpenAI-compatible) — Legacy ───────────────

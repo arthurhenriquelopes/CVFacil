@@ -66,6 +66,8 @@ export default defineConfig(({ mode }) => {
   process.env.GROQ_API_KEY = env.GROQ_API_KEY;
   process.env.GEMINI_API_KEY = env.GEMINI_API_KEY;
   process.env.OPENROUTER_API_KEY = env.OPENROUTER_API_KEY;
+  process.env.CEREBRAS_API_KEY = env.CEREBRAS_API_KEY;
+  process.env.NVIDIA_API_KEY = env.NVIDIA_API_KEY;
 
   return {
     plugins: [vercelApiPlugin()],

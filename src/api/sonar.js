@@ -1,4 +1,4 @@
-import { getApiKeys, getAiProvider } from '../lib/settings.js';
+import { getApiKeys, getAiProvider, getSelectedModel } from '../lib/settings.js';
 
 const API_URL = '/api/chat';
 
@@ -9,6 +9,8 @@ function getDefaultModel(provider) {
     switch (provider) {
         case 'openrouter': return 'google/gemini-2.5-flash-preview-05-20:free';
         case 'groq': return 'llama-3.3-70b-versatile';
+        case 'cerebras': return 'gpt-oss-120b';
+        case 'nvidia': return getSelectedModel('nvidia') || 'meta/llama-3.3-70b-instruct';
         default: return 'gemini-2.5-flash';
     }
 }
